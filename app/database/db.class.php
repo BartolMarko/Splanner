@@ -15,8 +15,12 @@ class DB
 	    {
 	    	try
 	    	{
-	    		// TODO: HOSTNAME, DATABASE, USERNAME i PASSWORD
-		    	DB::$db = new PDO( "mysql: host=HOSTNAME; dbname=DATABASE; charset=utf8", 'USERNAME', 'PASSWORD' );
+				$student_username_file = file(__SITE_PATH . "student_username.txt", FILE_IGNORE_NEW_LINES);
+				$student_username = $student_username_file[0];
+				$db_name = $student_username_file[1];
+		    	DB::$db = new PDO(
+					"mysql: host=rp2.studenti.math.hr; dbname=$student_username; charset=utf8", $db_name, "pass.mysql"
+				);
 		    	DB::$db-> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		    }
 		    catch( PDOException $e ) { exit( 'PDO Error: ' . $e->getMessage() ); }
