@@ -42,12 +42,12 @@ function create_table_korisnici()
 	{
 		$st = $db->prepare( 
 			'CREATE TABLE IF NOT EXISTS splanner_korisnici (' .
-			'id_korisnici INT NOT NULL PRIMARY KEY AUTO_INCREMENT' .
+			'id_korisnici INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
 			'OIB CHAR(11) NOT NULL  ,' .
 			'username varchar(50) NOT NULL,' .
 			'password_hash varchar(255) NOT NULL,'.
 			'email varchar(50) NOT NULL,' .
-			'tip_korisnika ENUM("trener","dijete","roditelj")'
+			'tip_korisnika ENUM("trener","dijete","roditelj"))'
 		);
 
 		$st->execute();
@@ -69,7 +69,7 @@ function create_table_grupe()
 	{
 		$st = $db->prepare( 
 			'CREATE TABLE IF NOT EXISTS splanner_grupe (' .
-			'id_grupe INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
+			'id_grupe INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
             'id_termin_fk INT FOREIGN KEY REFERENCES splanner_termini(id_termini),' .
 			'description varchar(1000) NOT NULL,' .
             'cijena decimal(15,2) NOT NULL)'
