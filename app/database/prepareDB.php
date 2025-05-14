@@ -37,11 +37,11 @@ function seed_table_korisnici()
 	{
 		$st = $db->prepare( 'INSERT INTO splanner_korisnici(OIB, username, password_hash, email, tip_korisnika) VALUES (:OIB, :username, :password, \'a@b.com\', :tip)' );
 
-		$st->execute( array( 'OIB' => 123456788901, 'username' => 'mirko', 'password' => password_hash( 'mirkovasifra', PASSWORD_DEFAULT ), 'tip' => 'trener' ) );
-		$st->execute( array( 'OIB' => 123456788901, 'username' => 'slavko', 'password' => password_hash( 'slavkovasifra', PASSWORD_DEFAULT ), 'tip' => 'dijete' ) );
-		$st->execute( array( 'OIB' => 123456788901, 'username' => 'ana', 'password' => password_hash( 'aninasifra', PASSWORD_DEFAULT ), 'tip' => 'roditelj' ) );
-		$st->execute( array( 'OIB' => 123456788901, 'username' => 'maja', 'password' => password_hash( 'majinasifra', PASSWORD_DEFAULT ), 'tip' => 'dijete' ) );
-		$st->execute( array( 'OIB' => 123456788901, 'username' => 'pero', 'password' => password_hash( 'perinasifra', PASSWORD_DEFAULT ), 'tip' => 'roditelj' ) );
+		$st->execute( array( 'OIB' => 12345678901, 'username' => 'mirko', 'password' => password_hash( 'mirkovasifra', PASSWORD_DEFAULT ), 'tip' => 'trener' ) );
+		$st->execute( array( 'OIB' => 12345678902, 'username' => 'slavko', 'password' => password_hash( 'slavkovasifra', PASSWORD_DEFAULT ), 'tip' => 'dijete' ) );
+		$st->execute( array( 'OIB' => 12345678903, 'username' => 'ana', 'password' => password_hash( 'aninasifra', PASSWORD_DEFAULT ), 'tip' => 'roditelj' ) );
+		$st->execute( array( 'OIB' => 12345678904, 'username' => 'maja', 'password' => password_hash( 'majinasifra', PASSWORD_DEFAULT ), 'tip' => 'dijete' ) );
+		$st->execute( array( 'OIB' => 12345678905, 'username' => 'pero', 'password' => password_hash( 'perinasifra', PASSWORD_DEFAULT ), 'tip' => 'roditelj' ) );
 	}
 	catch( PDOException $e ) { exit( "PDO error [insert splanner_korisnici]: " . $e->getMessage() ); }
 

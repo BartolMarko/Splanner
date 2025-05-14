@@ -6,6 +6,7 @@ create_table_korisnici();
 create_table_grupe();
 create_table_pripadnost();
 create_table_termini();
+alter_table_grupe();
 
 exit( 0 );
 
@@ -36,7 +37,7 @@ function create_table_korisnici()
 	$db = DB::getConnection();
 
 	if( has_table( 'splanner_korisnici' ) )
-		exit( 'Tablica splanner_korisnici vec postoji. Obrisite ju pa probajte ponovno.' );
+		echo( 'Tablica splanner_korisnici vec postoji. Obrisite ju pa probajte ponovno.' );
 
 	try
 	{
@@ -63,14 +64,13 @@ function create_table_grupe()
 	$db = DB::getConnection();
 
 	if( has_table( 'splanner_grupe' ) )
-		exit( 'Tablica splanner_grupe vec postoji. Obrisite ju pa probajte ponovno.' );
+		echo( 'Tablica splanner_grupe vec postoji. Obrisite ju pa probajte ponovno.' );
 
 	try
 	{
 		$st = $db->prepare( 
 			'CREATE TABLE IF NOT EXISTS splanner_grupe (' .
 			'id_grupe INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
-            'id_termin_fk INT FOREIGN KEY REFERENCES splanner_termini(id_termini),' .
 			'description varchar(1000) NOT NULL,' .
             'cijena decimal(15,2) NOT NULL)'
 		);
@@ -87,24 +87,26 @@ function create_table_pripadnost()
 	$db = DB::getConnection();
 
 	if( has_table( 'veza_je_u' ) )
-		exit( 'Tablica veza_je_u vec postoji. Obrisite ju pa probajte ponovno.' );
+		echo( 'Tablica veza_je_u vec postoji. Obrisite ju pa probajte ponovno.' );
 
 	try
 	{
 		$st = $db->prepare( 
 			'CREATE TABLE IF NOT EXISTS veza_je_u (' .
 			'id_veze INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
-			'id_grupe_fk INT FOREIGN KEY REFERENCES splanner_grupe(id_grupe),' .
-            'id_korisnik_fk INT FOREIGN KEY REFERENCES splanner_korisnici(id_korisnici),' .
+			'id_grupe_fk INT,' .
+            'id_korisnik_fk INT, ' .
 			'description varchar(1000) NOT NULL,' .
-            'cijena decimal(15,2) NOT NULL)'
+            'cijena decimal(15,2) NOT NULL,' .
+			'FOREIGN KEY(id_korisnik_fk) REFERENCES splanner_korisnici(id_korisnici),' .
+			'FOREIGN KEY(id_grupe_fk) REFERENCES splanner_grupe(id_grupe))'
 		);
 
 		$st->execute();
 	}
-	catch( PDOException $e ) { exit( "PDO error [create splanner_grupe]: " . $e->getMessage() ); }
+	catch( PDOException $e ) { exit( "PDO error [create veza_je_u]: " . $e->getMessage() ); }
 
-	echo "Napravio tablicu splanner_grupe.<br />";
+	echo "Napravio tablicu veza_je_u.<br />";
 }
 
 function create_table_termini()
@@ -112,20 +114,22 @@ function create_table_termini()
 	$db = DB::getConnection();
 
 	if( has_table( 'splanner_termini' ) )
-		exit( 'Tablica splanner_termini vec postoji. Obrisite ju pa probajte ponovno.' );
+		echo( 'Tablica splanner_termini vec postoji. Obrisite ju pa probajte ponovno.' );
 
 	try
 	{
 		$st = $db->prepare( 
 			'CREATE TABLE IF NOT EXISTS splanner_termini (' .
 			'id_termini INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
-			'id_grupe_fk INT NOT NULL FOREIGN KEY REFERENCES splanner_grupe(id_grupe),' . //???
-			'id_trener_fk INT NOT NULL FOREIGN KEY REFERENCES splanner_users(id_users),' .
+			'id_grupe_fk INT NOT NULL ,' . //???
+			'id_trener_fk INT NOT NULL ,' .
 			'datum DATE,' .
 			'vrijeme_poc TIME,' .
 			'vrijeme_traj INT,' .
 			'dvorana varchar(50),' .
-			'comment varchar(1000))'
+			'comment varchar(1000),' .
+			'FOREIGN KEY(id_trener_fk) REFERENCES splanner_korisnici(id_korisnici),' .
+			'FOREIGN KEY(id_grupe_fk) REFERENCES splanner_grupe(id_grupe))'
 		);
 
 		$st->execute();
@@ -133,6 +137,22 @@ function create_table_termini()
 	catch( PDOException $e ) { exit( "PDO error [create splanner_termini]: " . $e->getMessage() ); }
 
 	echo "Napravio tablicu splanner_termini.<br />";
+}
+
+function alter_table_grupe(){
+    $db = DB::getConnection();
+    if( !has_table( 'splanner_grupe' ) )
+		echo( 'Tablica splanner_grupe ne postoji.' );
+
+        try
+        {
+            $st = $db->prepare( 
+                'ALTER TABLE splanner_grupe ADD id_termin_fk INT FOREIGN KEY REFERENCES splanner_termini(id_termini)' 
+            );
+    
+            $st->execute();
+        }
+        catch( PDOException $e ) { exit( "PDO error [create splanner_termini]: " . $e->getMessage() ); }
 }
 
 
