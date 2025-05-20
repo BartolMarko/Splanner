@@ -11,6 +11,10 @@
 	<?php if (isset($_SESSION['username'])): ?>
 	<nav>
 		<ul>
-			<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=trener">Me</a></li>
+			<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=trener">Raspored</a></li>
+			<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=trener">Obavijesti</a></li>
+			<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=trener">Aktivnosti</a></li>
+			<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=trener">Postavke</a></li>
+		</ul>
 	</nav>
 	<?php endif; ?>
