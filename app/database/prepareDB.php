@@ -35,13 +35,13 @@ function seed_table_korisnici()
 	// Ubaci neke korisnike unutra
 	try
 	{
-		$st = $db->prepare( 'INSERT INTO splanner_korisnici(OIB, username, password_hash, email, tip_korisnika) VALUES (:OIB, :username, :password, \'a@b.com\', :tip)' );
+		$st = $db->prepare( 'INSERT INTO splanner_korisnici(OIB, username, password_hash, email, tip_korisnika, registration_sequence, has_registered) VALUES (:OIB, :username, :password, \'a@b.com\', :tip, :regseq, :has )' );
 
-		$st->execute( array( 'OIB' => 12345678901, 'username' => 'mirko', 'password' => password_hash( 'mirkovasifra', PASSWORD_DEFAULT ), 'tip' => 'trener' ) );
-		$st->execute( array( 'OIB' => 12345678902, 'username' => 'slavko', 'password' => password_hash( 'slavkovasifra', PASSWORD_DEFAULT ), 'tip' => 'dijete' ) );
-		$st->execute( array( 'OIB' => 12345678903, 'username' => 'ana', 'password' => password_hash( 'aninasifra', PASSWORD_DEFAULT ), 'tip' => 'roditelj' ) );
-		$st->execute( array( 'OIB' => 12345678904, 'username' => 'maja', 'password' => password_hash( 'majinasifra', PASSWORD_DEFAULT ), 'tip' => 'dijete' ) );
-		$st->execute( array( 'OIB' => 12345678905, 'username' => 'pero', 'password' => password_hash( 'perinasifra', PASSWORD_DEFAULT ), 'tip' => 'roditelj' ) );
+		$st->execute( array( 'OIB' => 12345678901, 'username' => 'mirko', 'password' => password_hash( 'mirkovasifra', PASSWORD_DEFAULT ), 'tip' => 'trener', 'regseq' => 'abc123', 'has' => '1' ) );
+		$st->execute( array( 'OIB' => 12345678902, 'username' => 'slavko', 'password' => password_hash( 'slavkovasifra', PASSWORD_DEFAULT ), 'tip' => 'dijete', 'regseq' => 'def456', 'has' => '1' ) );
+		$st->execute( array( 'OIB' => 12345678903, 'username' => 'ana', 'password' => password_hash( 'aninasifra', PASSWORD_DEFAULT ), 'tip' => 'roditelj', 'regseq' => 'mhffhm78', 'has' => '1' ) );
+		$st->execute( array( 'OIB' => 12345678904, 'username' => 'maja', 'password' => password_hash( 'majinasifra', PASSWORD_DEFAULT ), 'tip' => 'dijete', 'regseq' => 'ilzkutj98', 'has' => '1' ) );
+		$st->execute( array( 'OIB' => 12345678905, 'username' => 'pero', 'password' => password_hash( 'perinasifra', PASSWORD_DEFAULT ), 'tip' => 'roditelj', 'regseq' => '21354sd', 'has' => '1' ) );
 	}
 	catch( PDOException $e ) { exit( "PDO error [insert splanner_korisnici]: " . $e->getMessage() ); }
 
