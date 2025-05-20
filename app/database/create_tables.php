@@ -75,6 +75,7 @@ function create_table_grupe()
 		$st = $db->prepare( 
 			'CREATE TABLE IF NOT EXISTS splanner_grupe (' .
 			'id_grupe INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
+			'ime varchar(100), ' .
 			'description varchar(1000) NOT NULL,' .
             'cijena decimal(15,2) NOT NULL)'
 		);
