@@ -42,6 +42,11 @@ class SplannerService
 			return $row['id'];
 	}
 	
+	function upisAkt(){
+		
+	}
+
+
 }
 
 ?>
