@@ -94,13 +94,12 @@ function create_table_pripadnost()
 		$st = $db->prepare( 
 			'CREATE TABLE IF NOT EXISTS veza_je_u (' .
 			'id_veze INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
-			'id_grupe_fk INT,' .
-            'id_korisnik_fk INT, ' .
+			'id_grupe_fk INT NOT NULL,' .
+            'id_korisnik_fk INT NOT NULL, ' .
 			'description varchar(1000) NOT NULL,' .
-            'cijena decimal(15,2) NOT NULL,' .
-			'FOREIGN KEY(id_korisnik_fk) REFERENCES splanner_korisnici(id_korisnici),' .
-			'FOREIGN KEY(id_grupe_fk) REFERENCES splanner_grupe(id_grupe))'
-		);
+            'cijena decimal(15,2) NOT NULL)');
+			//'FOREIGN KEY(id_korisnik_fk) REFERENCES splanner_korisnici(id_korisnici),' .
+			//'FOREIGN KEY(id_grupe_fk) REFERENCES splanner_grupe(id_grupe))'
 
 		$st->execute();
 	}
@@ -127,10 +126,9 @@ function create_table_termini()
 			'vrijeme_poc TIME,' .
 			'vrijeme_traj INT,' .
 			'dvorana varchar(50),' .
-			'comment varchar(1000),' .
-			'FOREIGN KEY(id_trener_fk) REFERENCES splanner_korisnici(id_korisnici),' .
-			'FOREIGN KEY(id_grupe_fk) REFERENCES splanner_grupe(id_grupe))'
-		);
+			'comment varchar(1000))');
+			//'FOREIGN KEY(id_trener_fk) REFERENCES splanner_korisnici(id_korisnici),' .
+			//'FOREIGN KEY(id_grupe_fk) REFERENCES splanner_grupe(id_grupe))'
 
 		$st->execute();
 	}
@@ -146,13 +144,14 @@ function alter_table_grupe(){
 
         try
         {
-            $st = $db->prepare( 
-                'ALTER TABLE splanner_grupe ADD id_termin_fk INT FOREIGN KEY REFERENCES splanner_termini(id_termini)' 
+
+			/*$st = $db->prepare( 
+                'ALTER TABLE splanner_grupe ADD CONSTRAINT FOREIGN KEY(id_termin_fk) REFERENCES splanner_termini(id_termini)' 
             );
-    
-            $st->execute();
+
+            $st->execute();*/
         }
-        catch( PDOException $e ) { exit( "PDO error [create splanner_termini]: " . $e->getMessage() ); }
+        catch( PDOException $e ) { exit( "PDO error [create ALTER_GRUPE]: " . $e->getMessage() ); }
 }
 
 
