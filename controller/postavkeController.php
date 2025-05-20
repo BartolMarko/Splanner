@@ -7,6 +7,7 @@ class PostavkeController extends BaseController
 		$this->registry->template->title = 'Postavke';
 
         $this->registry->template->show( 'postavke_index' );
+
 	}
 }
 
