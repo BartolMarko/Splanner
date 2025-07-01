@@ -7,6 +7,7 @@ class SplannerService
     const GRUPE_TABLE = 'splanner_grupe';
     const AKTIVNOSTI_TABLE = 'splanner_aktivnosti';
     const PRIPADNOST_TABLE = 'splanner_pripadnost';
+	const TERMINI_TABLE = 'splanner_termini';
 
 	// ulogiravanje - postavljanje sessiona ili izbacivanje greške
 	function checkLogin($username, $password)
@@ -313,6 +314,37 @@ class SplannerService
 	}
 
 
+	static function getGrupeKorisnika( $userId )
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( "SELECT id_grupe_fk FROM " . static::PRIPADNOST_TABLE . " WHERE id_korisnik_fk=:id_korisnika" );
+			$st->execute( ['id_korisnika' => $userId] );
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		return $st->fetchAll();
+	}
+
+	static function getTerminiForUser( $userId )
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$grupe = static::getGrupeKorisnika( $userId );
+			$st = $db->prepare(
+				'SELECT t.datum, t.vrijeme_poc, t.vrijeme_traj, t.dvorana, t.comment
+				 FROM ' . self::TERMINI_TABLE . ' t
+				 INNER JOIN ' . self::PRIPADNOST_TABLE . ' p ON t.id_grupe_fk = p.id_grupe_fk
+				 WHERE p.id_korisnik_fk = :id_korisnika'
+			);
+			$st->execute( ['id_korisnika' => $userId] );
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		return $st->fetchAll();
+	}
 	
 }
 
