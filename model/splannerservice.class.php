@@ -42,10 +42,42 @@ class SplannerService
 			return $row['id'];
 	}
 	
-	function upisAkt(){
+	function upisAkt($idTrener,$imeAkt,$descAkt,$cijenaAkt){
+		try
+	{
+		$db = DB::getConnection();
+
+		$st = $db->prepare( 
+			'INSERT INTO splanner_aktivnosti (fk_id_trenera, description, cijena, ime) VALUES (:id,:descr,:cijena,:ime)'
+		);
+
+		$st->execute( array( 'id' => $idTrener, 'ime' => $imeAkt, 'descr' => $descAkt, 'cijena' => $cijenaAkt ) );
 		
 	}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 
+	}
+
+	function getAktByName($imeAkt){
+		try
+		{
+			$db = DB::getConnection();
+	
+			$st = $db->prepare( 
+				'SELECT * FROM splanner_aktivnosti WHERE ime LIKE :imeakt'
+			);
+			$regexImeAkt= "%" . $imeAkt . "%"; //% == 'bilo koliko znakova'
+			$st->execute( array( 'imeakt' => $regexImeAkt ) );
+			
+		}
+			catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+		
+		$popisAkt=array();
+		while($row=$st->fetch()){
+			$popisAkt[]=[$row['ime'],$row['cijena'],$row['description']];
+		}
+		return $popisAkt;
+	}
 
 }
 
