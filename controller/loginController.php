@@ -17,7 +17,7 @@ class LoginController extends BaseController
                 $_SESSION['username'] = $username;
                 $_SESSION['id_user'] = $ss->getUserIdByName($_SESSION['username']);
     
-                header('Location: ' . __SITE_URL . '/index.php?rt=trener');
+                header('Location: ' . __SITE_URL . '/index.php?rt=raspored');
                 exit();
             } 
             else {
