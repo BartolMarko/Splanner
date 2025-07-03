@@ -4,6 +4,7 @@
 	<meta charset="utf8">
 	<title>Splanner</title>
 	<link rel="stylesheet" href="<?php echo __SITE_URL;?>/css/style.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.js"></script>
 </head>
 <body <?php if (isset($_SESSION['username'])) echo ' class="with-nav"'; ?>>
 
