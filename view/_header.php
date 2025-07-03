@@ -6,8 +6,6 @@
 	<link rel="stylesheet" href="<?php echo __SITE_URL;?>/css/style.css">
 </head>
 <body>
-	<h1><?php echo $title; ?></h1>
-
 	<?php if (isset($_SESSION['username'])): ?>
 	<nav>
 		<ul>
@@ -18,3 +16,7 @@
 		</ul>
 	</nav>
 	<?php endif; ?>
+
+	<main>
+		<h1><?php echo $title; ?></h1>
+	
