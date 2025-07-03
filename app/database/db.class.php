@@ -19,7 +19,7 @@ class DB
 				$student_username = $student_username_file[0];
 				$db_name = $student_username_file[1];
 		    	DB::$db = new PDO(
-					"mysql:host=rp2.studenti.math.hr;dbname=$db_name;charset=utf8", 'student', "pass.mysql"
+					"mysql:host=rp2.studenti.math.hr;dbname=zaja;charset=utf8", 'student', "pass.mysql"
 				);
 		    	DB::$db-> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		    }

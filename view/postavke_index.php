@@ -1,12 +1,16 @@
 <?php require_once __SITE_PATH . '/view/_header.php'; ?>
 
-<form action="" method="post">
-    Promijeni svoj username: <input type="text" name="promjena_username">
-    <button type="submit" name="gumb" value="btn_username">Promijeni!</button>
-    <br>
-    Promijeni svoju šifru: <input type="password" name="promjena_pass">
-    <button type="submit" name="gumb" value="btn_pass">Promijeni!</button>
-    <br>
+<h2>Postavke računa</h2>
+
+<h2>Unesite novo korisničko ime</h2>
+
+<form method="post" action="<?php echo __SITE_URL; ?>/index.php?rt=postavke/promjenaUsername">
+    <label>Novo korisničko ime:</label><br>
+    <input type="text" name="novo_username" required><br><br>
+    <input type="submit" value="Promijeni korisničko ime">
 </form>
 
+<?php if (!empty($poruka)) echo "<p style='color:red;'>".$poruka."</p>"; ?>
+
 <?php require_once __SITE_PATH . '/view/_footer.php'; ?>
+
