@@ -16,6 +16,10 @@
         <br>
         <input type="password" name="password" required>
         <br><br>
+        Ponovite lozinku:
+        <br>
+        <input type="password" name="password_again" required>
+        <br><br>
         Email:
         <br>
         <input type="text" name="email" required>
@@ -23,6 +27,14 @@
         OIB:
         <br>
         <input type="text" name="oib" required>
+        <br><br>
+        Vrsta korisnika:
+        <br>
+        <select id="uloga" name="uloga" required>
+        <option value="" disabled selected>-- Odaberi --</option>
+        <option value="korisnik">Korisnik</option>
+        <option value="trener">Trener</option>
+        </select>
         <br><br>
         <button type="submit">Registracija</button>
     </form>

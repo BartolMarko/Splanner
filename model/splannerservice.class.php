@@ -4,30 +4,32 @@ class SplannerService
 {
     const USERS_TABLE = 'splanner_korisnici';
 
-    function checkLogin($username, $password)
+	// ulogiravanje - postavljanje sessiona ili izbacivanje greške
+	function checkLogin($username, $password)
 	{
 		try
 		{
 			$db = DB::getConnection();
 			$st = $db->prepare('SELECT * FROM ' . self::USERS_TABLE . ' WHERE username=:username');
-            $st->execute(['username' => $username]);
+			$st->execute(['username' => $username]);
 		}
-		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+		catch(PDOException $e) { exit('PDO error ' . $e->getMessage()); }
 
-        $row = $st->fetch();
+		$row = $st->fetch();
 
-        if (!$row)
-            return 0; 
-		else if( $row['has_registered'] === '0' ){
+		if (!$row)
+			return 0; 
+		else if ($row['has_registered'] === '0') {
 			return 2;
 		}
-        else if (!password_verify($password, $row['password_hash'])) {
-            return 0; 
-        } else {
-            return 1;
-        }
+		else if (!password_verify($password, $row['password_hash'])) {
+			return 0; 
+		} else {
+			return $row;  // <---- ode je promjena! umjesto 1 vracamo cijeli red da poslije mogu dohvatiti tip korisnika
+		}
 	}
 
+	// dohvaca id korisnika s nekim imenom
     function getUserIdByName( $username )
 	{
 		try
@@ -45,6 +47,7 @@ class SplannerService
 			return $row['id'];
 	}
 
+	// provjera ako se neko korisničko ime već koristi
 	function checkIfUsernameOccupied( $username ){
 		try
 		{
@@ -61,6 +64,7 @@ class SplannerService
 			return true;
 	}
 
+	// provjera ako slučajno nije generiran jednaki reg. seq. 
 	function checkRegSeq($reg_seq){
 		try
 		{
@@ -77,6 +81,7 @@ class SplannerService
 			return false;
 	}
 
+	// ažuriranje baze nakon kliknutog linka u mailu
 	function updateRegSeq($reg_seq){
 		try
 		{
@@ -87,6 +92,7 @@ class SplannerService
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 	}
 
+	// dodavanje novog korisnika / trenera u bazu prilikom registracije
 	function addNewUser($username, $password, $email, $oib, $registration_sequence){
 		try
 		{
@@ -101,6 +107,58 @@ class SplannerService
 		}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 	}
+	
+	//------- Jelena = postavke ----------------------------
+	// Provjera postoji li korisnicko ime
+	public function checkIfUsernameExists($username)
+	{
+		try {
+			$db = DB::getConnection();
+			$st = $db->prepare('SELECT COUNT(*) FROM ' . self::USERS_TABLE . ' WHERE username = :username');
+			$st->execute(['username' => $username]);
+		}
+		catch (PDOException $e) { exit('PDO error ' . $e->getMessage()); }
+
+		return $st->fetchColumn() > 0;
+	}
+
+	// Azuriranje korisnickog imena
+	public function updateUsername($id_user, $newUsername)
+	{
+		try {
+			$db = DB::getConnection();
+			$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET username = :username WHERE id_korisnici = :id_korisnici');
+			$st->execute([
+				'username' => $newUsername,
+				'id_korisnici' => $id_user
+			]);
+		}
+		catch (PDOException $e) { exit('PDO error ' . $e->getMessage()); }
+	}
+
+	// Provjera stare lozinke
+	public function provjeriLozinku($id_user, $staraLozinka)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('SELECT password_hash FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
+		$st->execute(['id' => $id_user]);
+
+		$hash = $st->fetchColumn();
+		return password_verify($staraLozinka, $hash);
+	}
+
+	// Promjena lozinke
+	public function promijeniLozinku($id_user, $novaLozinka)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET password_hash = :h WHERE id_korisnici = :id');
+		$st->execute([
+			'h' => password_hash($novaLozinka, PASSWORD_DEFAULT),
+			'id' => $id_user
+		]);
+	}
+
+
 	
 }
 

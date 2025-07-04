@@ -9,23 +9,30 @@ class LoginController extends BaseController
         if (isset($_POST['username']) && isset($_POST['password'])) {
             $username = $_POST['username'];
             $password = $_POST['password'];
-    
-            $ss = new SplannerService();
-            $flag = $ss->checkLogin($username, $password);
 
-            if ( $flag === 1 ) {
-                $_SESSION['username'] = $username;
-                $_SESSION['id_user'] = $ss->getUserIdByName($_SESSION['username']);
-    
+            $ss = new SplannerService();
+            $userRow = $ss->checkLogin($username, $password); // <---- umjesto zastavice samo -> cijeli row
+
+            if (is_array($userRow)) {
+                // Login uspjesan
+                $_SESSION['username'] = $userRow['username'];
+                $_SESSION['id_user'] = $userRow['id_korisnici'];
+                $_SESSION['tip_korisnika'] = $userRow['tip_korisnika'];
+
                 header('Location: ' . __SITE_URL . '/index.php?rt=raspored');
                 exit();
-            } 
-            else if($flag === 0){
+            }
+            else if ($userRow === 0) {
                 $this->registry->template->error = 'Krivo korisničko ime ili lozinka.';
                 $this->registry->template->show('login_index');
             }
-            else{
+            else if ($userRow === 2) {
                 $this->registry->template->error = 'Niste dovršili registraciju, provjerite Vaš mail.';
+                $this->registry->template->show('login_index');
+            }
+            else {
+                // fallback za svaki slucaj
+                $this->registry->template->error = 'Došlo je do neočekivane greške.';
                 $this->registry->template->show('login_index');
             }
         } 
@@ -34,12 +41,21 @@ class LoginController extends BaseController
         }
     }
 
+
     public function registracija()
     {   
         $this->registry->template->title = 'Registracija';
         $ss = new SplannerService();
 
-        if( !isset( $_POST['username'] ) || !isset( $_POST['password'] ) || !isset( $_POST['email']) || !isset( $_POST['oib']) ){
+        if( !isset( $_POST['username'] ) || !isset( $_POST['password'] ) || !isset( $_POST['password_again'] ) || !isset( $_POST['email']) || !isset( $_POST['oib']) ){
+            $this->registry->template->show('login_registracija');
+        }
+        else if(strlen($_POST['password']) < 5){
+            $this->registry->template->error = 'Lozinka mora imati barem 5 znakova.';
+            $this->registry->template->show('login_registracija');
+        }
+        else if($_POST['password'] !== $_POST['password_again']){
+            $this->registry->template->error = 'Naveli ste dvije različite lozinke.';
             $this->registry->template->show('login_registracija');
         }
         else if( !filter_var( $_POST['email'], FILTER_VALIDATE_EMAIL) ){
