@@ -53,6 +53,7 @@ function create_table_korisnici()
 			'email varchar(50) NOT NULL,' .
 			'tip_korisnika ENUM("trener","dijete","roditelj"), ' .
 			'registration_sequence varchar(20) NOT NULL,' .
+			'fk_id_roditelja INT,' .
 			'has_registered int)'
 		);
 
