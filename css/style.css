@@ -163,3 +163,27 @@ th {
   background-color: var(--color-dark);
   color: var(--color-light);
 }
+
+.button-link {
+  width: 100%;
+  display: inline-block;
+  font-size: 15px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 2px solid var(--color-dark);
+  background-color: var(--color-dark);
+  color: var(--color-light);
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.button-link:hover {
+  background-color: var(--color-light);
+  color: var(--color-dark);
+}
+
+.centered-text {
+  text-align: center;
+}

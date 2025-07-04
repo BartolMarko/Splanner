@@ -6,28 +6,95 @@ class LoginController extends BaseController
     {   
         $this->registry->template->title = 'Prijava';
 
-
         if (isset($_POST['username']) && isset($_POST['password'])) {
             $username = $_POST['username'];
             $password = $_POST['password'];
     
-            $ss = new SplannerService(); 
+            $ss = new SplannerService();
+            $flag = $ss->checkLogin($username, $password);
 
-            if ($ss->checkLogin($username, $password)) {
+            if ( $flag === 1 ) {
                 $_SESSION['username'] = $username;
                 $_SESSION['id_user'] = $ss->getUserIdByName($_SESSION['username']);
     
                 header('Location: ' . __SITE_URL . '/index.php?rt=raspored');
                 exit();
             } 
-            else {
+            else if($flag === 0){
                 $this->registry->template->error = 'Krivo korisničko ime ili lozinka.';
+                $this->registry->template->show('login_index');
+            }
+            else{
+                $this->registry->template->error = 'Niste dovršili registraciju, provjerite Vaš mail.';
                 $this->registry->template->show('login_index');
             }
         } 
         else {
             $this->registry->template->show('login_index');
         }
+    }
+
+    public function registracija()
+    {   
+        $this->registry->template->title = 'Registracija';
+        $ss = new SplannerService();
+
+        if( !isset( $_POST['username'] ) || !isset( $_POST['password'] ) || !isset( $_POST['email']) || !isset( $_POST['oib']) ){
+            $this->registry->template->show('login_registracija');
+        }
+        else if( !filter_var( $_POST['email'], FILTER_VALIDATE_EMAIL) ){
+            $this->registry->template->error = 'Neispravna email adresa.';
+            $this->registry->template->show('login_registracija');
+        }
+        else if($ss->checkIfUsernameOccupied($_POST['username'])){
+            $this->registry->template->error = 'Ovo korisničko ime već postoji, molimo izaberite novo.';
+            $this->registry->template->show('login_registracija');
+        }
+        else{
+            while(1){
+                $reg_seq = '';
+                for( $i = 0; $i < 20; ++$i )
+                    $reg_seq .= chr( rand(0, 25) + ord( 'a' ) );
+
+                if($ss->checkRegSeq($reg_seq))
+                    break;
+            }
+
+            $ss->addNewUser($_POST['username'], $_POST['password'], $_POST['email'], $_POST['oib'], $reg_seq);
+            
+            // slanje mail-a
+            $to       = $_POST['email'];
+            $subject  = 'Registracijski mail';
+            $message  = 'Poštovani ' . $_POST['username'] . "!\nZa dovršetak registracije kliknite na sljedeći link: ";
+            $message .= 'https://' . 'rp2.studenti.math.hr' . __SITE_URL . '/index.php?rt=login/potvrda&reg_seq=' . $reg_seq . "\n";
+            $headers  = 'From: rp2@studenti.math.hr' . "\r\n" .
+                        'Reply-To: rp2@studenti.math.hr' . "\r\n" .
+                        'X-Mailer: PHP/' . phpversion();
+
+            $isOK = mail($to, $subject, $message, $headers);
+
+            if( !$isOK )
+                exit( 'Greška: ne mogu poslati mail. (Pokrenite na rp2 serveru.)' );
+
+            $this->registry->template->show('login_slanje');
+        }
+    }
+
+    public function slanje()
+    {
+        $this->registry->template->title = 'Registracija, posljednji korak';
+        $this->registry->template->show('login_slanje');
+    }
+
+    public function potvrda()
+    {
+        $this->registry->template->title = 'Potvrđena registracija';
+        $ss = new SplannerService();
+
+        $reg_seq = $_GET['reg_seq'];
+        $ss->updateRegSeq($reg_seq);
+
+        $this->registry->template->show('login_potvrda');
     }
 
     public function logout()
