@@ -47,6 +47,50 @@ class PostavkeController extends BaseController
 
 	}
 
+	public function promjenaLozinke()
+	{
+		if (!isset($_SESSION['id_user'])) {
+			header('Location: ' . __SITE_URL . '/index.php?rt=login');
+			exit();
+		}
+
+		$stara = $_POST['stara_lozinka'];
+		$nova = $_POST['nova_lozinka'];
+		$nova2 = $_POST['nova_lozinka2'];
+
+		if ($nova !== $nova2) {
+			$this->registry->template->poruka = 'Nova lozinka i potvrda lozinke nisu iste.';
+			$this->registry->template->show('postavke_index');
+			return;
+		}
+
+		if (strlen($nova) < 6) {
+			$this->registry->template->poruka = 'Nova lozinka mora imati barem 6 znakova.';
+			$this->registry->template->show('postavke_index');
+			return;
+		}
+
+		if ($stara === $nova) {
+			$this->registry->template->poruka = 'Nova lozinka mora biti različita od stare.';
+			$this->registry->template->show('postavke_index');
+			return;
+		}
+
+		$ss = new SplannerService();
+
+		if (!$ss->provjeriLozinku($_SESSION['id_user'], $stara)) {
+			$this->registry->template->poruka = 'Stara lozinka nije ispravna.';
+			$this->registry->template->show('postavke_index');
+			return;
+		}
+
+		$ss->promijeniLozinku($_SESSION['id_user'], $nova);
+
+		$this->registry->template->poruka = 'Lozinka je uspješno promijenjena.';
+		$this->registry->template->show('postavke_index');
+	}
+
+
 }
 
 ?>
