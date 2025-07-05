@@ -1,0 +1,89 @@
+<?php
+
+require_once __DIR__ . '/../model/splannerservice.class.php';
+session_start();
+
+function sendJSONandExit($message)
+{
+    header('Content-type:application/json;charset=utf-8');
+    echo json_encode($message);
+    flush();
+    exit(0);
+}
+
+function sendErrorAndExit($messageText)
+{
+    sendJSONandExit(['error' => $messageText]);
+}
+
+if (!isset($_POST['action']))
+    sendErrorAndExit("Niste odabrali što želite.");
+
+$ss = new SplannerService();
+$action = $_POST['action'];
+$idUser = $_SESSION['id_user'] ?? null;
+$tip = $_SESSION['tip_korisnika'] ?? null;
+
+switch ($action) {
+
+    case 'get_aktivnosti':
+        $targetId = ($_POST['user_id'] === 'self') ? $idUser : intval($_POST['user_id']);
+        $aktivnosti = $ss->getAktivnostiZaUser($targetId); //TODO u splannerservice
+
+        ob_start(); //ovo stavlja sve echo-e, print-ove i stvari van php tag-a u buffer, umjesto da ih isprinta
+        foreach ($aktivnosti as $a): ?>
+            <div class="aktivnost" data-aktivnost-id="<?= $a['id_aktivnosti'] ?>">
+                <h3 class="naziv"><?= htmlspecialchars($a['ime']) ?></h3>
+                <p class="opis"><?= htmlspecialchars($a['description']) ?></p>
+                <p class="cijena">Cijena: <?= htmlspecialchars($a['cijena']) ?> kn</p>
+                <?php if ($tip === 'trener'): ?>
+                    <button class="uredi-btn" data-id="<?= $a['id_aktivnosti'] ?>">Uredi aktivnost</button>
+                    <button class="toggle-grupe-btn" data-id="<?= $a['id_aktivnosti'] ?>">➤ Prikaži grupe</button>
+                    <div class="grupe" id="grupe_<?= $a['id_aktivnosti'] ?>" style="display:none;"></div>
+                <?php elseif ($tip === 'roditelj' && $_POST['user_id'] === 'self'): ?>
+                    <button class="ispisi-btn" data-id="<?= $a['id_aktivnosti'] ?>">Ispiši se</button>
+                <?php elseif ($tip === 'roditelj'): ?>
+                    <button class="ispisi-btn" data-id="<?= $a['id_aktivnosti'] ?>" data-child="<?= $targetId ?>">Ispiši dijete</button>
+                <?php endif; ?>
+            </div>
+        <?php endforeach;
+        $html = ob_get_clean(); //i ovdje sve to strpam u $html, da mogu poslati stvarnoj stranici za ispis ( ne da mi se ispise tu)
+        sendJSONandExit(['html' => $html]);
+
+    case 'ispisi_se':
+        $idAkt = intval($_POST['aktivnost_id']);
+        $userKojiIspisujem = $_POST['child_id'] ?? $idUser;
+        $ss->ispisiUseraSaAkt($userKojiIspisujem, $idAkt); //TODO u splannerservice
+        sendJSONandExit(['success' => true]);
+
+    case 'get_grupe':
+        $idAkt = intval($_POST['aktivnost_id']);
+        $grupe = $ss->getGrupeZaAkt($idAkt);
+
+        ob_start();
+        foreach ($grupe as $g): ?>
+            <div class="grupa">
+                <strong><?= htmlspecialchars($g['ime_grupe']) ?></strong> - <?= htmlspecialchars($g['termin']) ?>
+            </div>
+        <?php endforeach;
+        $html = ob_get_clean();
+        sendJSONandExit(['html' => $html]);
+
+    case 'update_aktivnost':
+        if ($tip !== 'trener') sendErrorAndExit("Nemate pristup ovome.");
+        $id = intval($_POST['id']);
+        $ime = trim($_POST['ime']);
+        $opis = trim($_POST['description']);
+        $cijena = floatval($_POST['cijena']);
+        $ss->updateAktivnost($id, $ime, $opis, $cijena);
+        sendJSONandExit(['success' => true]);
+
+    case 'delete_aktivnost':
+        if ($tip !== 'trener') sendErrorAndExit("Nemate pristup ovome.");
+        $id = intval($_POST['id']);
+        $ss->deleteAktivnost($id); //TODO u splannerservice
+        sendJSONandExit(['success' => true]);
+
+    default:
+        sendErrorAndExit("Nepoznata radnja.");
+}

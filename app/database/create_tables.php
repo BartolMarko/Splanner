@@ -101,7 +101,7 @@ function create_table_grupe()
 
 	try
 	{
-		$st = $db->prepare( 
+		$st = $db->prepare(  //mozda dodati max broj ljudi u grupi
 			'CREATE TABLE IF NOT EXISTS splanner_grupe (' .
 			'id_grupe INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
 			'ime varchar(100), ' .
