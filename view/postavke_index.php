@@ -12,8 +12,6 @@
     <input type="submit" value="Promijeni korisničko ime">
 </form>
 
-
-
 <h2>Promjena lozinke</h2>
 
 <form method="post" action="<?php echo __SITE_URL; ?>/index.php?rt=postavke/promjenaLozinke">
@@ -27,6 +25,12 @@
     <input type="password" name="nova_lozinka2" required><br><br>
 
     <input type="submit" value="Promijeni lozinku">
+</form>
+
+<h2>Brisanje računa</h2>
+
+<form method="post" action="<?php echo __SITE_URL; ?>/index.php?rt=postavke/obrisiRacun" onsubmit="return confirm('Jeste li sigurni da želite obrisati svoj račun? Ova akcija je nepovratna!');">
+    <input type="submit" value="Obriši moj račun trajno" style="background-color: red; color: white;">
 </form>
 
 

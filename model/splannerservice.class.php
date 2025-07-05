@@ -153,6 +153,15 @@ class SplannerService
 		]);
 	}
 
+	//brisanje racuna
+	public function obrisiKorisnika($id_user)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
+		$st->execute(['id' => $id_user]);
+	}
+
+
 
 	
 }

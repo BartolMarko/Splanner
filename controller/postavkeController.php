@@ -90,6 +90,25 @@ class PostavkeController extends BaseController
 		$this->registry->template->show('postavke_index');
 	}
 
+	public function obrisiRacun()
+	{
+		if (!isset($_SESSION['id_user'])) {
+			header('Location: ' . __SITE_URL . '/index.php?rt=login');
+			exit();
+		}
+
+		$ss = new SplannerService();
+		$ss->obrisiKorisnika($_SESSION['id_user']);
+
+		session_unset();
+		session_destroy();
+
+		// Preusmjeri na login s GET parametrom za poruku
+		header('Location: ' . __SITE_URL . '/index.php?rt=login&msg=obrisan');
+		exit();
+	}
+
+
 
 }
 
