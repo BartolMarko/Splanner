@@ -104,7 +104,7 @@ class LoginController extends BaseController
 
     public function potvrda()
     {
-        $this->registry->template->title = 'Potvrđena registracija';
+        $this->registry->template->title = 'Uspješna registracija';
         $ss = new SplannerService();
 
         $reg_seq = $_GET['reg_seq'];
