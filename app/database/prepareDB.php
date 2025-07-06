@@ -8,6 +8,7 @@ seed_table_aktivnosti();
 seed_table_grupe();
 seed_table_obavijesti();
 seed_table_pripadnost();
+seed_table_termini();
 
 exit( 0 );
 
@@ -67,6 +68,10 @@ function seed_table_aktivnosti()
 		$st->execute( array( 'id_aktivnosti' => 1, 'ime' => 'HNK Daruvar', 'description' => 'Nogomet za uzrast 12 - 16 godina', 'fk_id_trenera' => 1, 'grad' => 'Daruvar') ); 
 		$st->execute( array( 'id_aktivnosti' => 2, 'ime' => 'OK Šibenik', 'description' => 'Odbojka za djevojčice 7 - 10 godina', 'fk_id_trenera' => 6, 'grad' => 'Šibenik') );
 		$st->execute( array( 'id_aktivnosti' => 3, 'ime' => 'Joga', 'description' => 'Joga za sve uzraste', 'fk_id_trenera' => 6, 'grad' => 'Zagreb') );
+		
+		$st->execute( array( 'id_aktivnosti' => 3, 'ime' => 'Aerobik', 'description' => 'Aerobik opis jako dobar opis', 'cijena' => 22, 'fk_id_trenera' => 1, 'spol' => 'žensko', 'uzrast_od' => 7, 'uzrast_do' => 99) );
+		$st->execute( array( 'id_aktivnosti' => 4, 'ime' => 'Macevanje', 'description' => 'opis odličan opis', 'cijena' => 50, 'fk_id_trenera' => 1, 'spol' => 'žensko', 'uzrast_od' => 7, 'uzrast_do' => 99) );
+		$st->execute( array( 'id_aktivnosti' => 5, 'ime' => 'Life coaching', 'description' => 'neki zivotni savjet opis', 'cijena' => 150, 'fk_id_trenera' => 1, 'spol' => 'žensko', 'uzrast_od' => 7, 'uzrast_do' => 99) );
 	}
 	catch( PDOException $e ) { exit( "PDO error [splanner_aktivnosti]: " . $e->getMessage() ); }
 
@@ -89,6 +94,10 @@ function seed_table_grupe()
 		$st->execute( array( 'id_grupe' => 3, 'ime' => 'OK junior', 'cijena' => 18, 'spol' => 'žensko', 'uzrast_od' => 7, 'uzrast_do' => 10, 'fk_id_aktivnosti' => 2) ); 
 		$st->execute( array( 'id_grupe' => 4, 'ime' => 'Joga žene', 'cijena' => 25, 'spol' => 'žensko', 'uzrast_od' => NULL, 'uzrast_do' => NULL, 'fk_id_aktivnosti' => 3) ); 
 		$st->execute( array( 'id_grupe' => 5, 'ime' => 'Joga muškarci', 'cijena' => 25, 'spol' => 'muško', 'uzrast_od' => NULL, 'uzrast_do' => NULL, 'fk_id_aktivnosti' => 3) ); 
+		
+		$st->execute( array( 'id_grupe' => 4, 'ime' => 'aerobik - grupa', 'description' => 'opis aerobik grupe', 'cijena' => 20, 'spol' => 'muško', 'fk_id_aktivnosti' => 3) ); 
+		$st->execute( array( 'id_grupe' => 5, 'ime' => 'macevanje - grupa', 'description' => 'macevanje nova grupa', 'cijena' => 20, 'spol' => 'mješovito', 'fk_id_aktivnosti' => 4) ); 
+		$st->execute( array( 'id_grupe' => 6, 'ime' => 'life coach - grupa', 'description' => 'life coaching grupica', 'cijena' => 18, 'spol' => 'žensko', 'fk_id_aktivnosti' => 5) );
 	}
 	catch( PDOException $e ) { exit( "PDO error [splanner_grupe]: " . $e->getMessage() ); }
 
@@ -130,6 +139,25 @@ function seed_table_pripadnost()
 	catch( PDOException $e ) { exit( "PDO error [splanner_pripadnost]: " . $e->getMessage() ); }
 
 	echo "Ubacio u tablicu splanner_pripadnost<br />";
+}
+
+function seed_table_termini()
+{
+	$db = DB::getConnection();
+
+	// Ubaci neke prodaje unutra (ovo nije bas pametno ovako raditi, preko hardcodiranih id-eva usera i proizvoda)
+	try
+	{
+		$st = $db->prepare( 'INSERT INTO splanner_redovni_termini(id_grupe_fk, id_trener_fk, datum, vrijeme_poc, vrijeme_kraj, dvorana, comment) 
+		VALUES (:id_grupe_fk, :id_trener_fk, :datum, :vrijeme_poc, :vrijeme_kraj, :dvorana, :comment)' );
+
+		$st->execute( array( 'id_grupe_fk' => 4, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '17:00:00', 'vrijeme_kraj' => '18:30:00', 'dvorana' => 'Dvorana 1', 'comment' => 'Komentar termina') );
+		$st->execute( array( 'id_grupe_fk' => 5, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '19:15:00', 'vrijeme_kraj' => '22:00:00', 'dvorana' => 'Dvoranaaa', 'comment' => 'Komentar terminaaa') );
+		// $st->execute( array( 'id_grupe_fk' => 4, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '17:00:00', 'vrijeme_kraj' => '18:30:00', 'dvorana' => 'Dvorana 1', 'comment' => 'Komentar termina') );
+	}
+	catch( PDOException $e ) { exit( "PDO error [termini]: " . $e->getMessage() ); }
+
+	echo "Ubacio u tablicu splanner_redovni_termini<br />";
 }
 
 ?> 
