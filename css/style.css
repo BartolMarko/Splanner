@@ -246,3 +246,53 @@ th {
   text-align: center;
   margin-top: 20px;
 }
+
+/*OBAVIJESTI*/
+:root {
+  --color-darkest: #01013f;
+  --color-dark: #100263;
+  --color-main: #0605df;
+  --color-light: #dbdbfd;
+}
+
+.obavijest {
+  background-color: var(--color-light);
+  border-left: 4px solid var(--color-main);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--color-darkest);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.obavijest:hover {
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.obavijest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.obavijest-naziv {
+  font-weight: bold;
+  color: var(--color-dark);
+  font-size: 1.1rem;
+}
+
+.obavijest-vrijeme {
+  font-size: 0.9rem;
+  color: var(--color-dark);
+  opacity: 0.75;
+}
+
+.obavijest-tekst {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+

@@ -5,8 +5,10 @@ class LoginController extends BaseController
     public function index()
     {   
         $this->registry->template->title = 'Prijava';
-
-        if (isset($_POST['username']) && isset($_POST['password'])) {
+        if (isset($_SESSION['username'])){
+            header('Location: ' . __SITE_URL . '/index.php?rt=raspored');
+        }
+        else if (isset($_POST['username']) && isset($_POST['password'])) {
             $username = $_POST['username'];
             $password = $_POST['password'];
 

@@ -3,6 +3,8 @@
 class SplannerService
 {
     const USERS_TABLE = 'splanner_korisnici';
+    const OBAVIJESTI_TABLE = 'splanner_obavijesti';
+    const GRUPE_TABLE = 'splanner_grupe';
 
 	// ulogiravanje - postavljanje sessiona ili izbacivanje greške
 	function checkLogin($username, $password)
@@ -44,7 +46,7 @@ class SplannerService
 		if( $row === false )
 			return null;
 		else
-			return $row['id'];
+			return $row['id_korisnici'];
 	}
 
 	// provjera ako se neko korisničko ime već koristi
@@ -106,6 +108,47 @@ class SplannerService
 								'registration_sequence'  => $registration_sequence ) );
 		}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+	}
+
+	//dohvaćanje svih obavijesti
+	function getAllObavijesti()
+	{
+        $id_user = $this->getUserIdByName($_SESSION['username']);
+        if ($id_user === null) return [];
+
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( 'SELECT * FROM ' . self::OBAVIJESTI_TABLE  );
+			$st->execute([]);
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		$arr = array();
+		while( $row = $st->fetch() )
+		{
+			$arr[] = new Obavijest( $row['id_obavijest'], $row['id_grupe_fk'], $this->getGrupaImeById($row['id_grupe_fk']), $row['datum'], $row['vrijeme'], $row['comment'] );
+		}
+
+		return $arr;
+	}
+
+	//dohvaćanje imena grupe iz id_grupa (za ispis na koju grupu se obavijest odnosi)
+	function getGrupaImeById( $id )
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( 'SELECT ime FROM ' . self::GRUPE_TABLE . ' WHERE id_grupe=:id' );
+			$st->execute( ['id' => $id] );
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		$row = $st->fetch();
+		if( $row === false )
+			return null;
+		else
+			return $row['ime'];
 	}
 	
 	//------- Jelena = postavke ----------------------------
