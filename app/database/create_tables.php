@@ -81,6 +81,7 @@ function create_table_aktivnosti()
 			'description varchar(1000) NOT NULL,' .
 			'cijena DECIMAL(15,2), ' .
 			'fk_id_trenera INT NOT NULL,' .
+			'spol varchar(30), ' .
 			'uzrast_od INT,' .
 			'uzrast_do INT)' 
 		);
@@ -109,6 +110,7 @@ function create_table_grupe()
 			'ime varchar(100), ' .
 			'description varchar(1000) NOT NULL,' .
             'cijena decimal(15,2) NOT NULL,' .
+			'spol varchar(30), ' .
 			'fk_id_aktivnosti INT NOT NULL)'
 		);
 

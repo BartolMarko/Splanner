@@ -60,11 +60,11 @@ function seed_table_aktivnosti()
 	// Ubaci neke proizvode unutra (ovo nije bas pametno ovako raditi, preko hardcodiranih id-eva usera)
 	try
 	{
-		$st = $db->prepare( 'INSERT INTO splanner_aktivnosti(id_aktivnosti, ime, description, cijena, fk_id_trenera, uzrast_od, uzrast_do) 
-							VALUES (:id_aktivnosti, :ime, :description, :cijena, :fk_id_trenera, :uzrast_od, :uzrast_do)' );
+		$st = $db->prepare( 'INSERT INTO splanner_aktivnosti(id_aktivnosti, ime, description, cijena, fk_id_trenera, spol, uzrast_od, uzrast_do) 
+							VALUES (:id_aktivnosti, :ime, :description, :cijena, :fk_id_trenera, :spol, :uzrast_od, :uzrast_do)' );
 
-		$st->execute( array( 'id_aktivnosti' => 1, 'ime' => 'HNK Daruvar', 'description' => 'Nogomet za uzrast 12 - 16 godina', 'cijena' => 20, 'fk_id_trenera' => 1, 'uzrast_od' => 12, 'uzrast_do' => 16) ); 
-		$st->execute( array( 'id_aktivnosti' => 2, 'ime' => 'OK Šibenik', 'description' => 'Odbojka za djevojčice 7 - 10 godina', 'cijena' => 18, 'fk_id_trenera' => 14, 'uzrast_od' => 7, 'uzrast_do' => 10) );
+		$st->execute( array( 'id_aktivnosti' => 1, 'ime' => 'HNK Daruvar', 'description' => 'Nogomet za uzrast 12 - 16 godina', 'cijena' => 20, 'fk_id_trenera' => 1, 'spol' => 'mješovito', 'uzrast_od' => 12, 'uzrast_do' => 16) ); 
+		$st->execute( array( 'id_aktivnosti' => 2, 'ime' => 'OK Šibenik', 'description' => 'Odbojka za djevojčice 7 - 10 godina', 'cijena' => 18, 'fk_id_trenera' => 14, 'spol' => 'žensko', 'uzrast_od' => 7, 'uzrast_do' => 10) );
 	}
 	catch( PDOException $e ) { exit( "PDO error [splanner_aktivnosti]: " . $e->getMessage() ); }
 
@@ -80,12 +80,12 @@ function seed_table_grupe()
 	// Ubaci neke prodaje unutra (ovo nije bas pametno ovako raditi, preko hardcodiranih id-eva usera i proizvoda)
 	try
 	{
-		$st = $db->prepare( 'INSERT INTO splanner_grupe(id_grupe, ime, description, cijena, fk_id_aktivnosti) 
-		VALUES (:id_grupe, :ime, :description, :cijena, :fk_id_aktivnosti)' );
+		$st = $db->prepare( 'INSERT INTO splanner_grupe(id_grupe, ime, description, cijena, spol, fk_id_aktivnosti) 
+		VALUES (:id_grupe, :ime, :description, :cijena, :spol, :fk_id_aktivnosti)' );
 
-		$st->execute( array( 'id_grupe' => 1, 'ime' => 'iskusni', 'description' => 'Nogomet za uzrast 12 - 16 godina, iskusni', 'cijena' => 20, 'fk_id_aktivnosti' => 1) ); 
-		$st->execute( array( 'id_grupe' => 2, 'ime' => 'nova grupa', 'description' => 'Nogomet za uzrast 12 - 16 godina, nova grupa', 'cijena' => 20, 'fk_id_aktivnosti' => 1) ); 
-		$st->execute( array( 'id_grupe' => 3, 'ime' => 'OK junior', 'description' => 'Odbojka za djevojčice 7 - 10 godina', 'cijena' => 18, 'fk_id_aktivnosti' => 2) ); 
+		$st->execute( array( 'id_grupe' => 1, 'ime' => 'iskusni', 'description' => 'Nogomet za uzrast 12 - 16 godina, iskusni', 'cijena' => 20, 'spol' => 'muško', 'fk_id_aktivnosti' => 1) ); 
+		$st->execute( array( 'id_grupe' => 2, 'ime' => 'nova grupa', 'description' => 'Nogomet za uzrast 12 - 16 godina, nova grupa', 'cijena' => 20, 'spol' => 'mješovito', 'fk_id_aktivnosti' => 1) ); 
+		$st->execute( array( 'id_grupe' => 3, 'ime' => 'OK junior', 'description' => 'Odbojka za djevojčice 7 - 10 godina', 'cijena' => 18, 'spol' => 'žensko', 'fk_id_aktivnosti' => 2) ); 
 	}
 	catch( PDOException $e ) { exit( "PDO error [splanner_grupe]: " . $e->getMessage() ); }
 
