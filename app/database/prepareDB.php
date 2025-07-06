@@ -4,6 +4,9 @@
 require_once __DIR__ . '/db.class.php';
 
 seed_table_korisnici();
+seed_table_aktivnosti();
+seed_table_grupe();
+seed_table_obavijesti();
 
 exit( 0 );
 
@@ -50,51 +53,62 @@ function seed_table_korisnici()
 
 
 // ------------------------------------------
-function seed_table_()
+function seed_table_aktivnosti()
 {
 	$db = DB::getConnection();
 
 	// Ubaci neke proizvode unutra (ovo nije bas pametno ovako raditi, preko hardcodiranih id-eva usera)
 	try
 	{
-		$st = $db->prepare( 'INSERT INTO dz2_products(id_user, name, description, price) VALUES (:id_user, :name, :description, :price)' );
+		$st = $db->prepare( 'INSERT INTO splanner_aktivnosti(id_aktivnosti, ime, description, cijena, fk_id_trenera, uzrast_od, uzrast_do) 
+							VALUES (:id_aktivnosti, :ime, :description, :cijena, :fk_id_trenera, :uzrast_od, :uzrast_do)' );
 
-		$st->execute( array( 'id_user' => 1, 'name' => 'Cell Phone Carbon Fiber Soft Cover Case', 'description' => 'Your device will be attractive and usable while protected from scratches in this Stylish New case. Protect your phone from scratches, dust or damages. It moulds perfectly to your phone\'s shape while providing easy access to vital functions.', 'price' => 0.99 ) ); // mirko
-		$st->execute( array( 'id_user' => 2, 'name' => '50mm Foam Pads Headphone Cover Cap', 'description' => 'Durable and soft The ear foam will enhance the bass performance of your headphones More confortable for your ears.', 'price' => 2.04) ); // slavko
-		$st->execute( array( 'id_user' => 1, 'name' => 'Phosphor Bronze extra Light Acoustic Guitar Strings', 'description' => 'Lightest gauge of acoustic strings, ideal for beginners or any player that prefers a softer tone and easy bending. Phosphor Bronze was introduced to string making in 1974 and has become synonymous with warm, bright, and well balanced acoustic tone. Phosphor Bronze strings are precision wound with corrosion resistant phosphor bronze onto a carefully drawn, hexagonally shaped, high carbon steel core. The result is long lasting, bright sounding tone with excellent intonation.', 'price' => 7.89 ) ); // mirko
-		$st->execute( array( 'id_user' => 3, 'name' => '30 Used Tennis Balls - Branded. Very Clean.', 'description' => 'Good condition. All are clean. Branded balls. We have sold over 400,000 balls over a 10 year period so you can be sure of getting a great service and product.', 'price' => 16.89 ) ); // ana
+		$st->execute( array( 'id_aktivnosti' => 1, 'ime' => 'HNK Daruvar', 'description' => 'Nogomet za uzrast 12 - 16 godina', 'cijena' => 20, 'fk_id_trenera' => 1, 'uzrast_od' => 12, 'uzrast_do' => 16) ); 
+		$st->execute( array( 'id_aktivnosti' => 2, 'ime' => 'OK Šibenik', 'description' => 'Odbojka za djevojčice 7 - 10 godina', 'cijena' => 18, 'fk_id_trenera' => 14, 'uzrast_od' => 7, 'uzrast_do' => 10) );
 	}
-	catch( PDOException $e ) { exit( "PDO error [dz2_products]: " . $e->getMessage() ); }
+	catch( PDOException $e ) { exit( "PDO error [splanner_aktivnosti]: " . $e->getMessage() ); }
 
-	echo "Ubacio u tablicu dz2_products.<br />";
+	echo "Ubacio u tablicu splanner_aktivnosti.<br />";
 }
 
 
 // ------------------------------------------
-function seed_table_sales()
+function seed_table_grupe()
 {
 	$db = DB::getConnection();
 
 	// Ubaci neke prodaje unutra (ovo nije bas pametno ovako raditi, preko hardcodiranih id-eva usera i proizvoda)
 	try
 	{
-		$st = $db->prepare( 'INSERT INTO dz2_sales(id_product, id_user, rating, comment) VALUES (:id_product, :id_user, :rating, :comment)' );
+		$st = $db->prepare( 'INSERT INTO splanner_grupe(id_grupe, ime, description, cijena, fk_id_aktivnosti) 
+		VALUES (:id_grupe, :ime, :description, :cijena, :fk_id_aktivnosti)' );
 
-		$st->execute( array( 'id_product' => 1, 'id_user' => 4, 'rating' => 5, 'comment' => 'Excellent. Very happy.' ) );
-		$st->execute( array( 'id_product' => 1, 'id_user' => 5, 'rating' => 3, 'comment' => 'Could be better...' ) );
-		$st->execute( array( 'id_product' => 1, 'id_user' => 3, 'rating' => NULL, 'comment' => NULL ) );
+		$st->execute( array( 'id_grupe' => 1, 'ime' => 'iskusni', 'description' => 'Nogomet za uzrast 12 - 16 godina, iskusni', 'cijena' => 20, 'fk_id_aktivnosti' => 1) ); 
+		$st->execute( array( 'id_grupe' => 2, 'ime' => 'nova grupa', 'description' => 'Nogomet za uzrast 12 - 16 godina, nova grupa', 'cijena' => 20, 'fk_id_aktivnosti' => 1) ); 
+		$st->execute( array( 'id_grupe' => 3, 'ime' => 'OK junior', 'description' => 'Odbojka za djevojčice 7 - 10 godina', 'cijena' => 18, 'fk_id_aktivnosti' => 2) ); 
+	}
+	catch( PDOException $e ) { exit( "PDO error [splanner_grupe]: " . $e->getMessage() ); }
 
-		$st->execute( array( 'id_product' => 2, 'id_user' => 4, 'rating' => 1, 'comment' => 'Don\'t buy. This is a scam.' ) );
-		$st->execute( array( 'id_product' => 2, 'id_user' => 1, 'rating' => NULL, 'comment' => NULL ) );
+	echo "Ubacio u tablicu splanner_grupe.<br />";
+}
 
-		$st->execute( array( 'id_product' => 3, 'id_user' => 5, 'rating' => 5, 'comment' => 'Great guitar strings. Would buy again.' ) );
-		$st->execute( array( 'id_product' => 3, 'id_user' => 3, 'rating' => 4, 'comment' => 'Pretty good strings.' ) );
+function seed_table_obavijesti()
+{
+	$db = DB::getConnection();
 
-		$st->execute( array( 'id_product' => 4, 'id_user' => 1, 'rating' => 5, 'comment' => 'Great tennis balls, I can now play for the whole year!' ) );
+	// Ubaci neke prodaje unutra (ovo nije bas pametno ovako raditi, preko hardcodiranih id-eva usera i proizvoda)
+	try
+	{
+		$st = $db->prepare( 'INSERT INTO splanner_obavijesti(id_obavijest, id_grupe_fk, datum, vrijeme, comment) 
+		VALUES (:id_obavijest, :id_grupe_fk, :datum, :vrijeme, :comment)' );
+
+		$st->execute( array( 'id_obavijest' => 1, 'id_grupe_fk' => 1, 'datum' => '2025-07-07', 'vrijeme' => '13:15:30', 'comment' => 'Sljedeća utakmica je 18.07. u 17 sati u Daruvaru. Dođite u svlacionice najkasnije do 16 sati.') ); 
+		$st->execute( array( 'id_obavijest' => 2, 'id_grupe_fk' => 1, 'datum' => '2025-07-07', 'vrijeme' => '13:10:30', 'comment' => 'Sljedeći trening će se izvanredno održati u četvrtak 09.07. u 18 sati.') ); 
+		$st->execute( array( 'id_obavijest' => 3, 'id_grupe_fk' => 3, 'datum' => '2025-07-08', 'vrijeme' => '11:15:12', 'comment' => 'Današnji termin je otkazan zbog bolesti trenerice') ); 
 	}
 	catch( PDOException $e ) { exit( "PDO error [dz2_sales]: " . $e->getMessage() ); }
 
-	echo "Ubacio u tablicu dz2_sales.<br />";
+	echo "Ubacio u tablicu splanner_obavijesti<br />";
 }
 
 ?> 
