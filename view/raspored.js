@@ -6,12 +6,13 @@ const DANI_SKR = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
 const MJESECI = ['Siječanj', 'Veljača', 'Ožujak', 'Travanj', 'Svibanj', 'Lipanj', 
               'Srpanj', 'Kolovoz', 'Rujan', 'Listopad', 'Studeni', 'Prosinac'];
 
-const weekButton = $('#week-button');
-const monthButton = $('#month-button');
+const $weekButton = $('#week-button');
+const $monthButton = $('#month-button');
 
-const leftButton = $('#left-button');
-const todayButton = $('#today-button');
-const rightButton = $('#right-button');
+const $leftButton = $('#left-button');
+const $todayButton = $('#today-button');
+const $rightButton = $('#right-button');
+const $rasporedContainer = $('#raspored-container');
 
 let weekReferenceMonday = getCurrentMonday();
 let monthToDisplay = getCurrentMonth();
@@ -19,19 +20,19 @@ let monthToDisplay = getCurrentMonth();
 $( document ).ready(main);
 
 function main() {
-    weekButton.on('click', displayWeekSchedule);
-    monthButton.on('click', displayMonthSchedule);
+    $weekButton.on('click', displayWeekSchedule);
+    $monthButton.on('click', displayMonthSchedule);
 
-    leftButton.on('click', decreaseReference);
-    rightButton.on('click', increaseReference);
-    todayButton.on('click', resetReference);
+    $leftButton.on('click', decreaseReference);
+    $rightButton.on('click', increaseReference);
+    $todayButton.on('click', resetReference);
     displayWeekSchedule();
 }
 
-function displayWeekSchedule(min_hour = DEFAULT_MIN_HOUR, max_hour = DEFAULT_MAX_HOUR) {
+function displayWeekSchedule() {
     $(".time-interval").removeClass("active");
-    weekButton.addClass('active');
-    $('#raspored-container').empty();
+    $weekButton.addClass('active');
+    $rasporedContainer.empty();
 
     const start = new Date(weekReferenceMonday);
     const end = new Date(weekReferenceMonday);
@@ -40,21 +41,21 @@ function displayWeekSchedule(min_hour = DEFAULT_MIN_HOUR, max_hour = DEFAULT_MAX
     const startStr = `${start.getDate().toString().padStart(2, '0')}.${(start.getMonth() + 1).toString().padStart(2, '0')}.${start.getFullYear()}`;
     const endStr = `${end.getDate().toString().padStart(2, '0')}.${(end.getMonth() + 1).toString().padStart(2, '0')}.${end.getFullYear()}`;
 
-    $('#raspored-container').append(
+    $rasporedContainer.append(
         `<h2 class="week-range">${startStr} - ${endStr}</h2>`
     );
 
-    displayWeekGrid(min_hour, max_hour);
+    displayWeekGrid(DEFAULT_MIN_HOUR, DEFAULT_MAX_HOUR);
 }
 
 function displayMonthSchedule() {
     $(".time-interval").removeClass("active");
-    monthButton.addClass('active');
-    $('#raspored-container').empty();
+    $monthButton.addClass('active');
+    $rasporedContainer.empty();
 
     const monthName = MJESECI[monthToDisplay.month];
     const year = monthToDisplay.year;
-    $('#raspored-container').append(
+    $rasporedContainer.append(
         `<h2 class="month-title">${monthName} ${year}</h2>`
     );
 
@@ -91,7 +92,7 @@ function displayWeekGrid(min_hour, max_hour) {
         $tbody.append($tr);
     }
     $table.append($tbody);
-    $('#raspored-container').append($table);
+    $rasporedContainer.append($table);
 }
 
 function displayMonthGrid() {
@@ -132,15 +133,15 @@ function displayMonthGrid() {
     $tbody.append($tr);
     $table.append($tbody);
     
-    $('#raspored-container').append($table);
+    $rasporedContainer.append($table);
 }
 
 function increaseReference() {
-    if (weekButton.hasClass('active')) {
+    if ($weekButton.hasClass('active')) {
         weekReferenceMonday.setDate(weekReferenceMonday.getDate() + 7);
         displayWeekSchedule();
     }
-    else if (monthButton.hasClass('active')) {
+    else if ($monthButton.hasClass('active')) {
         monthToDisplay.month += 1;
         if (monthToDisplay.month > 11) {
             monthToDisplay.month = 0;
@@ -151,11 +152,11 @@ function increaseReference() {
 }
 
 function decreaseReference() {
-    if (weekButton.hasClass('active')) {
+    if ($weekButton.hasClass('active')) {
         weekReferenceMonday.setDate(weekReferenceMonday.getDate() - 7);
         displayWeekSchedule();
     }
-    else if (monthButton.hasClass('active')) {
+    else if ($monthButton.hasClass('active')) {
         monthToDisplay.month -= 1;
         if (monthToDisplay.month < 0) {
             monthToDisplay.month = 11;
@@ -167,11 +168,11 @@ function decreaseReference() {
 
 function resetReference() {
     // TODO: ostavit ovako ili uvijek i tjedan i mjesec resetat
-    if (weekButton.hasClass('active')) {
+    if ($weekButton.hasClass('active')) {
         weekReferenceMonday = getCurrentMonday();
         displayWeekSchedule();
     }
-    else if (monthButton.hasClass('active')) {
+    else if ($monthButton.hasClass('active')) {
         monthToDisplay = getCurrentMonth();
         displayMonthSchedule();
     }
