@@ -2,114 +2,158 @@
 
 class PostavkeController extends BaseController
 {
-	public function index() 
+    public function index()
     {
         $this->registry->template->title = 'Postavke';
-        $this->registry->template->poruka = '';
+        
         $this->registry->template->show('postavke_index');
     }
 
-   public function promjenaUsername()
-	{
-		if (!isset($_SESSION['id_user'])) {
-			header('Location: ' . __SITE_URL . '/index.php?rt=login');
-			exit();
-		}
+    public function promjenaUsername()
+    {
+        if (!isset($_SESSION['id_user'])) {
+            header('Location: ' . __SITE_URL . '/index.php?rt=login');
+            exit();
+        }
 
-		$novoUsername = trim($_POST['novo_username']);
+        $novoUsername = trim($_POST['novo_username']);
 
-		if ($novoUsername === '') {
-			$this->registry->template->poruka = 'Korisničko ime ne smije biti prazno!';
-			$this->registry->template->show('postavke_index');
-			return;
-		}
+        if ($novoUsername === '') {
+            $this->registry->template->poruka = 'Korisničko ime ne smije biti prazno!';
+            $this->registry->template->tip_poruke = 'greska';
+            $this->index();
+            return;
+        }
 
-		if (preg_match('/\s/', $novoUsername)) {
-			$this->registry->template->poruka = 'Korisničko ime ne smije sadržavati razmake!';
-			$this->registry->template->show('postavke_index');
-			return;
-		}
+        if (preg_match('/\s/', $novoUsername)) {
+            $this->registry->template->poruka = 'Korisničko ime ne smije sadržavati razmake!';
+            $this->registry->template->tip_poruke = 'greska';
+            $this->index();
+            return;
+        }
 
-		$ss = new SplannerService();
+        $ss = new SplannerService();
 
-		if ($ss->checkIfUsernameExists($novoUsername)) {
-			$this->registry->template->poruka = 'Korisničko ime je već zauzeto!';
-			$this->registry->template->show('postavke_index');
-			return;
-		}
+        if ($ss->checkIfUsernameExists($novoUsername)) {
+            $this->registry->template->poruka = 'Korisničko ime je već zauzeto!';
+            $this->registry->template->tip_poruke = 'greska';
+            $this->index();
+            return;
+        }
 
-		$ss->updateUsername($_SESSION['id_user'], $novoUsername);
+        $ss->updateUsername($_SESSION['id_user'], $novoUsername);
+        $_SESSION['username'] = $novoUsername;
 
-		$_SESSION['username'] = $novoUsername;
+        $this->registry->template->poruka = 'Korisničko ime je uspješno promijenjeno.';
+        $this->registry->template->tip_poruke = 'uspjeh';
+        $this->index();
+    }
 
-		$this->registry->template->poruka = 'Korisničko ime je uspješno promijenjeno.';
-		$this->registry->template->show('postavke_index');
+    public function promjenaLozinke()
+    {
+        if (!isset($_SESSION['id_user'])) {
+            header('Location: ' . __SITE_URL . '/index.php?rt=login');
+            exit();
+        }
 
-	}
+        $stara = $_POST['stara_lozinka'];
+        $nova = $_POST['nova_lozinka'];
+        $nova2 = $_POST['nova_lozinka2'];
 
-	public function promjenaLozinke()
-	{
-		if (!isset($_SESSION['id_user'])) {
-			header('Location: ' . __SITE_URL . '/index.php?rt=login');
-			exit();
-		}
+        if ($nova !== $nova2) {
+            $this->registry->template->poruka = 'Nova lozinka i potvrda lozinke nisu iste.';
+            $this->registry->template->tip_poruke = 'greska';
+            $this->index();
+            return;
+        }
 
-		$stara = $_POST['stara_lozinka'];
-		$nova = $_POST['nova_lozinka'];
-		$nova2 = $_POST['nova_lozinka2'];
+        if (strlen($nova) < 6) {
+            $this->registry->template->poruka = 'Nova lozinka mora imati barem 6 znakova.';
+            $this->registry->template->tip_poruke = 'greska';
+            $this->index();
+            return;
+        }
 
-		if ($nova !== $nova2) {
-			$this->registry->template->poruka = 'Nova lozinka i potvrda lozinke nisu iste.';
-			$this->registry->template->show('postavke_index');
-			return;
-		}
+        if ($stara === $nova) {
+            $this->registry->template->poruka = 'Nova lozinka mora biti različita od stare.';
+            $this->registry->template->tip_poruke = 'greska';
+            $this->index();
+            return;
+        }
 
-		if (strlen($nova) < 6) {
-			$this->registry->template->poruka = 'Nova lozinka mora imati barem 6 znakova.';
-			$this->registry->template->show('postavke_index');
-			return;
-		}
+        $ss = new SplannerService();
 
-		if ($stara === $nova) {
-			$this->registry->template->poruka = 'Nova lozinka mora biti različita od stare.';
-			$this->registry->template->show('postavke_index');
-			return;
-		}
+        if (!$ss->provjeriLozinku($_SESSION['id_user'], $stara)) {
+            $this->registry->template->poruka = 'Stara lozinka nije ispravna.';
+            $this->registry->template->tip_poruke = 'greska';
+            $this->index();
+            return;
+        }
 
-		$ss = new SplannerService();
+        $ss->promijeniLozinku($_SESSION['id_user'], $nova);
 
-		if (!$ss->provjeriLozinku($_SESSION['id_user'], $stara)) {
-			$this->registry->template->poruka = 'Stara lozinka nije ispravna.';
-			$this->registry->template->show('postavke_index');
-			return;
-		}
+        $this->registry->template->poruka = 'Lozinka je uspješno promijenjena.';
+        $this->registry->template->tip_poruke = 'uspjeh';
+        $this->index();
+    }
 
-		$ss->promijeniLozinku($_SESSION['id_user'], $nova);
+    public function obrisiRacun()
+    {
+        if (!isset($_SESSION['id_user'])) {
+            header('Location: ' . __SITE_URL . '/index.php?rt=login');
+            exit();
+        }
 
-		$this->registry->template->poruka = 'Lozinka je uspješno promijenjena.';
-		$this->registry->template->show('postavke_index');
-	}
+        $ss = new SplannerService();
+        $ss->obrisiKorisnika($_SESSION['id_user']);
 
-	public function obrisiRacun()
-	{
-		if (!isset($_SESSION['id_user'])) {
-			header('Location: ' . __SITE_URL . '/index.php?rt=login');
-			exit();
-		}
+        session_unset();
+        session_destroy();
 
-		$ss = new SplannerService();
-		$ss->obrisiKorisnika($_SESSION['id_user']);
+        header('Location: ' . __SITE_URL . '/index.php?rt=login&msg=obrisan');
+        exit();
+    }
 
-		session_unset();
-		session_destroy();
+    public function dodajDijete()
+    {
+        if (!isset($_SESSION['id_user']) || $_SESSION['tip_korisnika'] !== 'roditelj') {
+            header('Location: ' . __SITE_URL . '/index.php?rt=login');
+            exit();
+        }
 
-		// Preusmjeri na login s GET parametrom za poruku
-		header('Location: ' . __SITE_URL . '/index.php?rt=login&msg=obrisan');
-		exit();
-	}
+        $username = trim($_POST['username']);
+        $oib = trim($_POST['oib']);
+        $password = $_POST['password'];
 
+        if ($username === '' || $oib === '' || $password === '') {
+            $this->registry->template->poruka = 'Sva polja su obavezna.';
+            $this->registry->template->tip_poruke = 'greska';
+            $this->index();
+            return;
+        }
 
+        $ss = new SplannerService();
 
+        if ($ss->checkIfUsernameExists($username)) {
+            $this->registry->template->poruka = 'Korisničko ime je zauzeto.';
+            $this->registry->template->tip_poruke = 'greska';
+            $this->index();
+            return;
+        }
+
+        $email = $ss->dohvatiEmailKorisnika($_SESSION['id_user']);
+
+        $ss->dodajDijete(
+            $_SESSION['id_user'],
+            $username,
+            $oib,
+            $email,
+            $password
+        );
+
+        $this->registry->template->poruka = 'Uspješno ste dodali novog člana obitelji.';
+        $this->registry->template->tip_poruke = 'uspjeh';
+        $this->index();
+    }
 }
-
 ?>

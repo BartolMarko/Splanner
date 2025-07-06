@@ -1,16 +1,14 @@
 <?php require_once __SITE_PATH . '/view/_header.php'; ?>
 
-<!--- Jelena dodala -->
-<?php
-if (isset($_GET['msg']) && $_GET['msg'] === 'obrisan') {
-    echo '<p style="color: green;">Vaš račun je uspješno obrisan.</p>';
-}
-?>
-<!-------------------->
-
 <div class="login-form">
-    <form method="post" action="<?php echo __SITE_URL; ?>/index.php?rt=login">
 
+    <?php
+    if (isset($_GET['msg']) && $_GET['msg'] === 'obrisan') {
+        echo '<p style="color: green;">Vaš račun je uspješno obrisan.</p>';
+    }
+    ?>
+
+    <form method="post" action="<?php echo __SITE_URL; ?>/index.php?rt=login">
         Unesite korisničko ime:
         <input type="text" name="username" required>
         <br>
@@ -27,6 +25,7 @@ if (isset($_GET['msg']) && $_GET['msg'] === 'obrisan') {
     </p>
 
     <?php if (isset($error)) echo '<p class="centered-text" style="color:red; margin-top: 20px;">' . $error . '</p>'; ?>
+
 </div>
 
 <?php require_once __SITE_PATH . '/view/_footer.php'; ?>

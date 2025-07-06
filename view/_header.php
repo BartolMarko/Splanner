@@ -5,7 +5,8 @@
 	<title>Splanner</title>
 	<link rel="stylesheet" href="<?php echo __SITE_URL;?>/css/style.css">
 </head>
-<body>
+<body <?php if (isset($_SESSION['username'])) echo ' class="with-nav"'; ?>>
+
 	<?php if (isset($_SESSION['username'])): ?>
 	<nav>
 		<ul>

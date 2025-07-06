@@ -2,7 +2,14 @@
 
 <h2>Postavke računa</h2>
 
-<?php if (!empty($poruka)) echo "<p style='color:red;'>".$poruka."</p>"; ?>
+<?php if (!empty($poruka)): ?>
+    <?php if ($tip_poruke === 'greska'): ?>
+        <p style="color:red;"><?php echo $poruka; ?></p>
+    <?php else: ?>
+        <p style="color:green;"><?php echo $poruka; ?></p>
+    <?php endif; ?>
+<?php endif; ?>
+
 
 <h2>Unesite novo korisničko ime</h2>
 
@@ -27,12 +34,31 @@
     <input type="submit" value="Promijeni lozinku">
 </form>
 
+<?php if ($_SESSION['tip_korisnika'] === 'roditelj'): ?>
+
+<hr>
+<h2>Dodavanje člana obitelji</h2>
+
+<form method="post" action="<?php echo __SITE_URL; ?>/index.php?rt=postavke/dodajDijete">
+    <label>Korisničko ime:</label><br>
+    <input type="text" name="username" required><br><br>
+
+    <label>OIB:</label><br>
+    <input type="text" name="oib" required><br><br>
+
+    <label>Lozinka:</label><br>
+    <input type="password" name="password" required><br><br>
+
+    <input type="submit" value="Dodaj dijete">
+</form>
+
+<hr>
 <h2>Brisanje računa</h2>
 
 <form method="post" action="<?php echo __SITE_URL; ?>/index.php?rt=postavke/obrisiRacun" onsubmit="return confirm('Jeste li sigurni da želite obrisati svoj račun? Ova akcija je nepovratna!');">
     <input type="submit" value="Obriši moj račun trajno" style="background-color: red; color: white;">
 </form>
 
+<?php endif; ?> <!-- samo roditelj može izbrisati račun?? -->
 
 <?php require_once __SITE_PATH . '/view/_footer.php'; ?>
-

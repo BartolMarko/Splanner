@@ -18,6 +18,7 @@ body {
   min-height: 100vh;
 }
 
+
 /* FIXED NAVIGATION */
 nav {
   width: 200px;
@@ -58,19 +59,58 @@ nav ul li a:hover {
   color: var(--color-dark);
 }
 
-/* MAIN CONTENT */
-main {
-  margin-left: 200px; /* prostor za nav */
-  padding: 40px;
-  max-width: calc(100% - 200px);
-  box-sizing: border-box;
-
-  display: flex;
-  flex-direction: column;  /* da su naslov i forma vertikalno */
-  color: var(--color-darkest);
+body:not(.with-nav) {
+  background-image: url('pozadina.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
 }
 
+/* MAIN CONTENT */
+body.with-nav main {
+  margin-left: 200px;
+  padding: 40px;
+  max-width: calc(100% - 200px);
+}
+
+body:not(.with-nav) main {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 700px; /* širina forme */
+}
+
+
+body.with-nav main {
+  margin-left: 200px;
+  max-width: calc(100% - 200px);
+}
+
+body:not(.with-nav) main {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 700px; /* širina forme */
+}
+
+
 /* HEADINGS */
+
+body:not(.with-nav) h1 {
+  font-size: 70px;
+  font-weight: 600;
+  margin-top: 100px;
+  font-family: 'Poppins', sans-serif;
+  color: var(--color-darkest);
+  text-align: center;
+  margin-bottom: -30px;
+  position: relative;
+  z-index: 2;
+
+  background-color: var(--color-light);
+  padding: 40px;
+  border-radius: 12px;
+}
+
 h1 {
   font-size: 70px;
   font-weight: 600;
@@ -82,8 +122,7 @@ h1 {
 
 /* FORMS */
 .login-form {
-  max-width: 600px;
-  width: 100%; /* da forma ne prelazi 600px, ali može biti i manja */
+  width: 700px;
   background-color: var(--color-light);
   padding: 40px;
   border-radius: 12px;
@@ -91,6 +130,10 @@ h1 {
 
   display: flex;
   flex-direction: column;
+
+  padding-top: 60px; /* da ne preklopi sadržaj */
+  position: relative;
+  z-index: 1;
 }
 
 .login-form label {
@@ -201,4 +244,5 @@ th {
 
 .centered-text {
   text-align: center;
+  margin-top: 20px;
 }

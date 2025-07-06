@@ -161,6 +161,36 @@ class SplannerService
 		$st->execute(['id' => $id_user]);
 	}
 
+	//za dodavanje novog clana
+	public function dohvatiEmailKorisnika($id_user)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('SELECT email FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
+		$st->execute(['id' => $id_user]);
+
+		return $st->fetchColumn();
+	}
+
+	public function dodajDijete($id_roditelja, $username, $oib, $email, $password)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare(
+			'INSERT INTO ' . self::USERS_TABLE . '
+			(OIB, username, password_hash, email, tip_korisnika, registration_sequence, has_registered, fk_id_roditelja)
+			VALUES
+			(:oib, :username, :hash, :email, "dijete", "", 1, :id_roditelja)'
+		);
+
+		$st->execute([
+			'oib' => $oib,
+			'username' => $username,
+			'hash' => password_hash($password, PASSWORD_DEFAULT),
+			'email' => $email,
+			'id_roditelja' => $id_roditelja
+		]);
+	}
+
+
 
 
 	
