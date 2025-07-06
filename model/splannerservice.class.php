@@ -327,19 +327,25 @@ class SplannerService
 		return $st->fetchAll();
 	}
 
-	static function getTerminiForUser( $userId )
+	public static function getTerminiForUser($userId, $datumOd, $datumDo)
 	{
 		try
 		{
+			// dodati dohvacanje imena aktivnosti/grupe
 			$db = DB::getConnection();
 			$grupe = static::getGrupeKorisnika( $userId );
 			$st = $db->prepare(
-				'SELECT t.datum, t.vrijeme_poc, t.vrijeme_traj, t.dvorana, t.comment
-				 FROM ' . self::TERMINI_TABLE . ' t
+				'SELECT t.datum, t.vrijeme_poc, t.vrijeme_kraj, t.dvorana, t.comment
+				 FROM ' . self::REDOVNI_TERMINI_TABLE . ' t
 				 INNER JOIN ' . self::PRIPADNOST_TABLE . ' p ON t.id_grupe_fk = p.id_grupe_fk
-				 WHERE p.id_korisnik_fk = :id_korisnika'
+				 WHERE p.id_korisnik_fk = :id_korisnika
+				 AND t.datum BETWEEN :datumOd AND :datumDo'
 			);
-			$st->execute( ['id_korisnika' => $userId] );
+			$st->execute([
+				'id_korisnika' => $userId,
+				'datumOd' => $datumOd, 
+				'datumDo' => $datumDo
+			]);
 		}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 

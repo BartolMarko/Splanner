@@ -6,6 +6,8 @@ const DANI_SKR = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
 const MJESECI = ['Siječanj', 'Veljača', 'Ožujak', 'Travanj', 'Svibanj', 'Lipanj', 
               'Srpanj', 'Kolovoz', 'Rujan', 'Listopad', 'Studeni', 'Prosinac'];
 
+const TERMINI_URL_BASE = window.location.href + "/termini";
+
 const $weekButton = $('#week-button');
 const $monthButton = $('#month-button');
 
@@ -45,7 +47,7 @@ function displayWeekSchedule() {
         `<h2 class="week-range">${startStr} - ${endStr}</h2>`
     );
 
-    displayWeekGrid(DEFAULT_MIN_HOUR, DEFAULT_MAX_HOUR);
+    fetchWeekActivitiesAndDisplay();
 }
 
 function displayMonthSchedule() {
@@ -60,6 +62,32 @@ function displayMonthSchedule() {
     );
 
     displayMonthGrid();
+}
+
+function fetchWeekActivitiesAndDisplay() {
+    const start = new Date(weekReferenceMonday);
+    const end = new Date(weekReferenceMonday);
+    end.setDate(start.getDate() + 6);
+    const datumOd = `${start.getFullYear()}-${(start.getMonth() + 1).toString().padStart(2, '0')}-${start.getDate().toString().padStart(2, '0')}`;
+    const datumDo = `${end.getFullYear()}-${(end.getMonth() + 1).toString().padStart(2, '0')}-${end.getDate().toString().padStart(2, '0')}`;
+
+    const a=5;
+    $.ajax({
+        url: TERMINI_URL_BASE,
+        method: 'GET',
+        data: {
+            datumOd: datumOd,
+            datumDo: datumDo,
+        },
+        dataType: 'json',
+        success: function(activities) {
+            displayWeekGrid(DEFAULT_MIN_HOUR, DEFAULT_MAX_HOUR);
+            displayWeekActivities(activities);
+        },
+        error: function() {
+            console.error('Error pri dohvaćanju aktivnosti.');
+        }
+    });
 }
 
 function displayWeekGrid(min_hour, max_hour) {
@@ -93,6 +121,10 @@ function displayWeekGrid(min_hour, max_hour) {
     }
     $table.append($tbody);
     $rasporedContainer.append($table);
+}
+
+function displayWeekActivities(activities) {
+
 }
 
 function displayMonthGrid() {
