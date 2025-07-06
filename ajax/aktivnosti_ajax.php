@@ -49,25 +49,64 @@ switch ($action) {
         <?php endforeach;
         $html = ob_get_clean(); //i ovdje sve to strpam u $html, da mogu poslati stvarnoj stranici za ispis ( ne da mi se ispise tu)
         sendJSONandExit(['html' => $html]);
+        break;
 
     case 'ispisi_se':
         $idAkt = intval($_POST['aktivnost_id']);
         $userKojiIspisujem = $_POST['child_id'] ?? $idUser;
         $ss->ispisiUseraSaAkt($userKojiIspisujem, $idAkt); //TODO u splannerservice
         sendJSONandExit(['success' => true]);
+        break;
 
     case 'get_grupe':
         $idAkt = intval($_POST['aktivnost_id']);
         $grupe = $ss->getGrupeZaAkt($idAkt);
+        break;
 
         ob_start();
         foreach ($grupe as $g): ?>
-            <div class="grupa">
-                <strong><?= htmlspecialchars($g['ime_grupe']) ?></strong> - <?= htmlspecialchars($g['termin']) ?>
+            <div class="grupa" data-grupa-id="<?= $g['id_grupe'] ?>">
+            <strong class="ime"><?= htmlspecialchars($g['ime_grupe']) ?></strong> - 
+            <span class="termin"><?= htmlspecialchars($g['termin']) ?></span>
+            <?php if ($tip === 'trener'): ?>
+                <button class="uredi-termin-btn">✏️ Uredi termin</button>
+            <?php endif; ?>
             </div>
         <?php endforeach;
         $html = ob_get_clean();
         sendJSONandExit(['html' => $html]);
+        break;
+
+        case 'update_termin':
+            if ($tip !== 'trener') sendErrorAndExit("Nemate pristup.");
+        
+            $required = ['tip_termina', 'id_termina', 'datum', 'vrijeme_poc', 'vrijeme_kraj', 'dvorana', 'comment'];
+            foreach ($required as $r)
+                if (!isset($_POST[$r]))
+                    sendErrorAndExit("Nedostaje podatak: $r");
+        
+            $tip_termina = $_POST['tip_termina'];
+            $id = intval($_POST['id_termina']);
+            $datum = $_POST['datum'];
+            $vrijeme_poc = $_POST['vrijeme_poc'];
+            $vrijeme_kraj = $_POST['vrijeme_kraj'];
+            $dvorana = $_POST['dvorana'];
+            $comment = $_POST['comment'];
+        
+            try {
+                if ($tip_termina === 'redovni')
+                    $ss->updateRedovniTermin($id, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment);
+                elseif ($tip_termina === 'azurni')
+                    $ss->updateAzurniTermin($id, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment);
+                else
+                    sendErrorAndExit("Nepoznat tip termina.");
+        
+                sendJSONandExit(['success' => true]);
+            } catch (Exception $e) {
+                sendErrorAndExit("Greška: " . $e->getMessage());
+            }
+            break;
+
 
     case 'update_aktivnost':
         if ($tip !== 'trener') sendErrorAndExit("Nemate pristup ovome.");
@@ -77,12 +116,23 @@ switch ($action) {
         $cijena = floatval($_POST['cijena']);
         $ss->updateAktivnost($id, $ime, $opis, $cijena);
         sendJSONandExit(['success' => true]);
+        break;
 
+    case 'create_aktivnost':
+        if ($tip !== 'trener') sendErrorAndExit("Nemate pristup ovome.");
+        $ime = trim($_POST['ime']);
+        $opis = trim($_POST['description']);
+        $cijena = floatval($_POST['cijena']);
+        $ss->upisAkt($idUser, $ime, $opis, $cijena);
+        sendJSONandExit(['success' => true]);
+        break;
+    
     case 'delete_aktivnost':
         if ($tip !== 'trener') sendErrorAndExit("Nemate pristup ovome.");
         $id = intval($_POST['id']);
         $ss->deleteAktivnost($id); //TODO u splannerservice
         sendJSONandExit(['success' => true]);
+        break;
 
     default:
         sendErrorAndExit("Nepoznata radnja.");
