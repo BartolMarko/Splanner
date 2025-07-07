@@ -5,6 +5,7 @@ class SplannerService
     const USERS_TABLE = 'splanner_korisnici';
     const OBAVIJESTI_TABLE = 'splanner_obavijesti';
     const GRUPE_TABLE = 'splanner_grupe';
+    const AKTIVNOSTI_TABLE = 'splanner_aktivnosti';
 
 	// ulogiravanje - postavljanje sessiona ili izbacivanje greške
 	function checkLogin($username, $password)
@@ -127,7 +128,10 @@ class SplannerService
 		$arr = array();
 		while( $row = $st->fetch() )
 		{
-			$arr[] = new Obavijest( $row['id_obavijest'], $row['id_grupe_fk'], $this->getGrupaImeById($row['id_grupe_fk']), $row['datum'], $row['vrijeme'], $row['comment'] );
+			$arr[] = new Obavijest( $row['id_obavijest'], 
+									$row['id_grupe_fk'], $this->getGrupaImeById($row['id_grupe_fk']), 
+									$this->getAktivnostImeByIdGrupa($row['id_grupe_fk']), 
+									$row['datum'], $row['vrijeme'], $row['comment'] );
 		}
 
 		return $arr;
@@ -149,6 +153,28 @@ class SplannerService
 			return null;
 		else
 			return $row['ime'];
+	}
+
+	//dohvaćanje imena aktivnosti iz id_grupa (za ispis na koju aktivnost se obavijest odnosi)
+	function getAktivnostImeByIdGrupa( $id )
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( '
+				SELECT a.ime AS ime_aktivnosti
+				FROM ' . self::GRUPE_TABLE . ' g
+				JOIN ' . self::AKTIVNOSTI_TABLE . ' a ON g.fk_id_aktivnosti = a.id_aktivnosti
+				WHERE g.id_grupe = :id' );
+			$st->execute( ['id' => $id] );
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		$row = $st->fetch();
+		if( $row === false )
+			return null;
+		else
+			return $row['ime_aktivnosti'];
 	}
 	
 	//------- Jelena = postavke ----------------------------

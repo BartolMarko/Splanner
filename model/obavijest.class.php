@@ -2,13 +2,14 @@
 
 class Obavijest
 {
-	protected $id_obavijest, $id_grupe_fk, $datum, $vrijeme, $comment;
+	protected $id_obavijest, $id_grupe_fk, $ime, $aktivnost_ime, $datum, $vrijeme, $comment;
 
-	function __construct( $id_obavijest, $id_grupe_fk, $ime, $datum, $vrijeme, $comment )
+	function __construct( $id_obavijest, $id_grupe_fk, $ime, $aktivnost_ime, $datum, $vrijeme, $comment )
 	{
 		$this->id_obavijest = $id_obavijest;
 		$this->id_grupe_fk = $id_grupe_fk;
 		$this->ime = $ime;
+		$this->aktivnost_ime = $aktivnost_ime;
 		$this->datum = $datum;
 		$this->vrijeme = $vrijeme;
 		$this->comment = $comment;
