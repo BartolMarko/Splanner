@@ -62,21 +62,20 @@ class SplannerService
 			return true;
 	}
 
-	function checkRegSeq($reg_seq){
-		try
-		{
+	public function checkRegSeq($seq)
+	{
+		try {
 			$db = DB::getConnection();
-			$st = $db->prepare( 'SELECT * FROM ' . self::USERS_TABLE . ' WHERE registration_sequence=:registration_sequence' );
-			$st->execute( array( 'registration_sequence' => $reg_seq ) );
-		}
-		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+			$st = $db->prepare('SELECT 1 FROM splanner_korisnici WHERE registration_sequence = :seq');
+			$st->execute(['seq' => $seq]);
 
-		$row = $st->fetch();
-		if( $row === false )
-			return true;
-		else
-			return false;
+			return $st->fetch() !== false;
+		}
+		catch (PDOException $e) {
+			exit('PDO error [checkRegSeq]: ' . $e->getMessage());
+		}
 	}
+
 
 	function updateRegSeq($reg_seq){
 		try
