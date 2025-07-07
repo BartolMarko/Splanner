@@ -151,9 +151,13 @@ function seed_table_termini()
 		$st = $db->prepare( 'INSERT INTO splanner_redovni_termini(id_grupe_fk, id_trener_fk, datum, vrijeme_poc, vrijeme_kraj, dvorana, comment) 
 		VALUES (:id_grupe_fk, :id_trener_fk, :datum, :vrijeme_poc, :vrijeme_kraj, :dvorana, :comment)' );
 
-		$st->execute( array( 'id_grupe_fk' => 4, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '17:00:00', 'vrijeme_kraj' => '18:30:00', 'dvorana' => 'Dvorana 1', 'comment' => 'Komentar termina') );
-		$st->execute( array( 'id_grupe_fk' => 5, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '19:15:00', 'vrijeme_kraj' => '22:00:00', 'dvorana' => 'Dvoranaaa', 'comment' => 'Komentar terminaaa') );
-		// $st->execute( array( 'id_grupe_fk' => 4, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '17:00:00', 'vrijeme_kraj' => '18:30:00', 'dvorana' => 'Dvorana 1', 'comment' => 'Komentar termina') );
+		$st->execute( array( 'id_grupe_fk' => 4, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '08:00:00', 'vrijeme_kraj' => '14:00:00', 'dvorana' => 'Dvorana 1', 'comment' => 'Termin A') );
+		$st->execute( array( 'id_grupe_fk' => 5, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '09:00:00', 'vrijeme_kraj' => '10:30:00', 'dvorana' => 'Dvorana 2', 'comment' => 'Termin B') );
+		$st->execute( array( 'id_grupe_fk' => 6, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '11:15:00', 'vrijeme_kraj' => '12:30:00', 'dvorana' => 'Dvorana 3', 'comment' => 'Termin C') );
+		$st->execute( array( 'id_grupe_fk' => 4, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '11:45:00', 'vrijeme_kraj' => '13:20:00', 'dvorana' => 'Dvorana 4', 'comment' => 'Termin D') );
+		$st->execute( array( 'id_grupe_fk' => 5, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '12:30:00', 'vrijeme_kraj' => '14:30:00', 'dvorana' => 'Dvorana 5', 'comment' => 'Termin E') );
+		$st->execute( array( 'id_grupe_fk' => 6, 'id_trener_fk' => 1, 'datum' => '2025-07-12', 'vrijeme_poc' => '18:00:00', 'vrijeme_kraj' => '19:00:00', 'dvorana' => 'Dvorana 6', 'comment' => 'Termin F') );
+		
 	}
 	catch( PDOException $e ) { exit( "PDO error [termini]: " . $e->getMessage() ); }
 

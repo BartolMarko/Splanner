@@ -42,8 +42,8 @@ function displayWeekSchedule() {
     const end = new Date(weekReferenceMonday);
     end.setDate(start.getDate() + 6);
 
-    const startStr = `${start.getDate().toString().padStart(2, '0')}.${(start.getMonth() + 1).toString().padStart(2, '0')}.${start.getFullYear()}`;
-    const endStr = `${end.getDate().toString().padStart(2, '0')}.${(end.getMonth() + 1).toString().padStart(2, '0')}.${end.getFullYear()}`;
+    const startStr = `${getTwoDigitNumber(start.getDate())}.${getTwoDigitNumber(start.getMonth() + 1)}.${start.getFullYear()}`;
+    const endStr = `${getTwoDigitNumber(end.getDate())}.${getTwoDigitNumber(end.getMonth() + 1)}.${end.getFullYear()}`;
 
     $rasporedContainer.append(
         `<h2 class="week-range">${startStr} - ${endStr}</h2>`
@@ -70,10 +70,9 @@ function fetchWeekActivitiesAndDisplay() {
     const start = new Date(weekReferenceMonday);
     const end = new Date(weekReferenceMonday);
     end.setDate(start.getDate() + 6);
-    const datumOd = `${start.getFullYear()}-${(start.getMonth() + 1).toString().padStart(2, '0')}-${start.getDate().toString().padStart(2, '0')}`;
-    const datumDo = `${end.getFullYear()}-${(end.getMonth() + 1).toString().padStart(2, '0')}-${end.getDate().toString().padStart(2, '0')}`;
+    const datumOd = `${start.getFullYear()}-${getTwoDigitNumber(start.getMonth() + 1)}-${getTwoDigitNumber(start.getDate())}`;
+    const datumDo = `${end.getFullYear()}-${getTwoDigitNumber(end.getMonth() + 1)}-${getTwoDigitNumber(end.getDate())}`;
 
-    const a=5;
     $.ajax({
         url: TERMINI_URL_BASE,
         method: 'GET',
@@ -108,8 +107,8 @@ function displayWeekGrid(min_hour, max_hour) {
         if (datesSame(date, today))
             todayIndex = i;
 
-        const dayNum = date.getDate().toString().padStart(2, '0');
-        const monthNum = (date.getMonth() + 1).toString().padStart(2, '0');
+        const dayNum = getTwoDigitNumber(date.getDate());
+        const monthNum = getTwoDigitNumber(date.getMonth() + 1);
         const $th = $('<th>')
             .attr('id', `day-${i}`)
             .html(`${day}<br><span class="date">${dayNum}.${monthNum}.</span>`);
@@ -136,20 +135,20 @@ function displayWeekGrid(min_hour, max_hour) {
 }
 
 function displayWeekActivities(activities) {
-    console.log(activities);
+    parseActivityDates(activities);
+    handleActivityOverlaps(activities);
     for (const activity of activities) {
         calculateWeekActivityYPosition(activity);
         calculateWeekActivityXPosition(activity);
         displayActivity(activity);
-        console.log(activity);
     }
 }
 
 function calculateWeekActivityYPosition(activity) {
-    const startHour = activity.vrijeme_poc.split(':')[0];
-    const startMinute = parseInt(activity.vrijeme_poc.split(':')[1], 10);
-    const endHour = activity.vrijeme_kraj.split(':')[0];
-    const endMinute = parseInt(activity.vrijeme_kraj.split(':')[1], 10);
+    const startHour = activity.datePoc.getHours();
+    const startMinute = activity.datePoc.getMinutes();
+    const endHour = activity.dateKraj.getHours();
+    const endMinute = activity.dateKraj.getMinutes();
 
     const tableRowStart = $(`tr#time-${startHour}`);
     let topPos = tableRowStart.offset().top - $rasporedContainer.offset().top;
@@ -166,15 +165,17 @@ function calculateWeekActivityXPosition(activity) {
     const date = new Date(activity.datum);
     const dayIndex = (date.getDay() + 6) % 7;
     const $th = $(`th#day-${dayIndex}`);
-    const leftPos = $th.offset().left - $rasporedContainer.offset().left;
-    const width = $th.outerWidth();
+    let leftPos = $th.offset().left - $rasporedContainer.offset().left;
+    leftPos += $th.outerWidth() * activity.leftBorder;
+    const width = $th.outerWidth() * activity.widthRatio;
 
     activity.left = leftPos / $rasporedContainer.width() * 100;
     activity.width = width / $rasporedContainer.width() * 100;
 }
 
 function displayActivity(activity) {
-
+    const startTime = getTwoDigitNumber(activity.datePoc.getHours()) + ':' + getTwoDigitNumber(activity.datePoc.getMinutes());
+    const endTime = getTwoDigitNumber(activity.dateKraj.getHours()) + ':' + getTwoDigitNumber(activity.dateKraj.getMinutes());
     const $activityDiv = $('<div>')
         .addClass('activity')
         .css({
@@ -185,7 +186,7 @@ function displayActivity(activity) {
             width: activity.width + '%'
         })
         .html(`
-            <span class="activity-time">${activity.vrijeme_poc} - ${activity.vrijeme_kraj}</span><br>
+            <span class="activity-time">${startTime} - ${endTime}</span><br>
             <span class="activity-title">${activity.comment}</span><br>
             <span class="activity-dvorana">${activity.dvorana}</span>
         `);
@@ -220,7 +221,7 @@ function displayMonthGrid() {
             $tbody.append($tr);
             $tr = $('<tr>');
         }
-        const dateStr = `${day.toString().padStart(2, '0')}.${(monthToDisplay.month + 1).toString().padStart(2, '0')}.${monthToDisplay.year}`;
+        const dateStr = `${getTwoDigitNumber(day)}.${getTwoDigitNumber(monthToDisplay.month + 1)}.${monthToDisplay.year}`;
         $tr.append($('<td>').html(`<span class="date">${dateStr}</span>`));
     }
 
@@ -297,4 +298,100 @@ function datesSame(date1, date2) {
     return date1.getDate() === date2.getDate() &&
            date1.getMonth() === date2.getMonth() &&
            date1.getFullYear() === date2.getFullYear();
+}
+
+function handleActivityOverlaps(activities) {
+    if (activities.length === 0)
+        return;
+    activities.sort((a, b) => {
+        return a.datePoc - b.datePoc;
+    });
+    let highestEndDate = activities[0].dateKraj;
+    let group = [];
+    for (let activity of activities) {
+        if (activity.datePoc < highestEndDate) {
+            group.push(activity);
+            if (activity.dateKraj > highestEndDate)
+                highestEndDate = activity.dateKraj;
+
+        } else {
+            handleGroupOverlap(group);
+            group = [activity];
+            highestEndDate = activity.dateKraj;
+        }
+    }
+    handleGroupOverlap(group);
+}
+
+function handleGroupOverlap(group) {
+    const events = [];
+    for (let i = 0; i < group.length; i++) {
+        const activity = group[i];
+        events.push({ time: activity.datePoc, type: 1, index: i });
+        events.push({ time: activity.dateKraj, type: -1, index: i });
+    }
+    events.sort((a, b) => {
+        if (a.time - b.time !== 0) 
+            return a.time - b.time;
+        return a.type - b.type;
+    });
+
+    let maxOverlap = 0;
+    let current = 0;
+    for (const event of events) {
+        current += event.type;
+        maxOverlap = Math.max(maxOverlap, current);
+    }
+
+    let freeStarts = new Set();
+    for (let i = 0; i < maxOverlap; i++) 
+        freeStarts.add(i);
+
+    for (const event of events) {
+        if (event.type === 1) {
+            const activity = group[event.index];
+            const startIndex = freeStarts.values().next().value;
+            freeStarts.delete(startIndex);
+            activity.startIndex = startIndex;
+            activity.leftBorder = startIndex / maxOverlap;
+        } else {
+            const activity = group[event.index];
+            freeStarts.add(activity.startIndex);
+            freeStarts = new Set([...freeStarts].sort((a, b) => a - b));
+        }
+    }
+    calculateActivityWidths(group);
+    console.log(group);
+}
+
+function calculateActivityWidths(group) {
+    for (const activity of group) {
+        let rightBorder = 1.0;
+        for (const otherActivity of group) {
+            if (checkOverlap(activity, otherActivity) && otherActivity.leftBorder > activity.leftBorder)
+                rightBorder = Math.min(rightBorder, otherActivity.leftBorder);
+        }
+        activity.widthRatio = rightBorder - activity.leftBorder;
+    }
+}
+
+function parseActivityDates(activities) {
+    for (const activity of activities) {
+        activity.datePoc = parseDate(activity.datum, activity.vrijeme_poc);
+        activity.dateKraj = parseDate(activity.datum, activity.vrijeme_kraj);
+    }
+}
+
+function parseDate(dateString, timeString) {
+    const [day, month, year] = dateString.split('-').map(Number);
+    const [hours, minutes, seconds] = timeString.split(':').map(Number);
+    return new Date(year, month - 1, day, hours, minutes, seconds);
+}
+
+function getTwoDigitNumber(num) {
+    return num.toString().padStart(2, '0');
+}
+
+function checkOverlap(activity1, activity2) {
+    return activity1.datePoc < activity2.dateKraj && activity2.datePoc < activity1.dateKraj;
 }
