@@ -6,6 +6,7 @@ class SplannerService
     const OBAVIJESTI_TABLE = 'splanner_obavijesti';
     const GRUPE_TABLE = 'splanner_grupe';
     const AKTIVNOSTI_TABLE = 'splanner_aktivnosti';
+    const PRIPADNOST_TABLE = 'splanner_pripadnost';
 
 	// ulogiravanje - postavljanje sessiona ili izbacivanje greške
 	function checkLogin($username, $password)
@@ -33,22 +34,22 @@ class SplannerService
 	}
 
 	// dohvaca id korisnika s nekim imenom
-    function getUserIdByName( $username )
-	{
-		try
-		{
-			$db = DB::getConnection();
-			$st = $db->prepare( 'SELECT id_korisnici FROM ' . self::USERS_TABLE . ' WHERE username=:username' );
-			$st->execute( ['username' => $username] );
-		}
-		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+    // function getUserIdByName( $username )
+	// {
+	// 	try
+	// 	{
+	// 		$db = DB::getConnection();
+	// 		$st = $db->prepare( 'SELECT id_korisnici FROM ' . self::USERS_TABLE . ' WHERE username=:username' );
+	// 		$st->execute( ['username' => $username] );
+	// 	}
+	// 	catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 
-		$row = $st->fetch();
-		if( $row === false )
-			return null;
-		else
-			return $row['id_korisnici'];
-	}
+	// 	$row = $st->fetch();
+	// 	if( $row === false )
+	// 		return null;
+	// 	else
+	// 		return $row['id_korisnici'];
+	// }
 
 	// provjera ako se neko korisničko ime već koristi
 	function checkIfUsernameOccupied( $username ){
@@ -96,46 +97,60 @@ class SplannerService
 	}
 
 	// dodavanje novog korisnika / trenera u bazu prilikom registracije
-	function addNewUser($username, $password, $email, $oib, $registration_sequence){
+	function addNewUser($username, $password, $email, $oib, $uloga, $spol, $datum, $registration_sequence){
 		try
 		{
 			$db = DB::getConnection();
-			$st = $db->prepare( 'INSERT INTO ' . self::USERS_TABLE . '(OIB, username, password_hash, email, registration_sequence, has_registered) VALUES ' .
-								'(:OIB, :username, :password_hash, :email, :registration_sequence, 0)' );
+			$st = $db->prepare( 'INSERT INTO ' . self::USERS_TABLE . '(OIB, username, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, prima_obavijest, has_registered) VALUES ' .
+								'(:OIB, :username, :password_hash, :email, :tip_korisnika, :spol, :datum_rodenja, :registration_sequence, True, 0)' );
 			$st->execute( array('OIB' => $oib,
 								'username' => $username, 
 								'password_hash' => password_hash( $password, PASSWORD_DEFAULT ), 
 								'email' => $email, 
+								'tip_korisnika' => $uloga, 
+								'spol' => $spol, 
+								'datum_rodenja' => $datum, 
 								'registration_sequence'  => $registration_sequence ) );
 		}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 	}
 
 	//dohvaćanje svih obavijesti
-	function getAllObavijesti()
+	public function getAllObavijesti()
 	{
-        $id_user = $this->getUserIdByName($_SESSION['username']);
-        if ($id_user === null) return [];
+		$povezani = $this->dohvatiPovezaneKorisnike($_SESSION['id_user']);
+		if (empty($povezani)) return [];
 
-		try
-		{
+		$grupe = $this->dohvatiGrupeZaKorisnike($povezani);
+		if (empty($grupe)) return [];
+
+		try {
 			$db = DB::getConnection();
-			$st = $db->prepare( 'SELECT * FROM ' . self::OBAVIJESTI_TABLE  );
-			$st->execute([]);
+			$placeholders = implode(',', array_fill(0, count($grupe), '?'));
+			$query = 'SELECT * FROM ' . self::OBAVIJESTI_TABLE . ' WHERE id_grupe_fk IN (' . $placeholders . ')';
+
+			$st = $db->prepare($query);
+			$st->execute($grupe);
+		} catch (PDOException $e) {
+			exit('PDO error ' . $e->getMessage());
 		}
-		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 
 		$arr = array();
-		while( $row = $st->fetch() )
-		{
-			$arr[] = new Obavijest( $row['id_obavijest'], 
-									$row['id_grupe_fk'], $this->getGrupaImeById($row['id_grupe_fk']), 
-									$this->getAktivnostImeByIdGrupa($row['id_grupe_fk']), 
-									$row['datum'], $row['vrijeme'], $row['comment'] );
+		while ($row = $st->fetch()) {
+			$arr[] = new Obavijest(
+				$row['id_obavijest'],
+				$row['id_grupe_fk'],
+				$this->getGrupaImeById($row['id_grupe_fk']),
+				$this->getAktivnostImeByIdGrupa($row['id_grupe_fk']),
+				$row['datum'],
+				$row['vrijeme'],
+				$row['comment']
+			);
 		}
 
 		return $arr;
 	}
+
 
 	//dohvaćanje imena grupe iz id_grupa (za ispis na koju grupu se obavijest odnosi)
 	function getGrupaImeById( $id )
@@ -176,6 +191,76 @@ class SplannerService
 		else
 			return $row['ime_aktivnosti'];
 	}
+
+	//ako je id dijeteta, funkcija vraća samo njegov id, a ako je id roditelja, onda se vraćaju idijevi njega i svi idijevi njegove djece
+	function dohvatiPovezaneKorisnike($id_korisnika)
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare('SELECT tip_korisnika FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
+			$st->execute(['id' => $id_korisnika]);
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		$row = $st->fetch();
+
+		if ($row === false) {
+			return [];
+		}
+
+		$tip = $row['tip_korisnika'];
+
+		if ($tip === 'dijete') {
+			return [$id_korisnika];
+		} 
+		elseif ($tip === 'roditelj') {
+			try
+			{
+				$db = DB::getConnection();
+				$st = $db->prepare('SELECT id_korisnici FROM ' . self::USERS_TABLE . ' WHERE fk_id_roditelja = :id');
+				$st->execute(['id' => $id_korisnika]);
+			}
+			catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+			$rezultat = [$id_korisnika]; 
+
+			while ($red = $st->fetch()) {
+				$rezultat[] = $red['id_korisnici'];
+			}
+
+			return $rezultat;
+		}
+
+		return [$id_korisnika];
+	}
+
+	function dohvatiGrupeZaKorisnike($id_korisnici)
+	{
+		if (empty($id_korisnici)) {
+			return [];
+		}
+
+		$placeholders = implode(',', array_fill(0, count($id_korisnici), '?'));
+
+		$query = 'SELECT DISTINCT id_grupe_fk FROM ' . self::PRIPADNOST_TABLE . ' WHERE id_korisnik_fk IN (' . $placeholders . ')';
+
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare($query);
+			$st->execute($id_korisnici);
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		$rezultat = [];
+		while ($red = $st->fetch()) {
+			$rezultat[] = $red['id_grupe_fk'];
+		}
+
+		return $rezultat;
+	}
+
 	
 	//------- Jelena = postavke ----------------------------
 	// Provjera postoji li korisnicko ime

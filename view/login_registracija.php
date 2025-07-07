@@ -32,10 +32,21 @@
         <br>
         <select id="uloga" name="uloga" required>
         <option value="" disabled selected>-- Odaberi --</option>
-        <option value="korisnik">Korisnik</option>
+        <option value="roditelj">Korisnik</option>
         <option value="trener">Trener</option>
         </select>
         <br><br>
+        Spol:
+        <br>
+        <select id="spol" name="spol" required>
+        <option value="" disabled selected>-- Odaberi --</option>
+        <option value="žensko">Žensko</option>
+        <option value="muško">Muško</option>
+        </select>
+        <br><br>
+        Datum rođenja:
+        <br>
+        <input type="date" name="datum">
         <button type="submit">Registracija</button>
     </form>
 

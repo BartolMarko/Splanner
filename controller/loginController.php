@@ -78,7 +78,7 @@ class LoginController extends BaseController
                     break;
             }
 
-            $ss->addNewUser($_POST['username'], $_POST['password'], $_POST['email'], $_POST['oib'], $reg_seq);
+            $ss->addNewUser($_POST['username'], $_POST['password'], $_POST['email'], $_POST['oib'], $_POST['uloga'], $_POST['spol'], $_POST['datum'], $reg_seq);
             
             // slanje mail-a
             $to       = $_POST['email'];

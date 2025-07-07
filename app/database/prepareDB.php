@@ -3,7 +3,7 @@
 // Stvaramo tablice u bazi (ako već ne postoje od ranije).
 require_once __DIR__ . '/db.class.php';
 
-//seed_table_korisnici();
+seed_table_korisnici();
 seed_table_aktivnosti();
 seed_table_grupe();
 seed_table_obavijesti();
