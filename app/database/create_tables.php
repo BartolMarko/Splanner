@@ -108,9 +108,6 @@ function create_table_grupe()
 			'CREATE TABLE IF NOT EXISTS splanner_grupe (' .
 			'id_grupe INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
 			'ime varchar(100), ' .
-			'description varchar(1000) NOT NULL,' .
-            'cijena decimal(15,2) NOT NULL,' .
-			'spol varchar(30), ' .
 			'fk_id_aktivnosti INT NOT NULL)'
 		);
 

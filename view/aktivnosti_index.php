@@ -24,6 +24,7 @@
             <?php if ($tip === 'trener'): ?>
                 <button class="uredi-btn" data-id="<?= $a['id_aktivnosti'] ?>">Uredi aktivnost</button>
                 <button class="toggle-grupe-btn" data-id="<?= $a['id_aktivnosti'] ?>">➤ Prikaži grupe</button>
+                <button class="dodaj-grupu-btn" data-aktivnost-id="<?= $a['id_aktivnosti'] ?>">➕ Nova grupa</button>
                 <div class="grupe" id="grupe_<?= $a['id_aktivnosti'] ?>" style="display:none;">
                     <!-- tu cu grupe ucitati ajaxom i ispisati -->
                 </div>
@@ -71,6 +72,8 @@ $(document).ready(function() {
         <div class="aktivnost-form nova-aktivnost-form">
             <input type="text" placeholder="Ime aktivnosti" class="ime" required>
             <textarea placeholder="Opis" class="opis"></textarea>
+            <label>Minimalna dob: <input type="number" class="dob-min"></label><br>
+            <label>Maksimalna dob: <input type="number" class="dob-max"></label><br>
             <input type="number" placeholder="Cijena u EUR" step="0.01" class="cijena">
             <button class="spremi-novu-btn">✅ Spremi</button>
             <button class="odustani-btn">❌ Odustani</button>
@@ -83,12 +86,72 @@ $(document).ready(function() {
     $(this).closest('.nova-aktivnost-form').remove();
     });
 
+
+    $(document).on('click', '.dodaj-grupu-btn', function () {
+    const aktivnostId = $(this).data('aktivnost-id');
+    const $grupeDiv = $('#grupe_' + aktivnostId);
+
+    const novaGrupaHtml = `
+        <div class="grupa nova-grupa-form">
+            <label>Ime grupe: <input type="text" class="ime-grupe" required></label><br>
+            <button class="spremi-grupu-btn" data-aktivnost-id="${aktivnostId}">💾 Spremi</button>
+            <button class="odustani-grupa-btn">❌ Odustani</button>
+        </div>
+    `;
+
+    $grupeDiv.prepend(novaGrupaHtml).slideDown();
+    });
+
+
+    $(document).on('click', '.odustani-grupa-btn', function () {
+    $(this).closest('.nova-grupa-form').remove();
+});
+
+$(document).on('click', '.spremi-grupu-btn', function () {
+    const $form = $(this).closest('.nova-grupa-form');
+    const aktivnostId = $(this).data('aktivnost-id');
+    const imeGrupe = $form.find('.ime-grupe').val().trim();
+
+    if (!imeGrupe) {
+        alert("Ime grupe je obavezno.");
+        return;
+    }
+
+    $.ajax({
+        url: 'ajax/aktivnosti_ajax.php',
+        method: 'POST',
+        data: {
+            action: 'create_grupa',
+            aktivnost_id: aktivnostId,
+            ime: imeGrupe,
+        },
+        success: function (response) {
+            if (response.success) {
+                alert("Grupa dodana.");
+                $form.remove();
+                toggleGrupe(aktivnostId); // osvježi grupe
+            } else {
+                alert("Greška: " + (response.error || "Nepoznata greška."));
+            }
+        },
+        error: function () {
+            alert("Greška pri dodavanju grupe.");
+        }
+    });
+});
+
+
+
+
+
     $(document).on('click', '.spremi-novu-btn', function () { //trener sprema novu aktivnost
         const $form = $(this).closest('.nova-aktivnost-form');
 
         const ime = $form.find('.ime').val().trim();
         const opis = $form.find('.opis').val().trim();
         const cijena = $form.find('.cijena').val().trim();
+        const dobMin= $form.find('.dob-min').val().trim();
+        const dobMax = $form.find('.dob-max').val().trim();
 
         if (!ime || !opis || !cijena) {
             alert("Sva polja su obavezna.");
@@ -102,7 +165,9 @@ $(document).ready(function() {
                 action: 'create_aktivnost',
                 ime: ime,
                 description: opis,
-                cijena: cijena
+                cijena: cijena,
+                dobMin: dobMin,
+                dobMax: dobMax
             },
             success: function (response) {
                 if (response.success) {
@@ -124,7 +189,7 @@ $(document).ready(function() {
     const vrijemePoc = $grupaDiv.find('.vrijeme_poc').val();
     const vrijemeKraj = $grupaDiv.find('.vrijeme_kraj').val();
     const dvorana = $grupaDiv.find('.dvorana').val();
-    const izvanredan = $grupaDiv.find('.izvanredan-check').is(':checked') ? 1 : 0;
+    const izvanredan = $grupaDiv.find('.izvanredan-check').is(':checked') ? 'izvanredan' : 'redovan';
     const idGrupe = $grupaDiv.data('grupa-id');
 
     if (!datum || !vrijemePoc || !vrijemeKraj || !dvorana) {
@@ -142,7 +207,7 @@ $(document).ready(function() {
                 vrijeme_poc: vrijemePoc,
                 vrijeme_kraj: vrijemeKraj,
                 dvorana: dvorana,
-                izvanredan: izvanredan
+                tip_termina: izvanredan
             },
             success: function (response) {
                 if (response.success) {
@@ -286,7 +351,7 @@ $(document).on('click', '.obrisi-btn', function () { //trener brise aktivnost
                     aktivnost_id: aktivnostId
                 },
                 success: function(dobiveniPod) {
-                    container.html(dobiveniPod).slideDown();
+                    grupeDiv.html(dobiveniPod.html).slideDown();
                 },
                 error: function() {
                     alert('Greška pri dohvaćanju grupa.');

@@ -6,6 +6,49 @@ class SplannerService
 {
     const USERS_TABLE = 'splanner_korisnici';
 
+	public function getGrupeZaAkt($idAkt){
+		$db = DB::getConnection();
+			$st = $db->prepare('SELECT * FROM splanner_grupe WHERE fk_id_aktivnosti = :id');
+			$st->execute(['id' => $idAkt]);
+			$polje=array();
+			while($row=$st->fetch()){
+				$polje[]=$row;
+			}
+			return $polje;
+	}
+
+
+	public function createGrupa($aktivnostId, $ime){
+		try
+	{
+		$db = DB::getConnection();
+
+		$st = $db->prepare( 
+			'INSERT INTO splanner_grupe (ime, fk_id_aktivnosti) VALUES (:ime,:aktivnost)'
+		);
+
+		$st->execute( array( 'aktivnost' => $aktivnostId, 'ime' => $ime) );
+		
+	}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+	}
+
+	public function updateAktivnost($id, $ime, $opis, $cijena){
+		try
+	{
+		$db = DB::getConnection();
+
+		$st = $db->prepare( 
+			'UPDATE splanner_aktivnosti SET ime=:ime, description=:opis, cijena=:cijena WHERE id_aktivnosti=:id'
+		);
+
+		$st->execute( array( 'id' => $id, 'ime' => $ime, 'opis' => $opis, 'cijena' => $cijena ) );
+		
+	}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+	}
+
+
 	public function updateRedovniTermin($id, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment)
 	{
 		try {

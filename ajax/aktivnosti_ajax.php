@@ -61,13 +61,12 @@ switch ($action) {
     case 'get_grupe':
         $idAkt = intval($_POST['aktivnost_id']);
         $grupe = $ss->getGrupeZaAkt($idAkt);
-        break;
 
-        ob_start();
+        ob_start(); //ovdje tu CU MORAT DOHVATIT SVE TERMINE ZA GRUPU, I AK JE TRENER POSTAVIT OVO UREDI TERMINZA SVAKI I NA KRAJU STAVIT DODAJ NOVI TERMIN
         foreach ($grupe as $g): ?>
             <div class="grupa" data-grupa-id="<?= $g['id_grupe'] ?>">
-            <strong class="ime"><?= htmlspecialchars($g['ime_grupe']) ?></strong> - 
-            <span class="termin"><?= htmlspecialchars($g['termin']) ?></span>
+            <strong class="ime"><?= htmlspecialchars($g['ime']) ?></strong> - 
+            <span class="termin"><?= htmlspecialchars($g['termin']) ?></span> 
             <?php if ($tip === 'trener'): ?>
                 <button class="uredi-termin-btn">✏️ Uredi termin</button>
             <?php endif; ?>
@@ -108,6 +107,26 @@ switch ($action) {
             break;
 
 
+    case 'create_grupa':
+        if ($tip !== 'trener') sendErrorAndExit("Nemate pristup.");
+    
+        $aktivnostId = $_POST['aktivnost_id'] ?? null;
+        $ime = $_POST['ime'] ?? '';
+    
+        if (!$aktivnostId || !$ime) {
+            sendErrorAndExit("Nedostaju obavezni podaci.");
+        }
+    
+        try {
+            $ss->createGrupa($aktivnostId, $ime);
+            sendJSONandExit(['success' => true]);
+        } catch (Exception $e) {
+            sendErrorAndExit("Greška: " . $e->getMessage());
+        }
+        break;
+            
+
+
     case 'update_aktivnost':
         if ($tip !== 'trener') sendErrorAndExit("Nemate pristup ovome.");
         $id = intval($_POST['id']);
@@ -123,7 +142,9 @@ switch ($action) {
         $ime = trim($_POST['ime']);
         $opis = trim($_POST['description']);
         $cijena = floatval($_POST['cijena']);
-        $ss->upisAkt($idUser, $ime, $opis, $cijena);
+        $dobMin = $_POST['dobMin'] ?? null;
+        $dobMax = $_POST['dobMax'] ?? null;
+        $ss->upisAkt($idUser, $ime, $opis, $cijena,$dobMin,$dobMax);
         sendJSONandExit(['success' => true]);
         break;
     
