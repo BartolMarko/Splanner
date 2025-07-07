@@ -43,7 +43,7 @@ function create_table_korisnici()
 
 	try
 	{
-		$st = $db->prepare( 
+		$st = $db->prepare(
 			'CREATE TABLE IF NOT EXISTS splanner_korisnici (' .
 			'id_korisnici INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
 			'OIB CHAR(11) NOT NULL  ,' .

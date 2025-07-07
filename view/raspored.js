@@ -15,6 +15,7 @@ const $leftButton = $('#left-button');
 const $todayButton = $('#today-button');
 const $rightButton = $('#right-button');
 const $rasporedContainer = $('#raspored-container');
+const $activitiesContainer = $('#activities-container');
 
 let weekReferenceMonday = getCurrentMonday();
 let monthToDisplay = getCurrentMonth();
@@ -35,6 +36,7 @@ function displayWeekSchedule() {
     $(".time-interval").removeClass("active");
     $weekButton.addClass('active');
     $rasporedContainer.empty();
+    $activitiesContainer.empty();
 
     const start = new Date(weekReferenceMonday);
     const end = new Date(weekReferenceMonday);
@@ -96,13 +98,21 @@ function displayWeekGrid(min_hour, max_hour) {
     const $trHead = $('<tr>');
     $trHead.append($('<th>').text('Sat'));
 
+    const today = new Date();
+    let todayIndex = -1;
     for (let i = 0; i < DANI.length; i++) {
         const day = DANI[i];
         let date = new Date(weekReferenceMonday);
         date.setDate(weekReferenceMonday.getDate() + i);
+
+        if (datesSame(date, today))
+            todayIndex = i;
+
         const dayNum = date.getDate().toString().padStart(2, '0');
         const monthNum = (date.getMonth() + 1).toString().padStart(2, '0');
-        const $th = $('<th>').html(`${day}<br><span class="date">${dayNum}.${monthNum}.</span>`);
+        const $th = $('<th>')
+            .attr('id', `day-${i}`)
+            .html(`${day}<br><span class="date">${dayNum}.${monthNum}.</span>`);
         $trHead.append($th);
     }
     $thead.append($trHead);
@@ -111,10 +121,12 @@ function displayWeekGrid(min_hour, max_hour) {
     const $tbody = $('<tbody>');
     for (let hour = min_hour; hour <= max_hour; hour++) {
         const time = `${hour}:00`;
-        const $tr = $('<tr>');
+        const $tr = $('<tr id="time-' + hour + '">`);');
         $tr.append($('<td>').text(time));
         for (let i = 0; i < DANI.length; i++) {
             const $emptyField = $('<td>');
+            if (i === todayIndex)
+                $emptyField.addClass('today');
             $tr.append($emptyField);
         }
         $tbody.append($tr);
@@ -124,8 +136,62 @@ function displayWeekGrid(min_hour, max_hour) {
 }
 
 function displayWeekActivities(activities) {
-
+    console.log(activities);
+    for (const activity of activities) {
+        calculateWeekActivityYPosition(activity);
+        calculateWeekActivityXPosition(activity);
+        displayActivity(activity);
+        console.log(activity);
+    }
 }
+
+function calculateWeekActivityYPosition(activity) {
+    const startHour = activity.vrijeme_poc.split(':')[0];
+    const startMinute = parseInt(activity.vrijeme_poc.split(':')[1], 10);
+    const endHour = activity.vrijeme_kraj.split(':')[0];
+    const endMinute = parseInt(activity.vrijeme_kraj.split(':')[1], 10);
+
+    const tableRowStart = $(`tr#time-${startHour}`);
+    let topPos = tableRowStart.offset().top - $rasporedContainer.offset().top;
+    topPos += (startMinute / 60) * tableRowStart.height();
+
+    const tableRowEnd = $(`tr#time-${endHour}`);
+    const height = tableRowEnd.offset().top - tableRowStart.offset().top + (endMinute / 60) * tableRowEnd.height();
+
+    activity.top = topPos / $rasporedContainer.height() * 100;
+    activity.height = height / $rasporedContainer.height() * 100;
+}
+
+function calculateWeekActivityXPosition(activity) {
+    const date = new Date(activity.datum);
+    const dayIndex = (date.getDay() + 6) % 7;
+    const $th = $(`th#day-${dayIndex}`);
+    const leftPos = $th.offset().left - $rasporedContainer.offset().left;
+    const width = $th.outerWidth();
+
+    activity.left = leftPos / $rasporedContainer.width() * 100;
+    activity.width = width / $rasporedContainer.width() * 100;
+}
+
+function displayActivity(activity) {
+
+    const $activityDiv = $('<div>')
+        .addClass('activity')
+        .css({
+            position: 'absolute',
+            top: activity.top + '%',
+            height: activity.height + '%',
+            left: activity.left + '%',
+            width: activity.width + '%'
+        })
+        .html(`
+            <span class="activity-time">${activity.vrijeme_poc} - ${activity.vrijeme_kraj}</span><br>
+            <span class="activity-title">${activity.comment}</span><br>
+            <span class="activity-dvorana">${activity.dvorana}</span>
+        `);
+    $activitiesContainer.append($activityDiv);
+}
+
 
 function displayMonthGrid() {
     const $table = $('<table>').addClass('raspored-table');
@@ -225,4 +291,10 @@ function getCurrentMonth() {
         month: today.getMonth(),
         year: today.getFullYear()
     };
+}
+
+function datesSame(date1, date2) {
+    return date1.getDate() === date2.getDate() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
 }

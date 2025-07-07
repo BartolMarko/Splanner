@@ -13,9 +13,16 @@
     </div>
 </div>
 
-<div id="raspored-container">
-
+<div id="raspored-activities-wrapper">
+    <div id="raspored-container">
+    
+    </div>
+    
+    <div id="activities-container">
+            
+    </div>
 </div>
+
 
 <script src="view/raspored.js"></script>
 
