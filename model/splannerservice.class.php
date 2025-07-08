@@ -51,6 +51,29 @@ class SplannerService
 	// 		return $row['id_korisnici'];
 	// }
 
+	// dohvaca ime korisnika 
+	public function getImenaKorisnika($ids)
+	{
+		if (empty($ids)) return [];
+	
+		try {
+			$db = DB::getConnection();
+			$placeholders = implode(',', array_fill(0, count($ids), '?'));
+			$st = $db->prepare('SELECT id_korisnici, username FROM ' . self::USERS_TABLE . ' WHERE id_korisnici IN (' . $placeholders . ')');
+			$st->execute($ids);
+			
+			$rezultat = [];
+			while ($row = $st->fetch()) {
+				$rezultat[$row['id_korisnici']] = $row['username'];
+			}
+			return $rezultat;
+		}
+		catch (PDOException $e) {
+			exit('PDO error ' . $e->getMessage());
+		}
+	}
+	
+
 	// provjera ako se neko korisničko ime već koristi
 	function checkIfUsernameOccupied( $username ){
 		try
@@ -69,20 +92,18 @@ class SplannerService
 	}
 
 	// provjera ako slučajno nije generiran jednaki reg. seq. 
-	function checkRegSeq($reg_seq){
-		try
-		{
+	public function checkRegSeq($seq)
+	{
+		try {
 			$db = DB::getConnection();
-			$st = $db->prepare( 'SELECT * FROM ' . self::USERS_TABLE . ' WHERE registration_sequence=:registration_sequence' );
-			$st->execute( array( 'registration_sequence' => $reg_seq ) );
-		}
-		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+			$st = $db->prepare('SELECT 1 FROM ' . self::USERS_TABLE . ' WHERE registration_sequence = :seq');
+			$st->execute(['seq' => $seq]);
 
-		$row = $st->fetch();
-		if( $row === false )
-			return true;
-		else
-			return false;
+			return $st->fetch() !== false;
+		}
+		catch (PDOException $e) {
+			exit('PDO error [checkRegSeq]: ' . $e->getMessage());
+		}
 	}
 
 	// ažuriranje baze nakon kliknutog linka u mailu
@@ -151,6 +172,33 @@ class SplannerService
 		return $arr;
 	}
 
+	public function getObavijestiZaGrupe($grupe)
+	{
+		if (empty($grupe)) return [];
+		try {
+			$db = DB::getConnection();
+			$ph = implode(',', array_fill(0, count($grupe), '?'));
+			$st = $db->prepare(
+				'SELECT * FROM ' . self::OBAVIJESTI_TABLE . ' WHERE id_grupe_fk IN (' . $ph . ')'
+			);
+			$st->execute($grupe);
+		} catch (PDOException $e) {
+			exit('PDO error ' . $e->getMessage());
+		}
+		$arr = [];
+		while ($row = $st->fetch()) {
+			$arr[] = new Obavijest(
+				$row['id_obavijest'],
+				$row['id_grupe_fk'],
+				$this->getGrupaImeById($row['id_grupe_fk']),
+				$this->getAktivnostImeByIdGrupa($row['id_grupe_fk']),
+				$row['datum'],
+				$row['vrijeme'],
+				$row['comment']
+			);
+		}
+		return $arr;
+	}
 
 	//dohvaćanje imena grupe iz id_grupa (za ispis na koju grupu se obavijest odnosi)
 	function getGrupaImeById( $id )

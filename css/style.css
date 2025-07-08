@@ -300,3 +300,71 @@ th {
   line-height: 1.5;
 }
 
+/*CHECKBOX OBAVIJESTI*/
+#filter-container {
+  padding: 0.5rem 0;
+  margin-bottom: 2rem;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  color: var(--color-darkest);
+}
+
+#filter-container p {
+  font-weight: bold;
+  font-size: 1.05rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-dark);
+}
+
+.korisnik-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.4rem 0;
+  cursor: pointer;
+  user-select: none;
+  font-size: 1rem;
+}
+
+/* Sakriveni checkbox */
+.korisnik-switch input[type="checkbox"] {
+  display: none;
+}
+
+/* Prekidač (switch stil) */
+.switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background-color: var(--color-dark);
+  border-radius: 999px;
+  transition: background-color 0.3s ease;
+}
+
+/* Kuglica unutar prekidača */
+.switch::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+/* Kad je checkbox uključen */
+.korisnik-switch input[type="checkbox"]:checked + .switch {
+  background-color: var(--color-main);
+}
+
+.korisnik-switch input[type="checkbox"]:checked + .switch::before {
+  transform: translateX(20px);
+}
+
+/* Tekst korisničkog imena */
+.korisnik-switch .username {
+  color: var(--color-darkest);
+}
+
+
