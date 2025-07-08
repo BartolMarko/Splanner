@@ -158,9 +158,9 @@ function create_table_redovni_termini()
 			'id_redovni_termini INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
 			'id_grupe_fk INT NOT NULL ,' . 
 			'id_trener_fk INT NOT NULL ,' . //da mi je lakse
-			'datum DATE,' .
+			'dan ENUM("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"),' .
 			'vrijeme_poc TIME,' .
-			'vrijeme_kraj INT,' .
+			'vrijeme_kraj TIME,' .
 			'dvorana varchar(50),' .
 			'comment varchar(1000))');
 			//'FOREIGN KEY(id_trener_fk) REFERENCES splanner_korisnici(id_korisnici),' .
@@ -185,12 +185,15 @@ function create_table_azurni_termini()
 		$st = $db->prepare( 
 			'CREATE TABLE IF NOT EXISTS splanner_azurni_termini (' .
 			'id_azurni_termini INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
-			'fk_id_redovni_termini INT NOT NULL ,' .
+			'fk_id_redovni_termini INT,' .
 			'id_grupe_fk INT NOT NULL ,' . 
 			'id_trener_fk INT NOT NULL ,' . //da mi je lakse
-			'datum DATE,' .
-			'vrijeme_poc TIME,' .
-			'vrijeme_kraj INT,' .
+			'datum_origin DATE,' .
+			'datum_novi DATE,' .
+			'vrijeme_poc_stari TIME,' .
+			'vrijeme_kraj_stari TIME,' .
+			'vrijeme_poc_novi TIME,' .
+			'vrijeme_kraj_novi TIME,' .
 			'dvorana varchar(50),' .
 			'comment varchar(1000))');
 			//'FOREIGN KEY(id_trener_fk) REFERENCES splanner_korisnici(id_korisnici),' .

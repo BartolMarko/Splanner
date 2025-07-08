@@ -189,9 +189,12 @@ $(document).on('click', '.spremi-grupu-btn', function () {
     const vrijemePoc = $grupaDiv.find('.vrijeme_poc').val();
     const vrijemeKraj = $grupaDiv.find('.vrijeme_kraj').val();
     const dvorana = $grupaDiv.find('.dvorana').val();
-    const izvanredan = $grupaDiv.find('.izvanredan-check').is(':checked') ? 'izvanredan' : 'redovan';
+    const komentar= $grupaDiv.find('.komentar').val();
+    const izvanredan = ($grupaDiv.find('.izvanredan-check').is(':checked') ? ('izvanredan') : ('redovan'));
     const idGrupe = $grupaDiv.data('grupa-id');
-
+    const $terminDiv = $(this).closest('.termin');
+    const idTerminRed=$terminDiv.attr('valuered');
+    const idTerminAzur=$terminDiv.attr('valueazur');
     if (!datum || !vrijemePoc || !vrijemeKraj || !dvorana) {
     alert("Sva polja su obavezna.");
     return;
@@ -207,11 +210,14 @@ $(document).on('click', '.spremi-grupu-btn', function () {
                 vrijeme_poc: vrijemePoc,
                 vrijeme_kraj: vrijemeKraj,
                 dvorana: dvorana,
-                tip_termina: izvanredan
+                comment: komentar,
+                tip_termina: izvanredan,
+                id_red: idTerminRed,
+                id_azur: idTerminAzur
             },
             success: function (response) {
                 if (response.success) {
-                    $grupaDiv.html(`<strong class="ime">${response.ime}</strong> - <span class="termin">${response.termin}</span> <button class="uredi-termin-btn">✏️ Uredi termin</button>`);
+                    $terminDiv.html(`<strong class="ime">${response.ime}</strong> - <span class="termin">${response.termin}</span> <button class="uredi-termin-btn">✏️ Uredi termin</button>`);
                 } else {
                     alert(response.error || "Greška.");
                 }
@@ -222,11 +228,79 @@ $(document).on('click', '.spremi-grupu-btn', function () {
         });
     });
 
-$(document).on('click', '.odustani-termin-btn', function () {
+    $(document).on('click', '.spremi-novi-termin-btn', function () {
+    const $grupaDiv = $(this).closest('.grupa');
+    const datum = $grupaDiv.find('.datum').val();
+    const vrijemePoc = $grupaDiv.find('.vrijeme_poc').val();
+    const vrijemeKraj = $grupaDiv.find('.vrijeme_kraj').val();
+    const dvorana = $grupaDiv.find('.dvorana').val();
+    const izvanredan = ($grupaDiv.find('.izvanredan-check').is(':checked') ? ('azurni') : ('redovni'));
+    const comment = $grupaDiv.find('.komentar').val() || '';
+    const idGrupe = $grupaDiv.data('grupa-id');
+    const idTrener = <?= json_encode($_SESSION['id_user']) ?>;
+
+    if (!datum || !vrijemePoc || !vrijemeKraj || !dvorana) {
+        alert("Sva polja su obavezna.");
+        return;
+    }
+
+    $.ajax({
+        url: 'ajax/aktivnosti_ajax.php',
+        method: 'POST',
+        data: {
+            action: 'create_termin',
+            tip_termina: izvanredan,
+            id_grupe: idGrupe,
+            id_trener: idTrener,
+            datum: datum,
+            vrijeme_poc: vrijemePoc,
+            vrijeme_kraj: vrijemeKraj,
+            dvorana: dvorana,
+            comment: comment
+        },
+        success: function (response) {
+            if (response.success) {
+                alert("Termin dodan.");
+                toggleGrupe($grupaDiv.closest('.aktivnost').data('aktivnost-id')); // osvježi prikaz
+            } else {
+                alert("Greška: " + (response.error || "Nepoznata greška."));
+            }
+        },
+        error: function () {
+            alert("Greška pri dodavanju termina.");
+        }
+    });
+});
+
+
+$(document).on('click', '.odustani-termin-btn-grp', function () {
     const $grupaDiv = $(this).closest('.grupa');
     const originalHtml = $grupaDiv.data('originalHtml');
-    $grupaDiv.html(originalHtml);
+
+    if (originalHtml) {
+        $grupaDiv.html(originalHtml);
+        console.log('Restored original HTML');
+    } else {
+        console.warn('No original HTML found on .grupa');
+        console.log('Closest .grupa:', $grupaDiv[0]);
+        console.log('Current .grupa HTML:', $grupaDiv.html());
+    }
 });
+
+$(document).on('click', '.odustani-termin-btn-term', function () {
+    const $grupaDiv = $(this).closest('.termin');
+    const originalHtml = $grupaDiv.data('originalHtml');
+
+    if (originalHtml) {
+        $grupaDiv.html(originalHtml);
+        console.log('Restored original HTML');
+    } else {
+        console.warn('No original HTML found on .grupa');
+        console.log('Closest .grupa:', $grupaDiv[0]);
+        console.log('Current .grupa HTML:', $grupaDiv.html());
+    }
+});
+
 
 
 $(document).on('click', '.spremi-btn', function () { //trener sprema promjene na aktivnosti
@@ -255,23 +329,113 @@ $(document).on('click', '.spremi-btn', function () { //trener sprema promjene na
     });
 });
 
-$(document).on('click', '.uredi-termin-btn', function () {
-    const $grupaDiv = $(this).closest('.grupa');
-    const terminText = $grupaDiv.find('.termin').text();
+$(document).on('click', '.izvanredan-check-term', function () {
+    const $label = $(this).closest('.termin').find('.datum-label');
 
+    const isChecked = $(this).is(':checked');
+
+    if (isChecked) {
+        // Swap to date input
+        $label.html('Datum: <input type="date" class="datum">');
+    } else {
+        // Swap to weekday select
+        $label.html(`Dan u tjednu: 
+            <select class="datum">
+                <option value="Monday">Ponedjeljak</option>
+                <option value="Tuesday">Utorak</option>
+                <option value="Wednesday">Srijeda</option>
+                <option value="Thursday">Četvrtak</option>
+                <option value="Friday">Petak</option>
+                <option value="Saturday">Subota</option>
+                <option value="Sunday">Nedjelja</option>
+            </select>`);
+    }
+});
+
+
+$(document).on('click', '.izvanredan-check-grp', function () {
+    const $label = $(this).closest('.grupa').find('.datum-label');
+
+    const isChecked = $(this).is(':checked');
+
+    if (isChecked) {
+        // Swap to date input
+        $label.html('Datum: <input type="date" class="datum">');
+    } else {
+        // Swap to weekday select
+        $label.html(`Dan u tjednu: 
+            <select class="datum">
+                <option value="Monday">Ponedjeljak</option>
+                <option value="Tuesday">Utorak</option>
+                <option value="Wednesday">Srijeda</option>
+                <option value="Thursday">Četvrtak</option>
+                <option value="Friday">Petak</option>
+                <option value="Saturday">Subota</option>
+                <option value="Sunday">Nedjelja</option>
+            </select>`);
+    }
+});
+
+$(document).on('click', '.dodaj-termin-btn', function () {
+    const $termDiv = $(this).closest('.grupa');
+    if (!$termDiv.data('originalHtml')) {
+    $termDiv.data('originalHtml', $termDiv.html());
+    }
     const formHtml = `
-    <label>Datum: <input type="date" class="datum"></label><br>
+    <label class="datum-label">Dan u tjednu: <select class="datum">
+                <option value="Monday">Ponedjeljak</option>
+                <option value="Tuesday">Utorak</option>
+                <option value="Wednesday">Srijeda</option>
+                <option value="Thursday">Četvrtak</option>
+                <option value="Friday">Petak</option>
+                <option value="Saturday">Subota</option>
+                <option value="Sunday">Nedjelja</option>
+            </select></label><br>
     <label>Vrijeme početka: <input type="time" class="vrijeme_poc"></label><br>
-    <label>Trajanje (u min): <input type="number" class="vrijeme_kraj" min="1"></label><br>
+    <label>Trajanje (u min): <input type="time" class="vrijeme_kraj"></label><br>
     <label>Dvorana: <input type="text" class="dvorana"></label><br>
-    <label><input type="checkbox" class="izvanredan-check"> Izvanredan</label><br>
-    <button class="spremi-termin-btn">💾 Spremi</button>
-    <button class="odustani-termin-btn">❌ Odustani</button>
+    <label>Komentar: <input type="text" class="komentar"></label><br>
+    <label><input type="checkbox" class="izvanredan-check-grp"> Izvanredan</label><br>
+    <button class="spremi-novi-termin-btn">💾 Spremi</button>
+    <button class="odustani-termin-btn-grp">❌ Odustani</button>
 `;
 
+    $ // spremam stari prikaz
+    $termDiv.html(formHtml);
+});
+
+
+$(document).on('click', '.uredi-termin-btn', function () {
+    const $grupaDiv = $(this).closest('.termin');
+    if (!$grupaDiv.data('originalHtml')) {
     $grupaDiv.data('originalHtml', $grupaDiv.html()); // spremam stari prikaz
+    }
+    const formHtml = `
+    <label class="datum-label">Dan u tjednu: <select class="datum">
+                <option value="Monday">Ponedjeljak</option>
+                <option value="Tuesday">Utorak</option>
+                <option value="Wednesday">Srijeda</option>
+                <option value="Thursday">Četvrtak</option>
+                <option value="Friday">Petak</option>
+                <option value="Saturday">Subota</option>
+                <option value="Sunday">Nedjelja</option>
+            </select></label><br>
+    <label>Vrijeme početka: <input type="time" class="vrijeme_poc"></label><br>
+    <label>Trajanje (u min): <input type="time" class="vrijeme_kraj"></label><br>
+    <label>Dvorana: <input type="text" class="dvorana"></label><br>
+    <label>Komentar: <input type="text" class="komentar"></label><br>
+    <label><input type="checkbox" class="izvanredan-check-term"> Izvanredan</label><br>
+    <button class="spremi-termin-btn">💾 Spremi</button>
+    <button class="odustani-termin-btn-term">❌ Odustani</button>
+`;
+
+    
     $grupaDiv.html(formHtml);
 });
+
+
+
+
 
 $(document).on('click', '.obrisi-btn', function () { //trener brise aktivnost
     const id = $(this).data('id');
