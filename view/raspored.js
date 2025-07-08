@@ -81,10 +81,12 @@ function displayFilterCheckboxes() {
         addCheckBox(userInfo.id_korisnici, "Moje aktivnosti");
         for (const dijete of userInfo.djeca)
             addCheckBox(dijete.id_korisnici, dijete.username);
+    } else if (userInfo.tip_korisnika === 'dijete') {
+        addCheckBox(userInfo.id_korisnici, "Moje aktivnosti", true);
     }
 }
 
-function addCheckBox(id, name) {
+function addCheckBox(id, name, hidden=false) {
     let index = checkBoxCount++;
     idToIndex[id] = index;
     indexToId[index] = id;
@@ -94,15 +96,15 @@ function addCheckBox(id, name) {
         .attr('id', "checkbox-" + index)
         .prop('checked', true)
         .on('change', function() {
-            if ($(this).is(':checked')) {
-                $(`#checkbox-label-${index}`).css(
-                    'background-color', COLORS[index % COLORS.length]
-                )
-            } else {
-                $(`#checkbox-label-${index}`).css(
-                    'background-color', getLighterColor(COLORS[index % COLORS.length])
-                )
-            }
+            // if ($(this).is(':checked')) {
+            //     $(`#checkbox-label-${index}`).css(
+            //         'background-color', COLORS[index % COLORS.length]
+            //     );
+            // } else {
+            //     $(`#checkbox-label-${index}`).css(
+            //         'background-color', getLighterColor(COLORS[index % COLORS.length])
+            //     );
+            // }
             filterActivities();
             displayActivities(filteredActivities);
         });
@@ -113,6 +115,11 @@ function addCheckBox(id, name) {
         .attr('for', "checkbox-" + index)
         .text(name)
         .css(getDefaultCssForIndex(index));
+
+    if (hidden) {
+        $checkbox.hide();
+        $label.hide();
+    }
 
     $filterCheckboxes.append($checkbox);
     $filterCheckboxes.append($label);
@@ -359,7 +366,6 @@ function calculateWeekActivityYPosition(activity) {
 }
 
 function displayActivity(activity) {
-    console.log(activity);
     const startTime = getTwoDigitNumber(activity.datePoc.getHours()) + ':' + getTwoDigitNumber(activity.datePoc.getMinutes());
     const endTime = getTwoDigitNumber(activity.dateKraj.getHours()) + ':' + getTwoDigitNumber(activity.dateKraj.getMinutes());
     const $activityDiv = $('<div>')
@@ -553,7 +559,6 @@ function handleGroupOverlap(group) {
         }
     }
     calculateActivityWidths(group);
-    console.log(group);
 }
 
 function calculateActivityWidths(group) {
