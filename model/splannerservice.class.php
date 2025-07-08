@@ -337,18 +337,20 @@ class SplannerService
 			$db = DB::getConnection();
 			$st = $db->prepare(
 				'SELECT t.datum_novi as datum,
-					t.vrijeme_poc_novi AS vrijeme_poc, t.vrijeme_kraj_novi as vrijeme_kraj,
-					t.dvorana, g.ime AS ime_grupe, a.ime AS ime_aktivnosti
+					t.vrijeme_poc_novi AS vrijeme_poc,
+					t.vrijeme_kraj_novi as vrijeme_kraj,
+					t.dvorana, g.ime AS ime_grupe,
+					a.ime AS ime_aktivnosti
 				 FROM ' . self::AZURNI_TERMINI_TABLE . ' t
 				 INNER JOIN ' . self::PRIPADNOST_TABLE . ' p ON t.id_grupe_fk = p.id_grupe_fk
 				 INNER JOIN ' . self::GRUPE_TABLE . ' g ON p.id_grupe_fk = g.id_grupe
 				 INNER JOIN ' . self::AKTIVNOSTI_TABLE . ' a ON g.fk_id_aktivnosti = a.id_aktivnosti
-				 WHERE p.id_korisnik_fk = :id_korisnika
+				 WHERE p.id_korisnik_fk = :userId
 				 	AND t.datum_novi BETWEEN :datumOd AND :datumDo'
 			);
 			$st->execute([
-				'id_korisnika' => $userId,
-				'datumOd' => $datumOd, 
+				'userId' => $userId,
+				'datumOd' => $datumOd,
 				'datumDo' => $datumDo
 			]);
 		}
