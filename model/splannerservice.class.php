@@ -7,7 +7,7 @@ class SplannerService
     const GRUPE_TABLE = 'splanner_grupe';
     const AKTIVNOSTI_TABLE = 'splanner_aktivnosti';
     const PRIPADNOST_TABLE = 'splanner_pripadnost';
-	const TERMINI_TABLE = 'splanner_termini';
+	const AZURNI_TERMINI_TABLE = 'splanner_azurni_termini';
 
 	// ulogiravanje - postavljanje sessiona ili izbacivanje greške
 	function checkLogin($username, $password)
@@ -314,12 +314,15 @@ class SplannerService
 	}
 
 
-	static function getGrupeKorisnika( $userId )
-	{
+	static function getDjecaKorisnika( $userId ) {
 		try
 		{
 			$db = DB::getConnection();
-			$st = $db->prepare( "SELECT id_grupe_fk FROM " . static::PRIPADNOST_TABLE . " WHERE id_korisnik_fk=:id_korisnika" );
+			$st = $db->prepare( "
+				SELECT id_korisnici, username
+				FROM " . self::USERS_TABLE . "
+				WHERE fk_id_roditelja = :id_korisnika
+			" );
 			$st->execute( ['id_korisnika' => $userId] );
 		}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
@@ -331,15 +334,17 @@ class SplannerService
 	{
 		try
 		{
-			// dodati dohvacanje imena aktivnosti/grupe
 			$db = DB::getConnection();
-			$grupe = static::getGrupeKorisnika( $userId );
 			$st = $db->prepare(
-				'SELECT t.datum, t.vrijeme_poc, t.vrijeme_kraj, t.dvorana, t.comment
-				 FROM ' . self::REDOVNI_TERMINI_TABLE . ' t
+				'SELECT t.datum_novi as datum,
+					t.vrijeme_poc_novi AS vrijeme_poc, t.vrijeme_kraj_novi as vrijeme_kraj,
+					t.dvorana, g.ime AS ime_grupe, a.ime AS ime_aktivnosti
+				 FROM ' . self::AZURNI_TERMINI_TABLE . ' t
 				 INNER JOIN ' . self::PRIPADNOST_TABLE . ' p ON t.id_grupe_fk = p.id_grupe_fk
+				 INNER JOIN ' . self::GRUPE_TABLE . ' g ON p.id_grupe_fk = g.id_grupe
+				 INNER JOIN ' . self::AKTIVNOSTI_TABLE . ' a ON g.fk_id_aktivnosti = a.id_aktivnosti
 				 WHERE p.id_korisnik_fk = :id_korisnika
-				 AND t.datum BETWEEN :datumOd AND :datumDo'
+				 	AND t.datum_novi BETWEEN :datumOd AND :datumDo'
 			);
 			$st->execute([
 				'id_korisnika' => $userId,
