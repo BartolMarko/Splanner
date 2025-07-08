@@ -6,70 +6,210 @@ const DANI_SKR = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
 const MJESECI = ['Siječanj', 'Veljača', 'Ožujak', 'Travanj', 'Svibanj', 'Lipanj', 
               'Srpanj', 'Kolovoz', 'Rujan', 'Listopad', 'Studeni', 'Prosinac'];
 
-const TERMINI_URL_BASE = window.location.href + "/termini";
+const COLORS = [
+    '#e6194b', // red
+    '#ffe119', // yellow
+    '#3cb44b', // green
+    '#4363d8', // blue
+    '#46f0f0', // cyan
+    '#bcf60c', // lime
+    '#911eb4', // purple
+    '#f032e6', // magenta
+    '#f58231', // orange
+    '#fabebe',  // pink
+];
 
+const TERMINI_URL_BASE = window.location.href + "/termini";
+const USER_INFO_URL = window.location.href + "/userinfo";
+
+const $dayButton = $('#day-button');
 const $weekButton = $('#week-button');
 const $monthButton = $('#month-button');
+const $DEFAULT_BUTTON = $weekButton;
 
 const $leftButton = $('#left-button');
 const $todayButton = $('#today-button');
 const $rightButton = $('#right-button');
+
+const $rasporedTitle = $('#raspored-title');
 const $rasporedContainer = $('#raspored-container');
 const $activitiesContainer = $('#activities-container');
+const $filterCheckboxes = $('#filter-checkboxes');
 
+let userInfo = null;
+let checkBoxCount = 0, idToIndex = {}, indexToId = {};
+let latestActivitiesFetched = null, filteredActivities = null;
+// latestActivities -> id: aktivnosti, filteredActivities -> lista aktivnosti
+
+let dayToDisplay = new Date(); 
 let weekReferenceMonday = getCurrentMonday();
 let monthToDisplay = getCurrentMonth();
 
 $( document ).ready(main);
 
 function main() {
-    $weekButton.on('click', displayWeekSchedule);
-    $monthButton.on('click', displayMonthSchedule);
+    $dayButton.on('click', onPeriodChange);
+    $weekButton.on('click', onPeriodChange);
+    $monthButton.on('click', onPeriodChange);
 
     $leftButton.on('click', decreaseReference);
     $rightButton.on('click', increaseReference);
     $todayButton.on('click', resetReference);
-    displayWeekSchedule();
+    $DEFAULT_BUTTON.addClass('active');
+    fetchUserInfo();
 }
 
-function displayWeekSchedule() {
+function fetchUserInfo() {
+    $.ajax({
+        url: USER_INFO_URL,
+        method: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            userInfo = data;
+            displayFilterCheckboxes();
+            displayCompleteSchedule();
+        },
+        error: function() {
+            console.error('Error pri dohvaćanju user info.');
+        }
+    });
+}
+
+function displayFilterCheckboxes() {
+    $filterCheckboxes.empty();
+    if (userInfo.tip_korisnika === 'roditelj') {
+        addCheckBox(userInfo.id_korisnici, "Moje aktivnosti");
+        for (const dijete of userInfo.djeca)
+            addCheckBox(dijete.id_korisnici, dijete.username);
+    }
+}
+
+function addCheckBox(id, name) {
+    let index = checkBoxCount++;
+    idToIndex[id] = index;
+    indexToId[index] = id;
+
+    const $checkbox = $('<input>')
+        .attr('type', 'checkbox')
+        .attr('id', "checkbox-" + index)
+        .prop('checked', true)
+        .on('change', function() {
+            if ($(this).is(':checked')) {
+                $(`#checkbox-label-${index}`).css(
+                    'background-color', COLORS[index % COLORS.length]
+                )
+            } else {
+                $(`#checkbox-label-${index}`).css(
+                    'background-color', getLighterColor(COLORS[index % COLORS.length])
+                )
+            }
+            filterActivities();
+            displayActivities(filteredActivities);
+        });
+    
+    const $label = $('<label>')
+        .addClass('checkbox-button')
+        .attr('id', "checkbox-label-" + index)
+        .attr('for', "checkbox-" + index)
+        .text(name)
+        .css(getDefaultCssForIndex(index));
+
+    $filterCheckboxes.append($checkbox);
+    $filterCheckboxes.append($label);
+    // $filterCheckboxes.append('<br>');
+}
+
+function filterActivities() {
+    if (latestActivitiesFetched === null) {
+        console.warn('Nema aktivnosti za filtriranje.');
+        return;
+    }
+    filteredActivities = [];
+    for (const [id, activities] of Object.entries(latestActivitiesFetched)) {
+        const index = idToIndex[id];
+        if (index === undefined)
+            continue;
+        const isChecked = $(`#checkbox-${index}`).is(':checked');
+        if (isChecked) {
+            for (const activity of activities)
+                activity.index = index;
+            filteredActivities = filteredActivities.concat(activities);
+        }
+    }
+}
+
+function onPeriodChange() {
+    if ($(this).hasClass('active'))
+        return;
+
     $(".time-interval").removeClass("active");
-    $weekButton.addClass('active');
-    $rasporedContainer.empty();
-    $activitiesContainer.empty();
+    $(this).addClass('active');
 
-    const start = new Date(weekReferenceMonday);
-    const end = new Date(weekReferenceMonday);
-    end.setDate(start.getDate() + 6);
-
-    const startStr = `${getTwoDigitNumber(start.getDate())}.${getTwoDigitNumber(start.getMonth() + 1)}.${start.getFullYear()}`;
-    const endStr = `${getTwoDigitNumber(end.getDate())}.${getTwoDigitNumber(end.getMonth() + 1)}.${end.getFullYear()}`;
-
-    $rasporedContainer.append(
-        `<h2 class="week-range">${startStr} - ${endStr}</h2>`
-    );
-
-    fetchWeekActivitiesAndDisplay();
+    displayCompleteSchedule();
 }
 
-function displayMonthSchedule() {
-    $(".time-interval").removeClass("active");
-    $monthButton.addClass('active');
+function displayCompleteSchedule() {
     $rasporedContainer.empty();
 
-    const monthName = MJESECI[monthToDisplay.month];
-    const year = monthToDisplay.year;
-    $rasporedContainer.append(
-        `<h2 class="month-title">${monthName} ${year}</h2>`
-    );
+    if ($dayButton.hasClass('active'))
+        displayScheduleGrid(DEFAULT_MAX_HOUR - DEFAULT_MIN_HOUR + 1, 1, true);
+    else if ($weekButton.hasClass('active'))
+        displayScheduleGrid(DEFAULT_MAX_HOUR - DEFAULT_MIN_HOUR + 1, 7, true);
+    else if ($monthButton.hasClass('active'))
+        displayScheduleGrid(5, 7, false);
 
-    displayMonthGrid();
+    fetchActivitiesAndDisplay();
 }
 
-function fetchWeekActivitiesAndDisplay() {
-    const start = new Date(weekReferenceMonday);
-    const end = new Date(weekReferenceMonday);
-    end.setDate(start.getDate() + 6);
+function displayScheduleGrid(rows, columns, displayHours) {
+    const $table = $('<table>').addClass('raspored-table');
+    const $thead = $('<thead>');
+    const $trHead = $('<tr>');
+
+    if (displayHours)
+        $trHead.append($('<th>').addClass('hours-column').text('Sat'));
+
+    for (let i = 0; i < columns; i++) {
+        $th = $('<th>').attr('id', `day-${i}`).text(DANI[i])
+        if (displayHours) {
+            $th.append($('<br>'));
+            $th.append($(`<span id="date-day-${i}">`));
+        }
+        $trHead.append($th);
+    }
+    $thead.append($trHead);
+    $table.append($thead);
+
+    const $tbody = $('<tbody>');
+    for (let row = 0; row < rows; row++) {
+        const $tr = $('<tr>');
+        if (displayHours) {
+            $tr.attr('id', `time-${DEFAULT_MIN_HOUR + row}`);
+            const hour = DEFAULT_MIN_HOUR + row;
+            const timeStr = `${getTwoDigitNumber(hour)}:00 - ${getTwoDigitNumber(hour + 1)}:00`;
+            $tr.append($('<td>').addClass('hours-column').text(timeStr));
+        }
+        for (let col = 0; col < columns; col++)
+            $tr.append($('<td>'));
+        $tbody.append($tr);
+    }
+    $table.append($tbody);
+    $rasporedContainer.append($table);
+}
+
+function fetchActivitiesAndDisplay() {
+    let start, end;
+    if ($dayButton.hasClass('active'))
+        start = end = dayToDisplay;
+    else if ($weekButton.hasClass('active')) {
+        start = new Date(weekReferenceMonday);
+        end = new Date(weekReferenceMonday);
+        end.setDate(start.getDate() + 6);
+    } else if ($monthButton.hasClass('active')) {
+        start = getFirstDayOfMonth(monthToDisplay.year, monthToDisplay.month);
+        end = getLastDayOfMonth(monthToDisplay.year, monthToDisplay.month);
+    }
+
     const datumOd = `${start.getFullYear()}-${getTwoDigitNumber(start.getMonth() + 1)}-${getTwoDigitNumber(start.getDate())}`;
     const datumDo = `${end.getFullYear()}-${getTwoDigitNumber(end.getMonth() + 1)}-${getTwoDigitNumber(end.getDate())}`;
 
@@ -82,8 +222,10 @@ function fetchWeekActivitiesAndDisplay() {
         },
         dataType: 'json',
         success: function(activities) {
-            displayWeekGrid(DEFAULT_MIN_HOUR, DEFAULT_MAX_HOUR);
-            displayWeekActivities(activities);
+            latestActivitiesFetched = activities;
+            filterActivities();
+            adjustGrid(activities);
+            displayActivities(filteredActivities);
         },
         error: function() {
             console.error('Error pri dohvaćanju aktivnosti.');
@@ -91,16 +233,40 @@ function fetchWeekActivitiesAndDisplay() {
     });
 }
 
-function displayWeekGrid(min_hour, max_hour) {
-    const $table = $('<table>').addClass('raspored-table');
-    const $thead = $('<thead>');
-    const $trHead = $('<tr>');
-    $trHead.append($('<th>').text('Sat'));
+function adjustGrid(activities) {
+    if ($dayButton.hasClass('active'))
+        adjustDayGrid(DEFAULT_MIN_HOUR, DEFAULT_MAX_HOUR);
+    else if ($weekButton.hasClass('active'))
+        adjustWeekGrid(DEFAULT_MIN_HOUR, DEFAULT_MAX_HOUR);
+    else if ($monthButton.hasClass('active'))
+        adjustMonthGrid();
+}
 
+function adjustDayGrid(min_hour, max_hour) {
+    const dateStr = getDateString(dayToDisplay);
+    $rasporedTitle.text(dateStr);
+
+    const dayNum = getTwoDigitNumber(dayToDisplay.getDate());
+    const monthNum = getTwoDigitNumber(dayToDisplay.getMonth() + 1);
+    
+    $(`th#day-0`).text(DANI[getDayOfWeekIndex(dayToDisplay)]);
+    $(`th#day-0`).append($('<br>'));
+    $(`th#day-0`).append($(`<span id="date-day-0">${dayNum}.${monthNum}</span>`));
+}
+
+function adjustWeekGrid(min_hour, max_hour) {
+    const start = new Date(weekReferenceMonday);
+    const end = new Date(weekReferenceMonday);
+    end.setDate(start.getDate() + 6);
     const today = new Date();
+
+    const startStr = getDateString(start);
+    const endStr = getDateString(end);
+
+    $rasporedTitle.text(`${startStr} - ${endStr}`);
+
     let todayIndex = -1;
     for (let i = 0; i < DANI.length; i++) {
-        const day = DANI[i];
         let date = new Date(weekReferenceMonday);
         date.setDate(weekReferenceMonday.getDate() + i);
 
@@ -109,39 +275,69 @@ function displayWeekGrid(min_hour, max_hour) {
 
         const dayNum = getTwoDigitNumber(date.getDate());
         const monthNum = getTwoDigitNumber(date.getMonth() + 1);
-        const $th = $('<th>')
-            .attr('id', `day-${i}`)
-            .html(`${day}<br><span class="date">${dayNum}.${monthNum}.</span>`);
-        $trHead.append($th);
+        $(`#date-day-${i}`).text(`${dayNum}.${monthNum}`)
     }
-    $thead.append($trHead);
-    $table.append($thead);
-
-    const $tbody = $('<tbody>');
-    for (let hour = min_hour; hour <= max_hour; hour++) {
-        const time = `${hour}:00`;
-        const $tr = $('<tr id="time-' + hour + '">`);');
-        $tr.append($('<td>').text(time));
-        for (let i = 0; i < DANI.length; i++) {
-            const $emptyField = $('<td>');
-            if (i === todayIndex)
-                $emptyField.addClass('today');
-            $tr.append($emptyField);
+    $('td').removeClass('today');
+    if (todayIndex !== -1) {
+        for (let hour = min_hour; hour <= max_hour; hour++) {
+            const $timeCell = $(`tr#time-${hour} td:nth-child(${todayIndex + 2})`);
+            $timeCell.addClass('today');
         }
-        $tbody.append($tr);
     }
-    $table.append($tbody);
-    $rasporedContainer.append($table);
+}
+
+function adjustMonthGrid() {
+    const monthName = MJESECI[monthToDisplay.month];
+    const year = monthToDisplay.year;
+    $rasporedTitle.text(`${monthName} ${year}`);
+}
+
+function displayActivities(activities) {
+    $activitiesContainer.empty();
+    parseActivityDates(activities);
+    if ($dayButton.hasClass('active'))
+        displayDayActivities(activities);
+    else if ($weekButton.hasClass('active'))
+        displayWeekActivities(activities);
+}
+
+function displayDayActivities(activities) {
+    handleActivityOverlaps(activities);
+    for (const activity of activities) {
+        calculateDayActivityXPosition(activity);
+        calculateWeekActivityYPosition(activity);
+        displayActivity(activity);
+    }
 }
 
 function displayWeekActivities(activities) {
-    parseActivityDates(activities);
     handleActivityOverlaps(activities);
     for (const activity of activities) {
-        calculateWeekActivityYPosition(activity);
         calculateWeekActivityXPosition(activity);
+        calculateWeekActivityYPosition(activity);
         displayActivity(activity);
     }
+}
+
+function calculateDayActivityXPosition(activity) {
+    const $th = $(`th#day-0`);
+    let leftPos = $th.offset().left - $rasporedContainer.offset().left;
+    leftPos += $th.outerWidth() * activity.leftBorder;
+    const width = $th.outerWidth() * activity.widthRatio;
+
+    activity.left = leftPos / $rasporedContainer.width() * 100;
+    activity.width = width / $rasporedContainer.width() * 100;
+}
+
+function calculateWeekActivityXPosition(activity) {
+    const dayIndex = getDayOfWeekIndex(new Date(activity.datum));
+    const $th = $(`th#day-${dayIndex}`);
+    let leftPos = $th.offset().left - $rasporedContainer.offset().left;
+    leftPos += $th.outerWidth() * activity.leftBorder;
+    const width = $th.outerWidth() * activity.widthRatio;
+
+    activity.left = leftPos / $rasporedContainer.width() * 100;
+    activity.width = width / $rasporedContainer.width() * 100;
 }
 
 function calculateWeekActivityYPosition(activity) {
@@ -155,25 +351,15 @@ function calculateWeekActivityYPosition(activity) {
     topPos += (startMinute / 60) * tableRowStart.height();
 
     const tableRowEnd = $(`tr#time-${endHour}`);
-    const height = tableRowEnd.offset().top - tableRowStart.offset().top + (endMinute / 60) * tableRowEnd.height();
+    let bottomPos = tableRowEnd.offset().top - $rasporedContainer.offset().top;
+    bottomPos += (endMinute / 60) * tableRowEnd.height();
 
     activity.top = topPos / $rasporedContainer.height() * 100;
-    activity.height = height / $rasporedContainer.height() * 100;
-}
-
-function calculateWeekActivityXPosition(activity) {
-    const date = new Date(activity.datum);
-    const dayIndex = (date.getDay() + 6) % 7;
-    const $th = $(`th#day-${dayIndex}`);
-    let leftPos = $th.offset().left - $rasporedContainer.offset().left;
-    leftPos += $th.outerWidth() * activity.leftBorder;
-    const width = $th.outerWidth() * activity.widthRatio;
-
-    activity.left = leftPos / $rasporedContainer.width() * 100;
-    activity.width = width / $rasporedContainer.width() * 100;
+    activity.height = (bottomPos - topPos) / $rasporedContainer.height() * 100;
 }
 
 function displayActivity(activity) {
+    console.log(activity);
     const startTime = getTwoDigitNumber(activity.datePoc.getHours()) + ':' + getTwoDigitNumber(activity.datePoc.getMinutes());
     const endTime = getTwoDigitNumber(activity.dateKraj.getHours()) + ':' + getTwoDigitNumber(activity.dateKraj.getMinutes());
     const $activityDiv = $('<div>')
@@ -185,14 +371,14 @@ function displayActivity(activity) {
             left: activity.left + '%',
             width: activity.width + '%'
         })
+        .css(getDefaultCssForIndex(activity.index))
         .html(`
             <span class="activity-time">${startTime} - ${endTime}</span><br>
-            <span class="activity-title">${activity.comment}</span><br>
+            <span class="activity-title">${activity.ime_aktivnosti}</span><br>
             <span class="activity-dvorana">${activity.dvorana}</span>
         `);
     $activitiesContainer.append($activityDiv);
 }
-
 
 function displayMonthGrid() {
     const $table = $('<table>').addClass('raspored-table');
@@ -236,45 +422,43 @@ function displayMonthGrid() {
 }
 
 function increaseReference() {
-    if ($weekButton.hasClass('active')) {
+    if ($dayButton.hasClass('active'))
+        dayToDisplay.setDate(dayToDisplay.getDate() + 1);
+    else if ($weekButton.hasClass('active'))
         weekReferenceMonday.setDate(weekReferenceMonday.getDate() + 7);
-        displayWeekSchedule();
-    }
     else if ($monthButton.hasClass('active')) {
         monthToDisplay.month += 1;
         if (monthToDisplay.month > 11) {
             monthToDisplay.month = 0;
             monthToDisplay.year += 1;
         }
-        displayMonthSchedule();
     }
+    fetchActivitiesAndDisplay();
 }
 
 function decreaseReference() {
-    if ($weekButton.hasClass('active')) {
+    if ($dayButton.hasClass('active'))
+        dayToDisplay.setDate(dayToDisplay.getDate() - 1);
+    else if ($weekButton.hasClass('active'))
         weekReferenceMonday.setDate(weekReferenceMonday.getDate() - 7);
-        displayWeekSchedule();
-    }
     else if ($monthButton.hasClass('active')) {
         monthToDisplay.month -= 1;
         if (monthToDisplay.month < 0) {
             monthToDisplay.month = 11;
             monthToDisplay.year -= 1;
         }
-        displayMonthSchedule();
     }
+    fetchActivitiesAndDisplay();
 }
 
 function resetReference() {
-    // TODO: ostavit ovako ili uvijek i tjedan i mjesec resetat
-    if ($weekButton.hasClass('active')) {
+    if ($dayButton.hasClass('active'))
+        dayToDisplay = new Date();
+    else if ($weekButton.hasClass('active'))
         weekReferenceMonday = getCurrentMonday();
-        displayWeekSchedule();
-    }
-    else if ($monthButton.hasClass('active')) {
+    else if ($monthButton.hasClass('active'))
         monthToDisplay = getCurrentMonth();
-        displayMonthSchedule();
-    }
+    fetchActivitiesAndDisplay();
 }
 
 function getCurrentMonday() {
@@ -292,6 +476,14 @@ function getCurrentMonth() {
         month: today.getMonth(),
         year: today.getFullYear()
     };
+}
+
+function getFirstDayOfMonth(year, month) {
+    return new Date(year, month, 1);
+}
+
+function getLastDayOfMonth(year, month) {
+    return new Date(year, month + 1, 0);
 }
 
 function datesSame(date1, date2) {
@@ -394,4 +586,29 @@ function getTwoDigitNumber(num) {
 
 function checkOverlap(activity1, activity2) {
     return activity1.datePoc < activity2.dateKraj && activity2.datePoc < activity1.dateKraj;
+}
+
+function getDateString(date) {
+    return `${getTwoDigitNumber(date.getDate())}.${getTwoDigitNumber(date.getMonth() + 1)}.${date.getFullYear()}`;
+}
+
+function getDayOfWeekIndex(date) {
+    return (date.getDay() + 6) % 7;
+}
+
+function getDefaultCssForIndex(index) {
+    const color = COLORS[index % COLORS.length];
+    return {
+        'background-color': color,
+        'border-color': getDarkerColor(color),
+        'color': 'white'
+    }
+}
+
+function getDarkerColor(color) {
+    return chroma(color).darken(0.5).hex();
+}
+
+function getLighterColor(color) {
+    return chroma(color).brighten(0.5).hex();
 }

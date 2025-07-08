@@ -1,4 +1,5 @@
 #raspored-activities-wrapper {
+    margin-top: 1rem;
     position: relative;
 }
 
@@ -14,6 +15,12 @@
 #raspored-container table {
     width: 100%;
     table-layout: fixed;
+    height: 100%;
+}
+
+th.hours-column, td.hours-column {
+    width: 10%;
+    text-align: center;
 }
 
 #activities-container {
@@ -30,6 +37,7 @@
     border-radius: 8px;
     overflow: hidden;
     white-space: nowrap;
+    border: solid;
     /* text-overflow: ellipsis; */
 }
 
@@ -43,4 +51,66 @@
 
 .today {
     background-color: lightblue;
+}
+
+input[type="checkbox"] {
+    display: none;
+}
+
+label.checkbox-button {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    margin-right: 2px;
+    
+    border: 2px solid;
+    /* color: #007bff;
+    background-color: white; */
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.flex-col {
+    display: flex;
+    flex-direction: column;
+}
+
+#raspored-title-wrapper {
+    justify-content: center;
+    align-items: center;
+}
+
+#filter-checkboxes {
+    justify-content: center;
+    align-items: center;
+}
+
+#raspored-title {
+    margin: 0;
+}
+
+#buttons-container {
+    justify-content: space-between;
+    align-items: center;
+}
+
+button {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    background-color: var(--color-dark);
+    border-color: var(--color-darkest);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 2px;
+}
+
+button:hover {
+    background-color: var(--color-light);
+    color: black;
 }
