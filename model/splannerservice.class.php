@@ -2,8 +2,13 @@
 
 class SplannerService
 {
-    const USERS_TABLE = 'splanner_korisnici';
+     const USERS_TABLE = 'splanner_korisnici';
+    const OBAVIJESTI_TABLE = 'splanner_obavijesti';
+    const GRUPE_TABLE = 'splanner_grupe';
+    const AKTIVNOSTI_TABLE = 'splanner_aktivnosti';
+    const PRIPADNOST_TABLE = 'splanner_pripadnost';
 
+	// ulogiravanje - postavljanje sessiona ili izbacivanje greške
 	function checkLogin($username, $password)
 	{
 		try
@@ -28,24 +33,48 @@ class SplannerService
 		}
 	}
 
+	// dohvaca id korisnika s nekim imenom
+    // function getUserIdByName( $username )
+	// {
+	// 	try
+	// 	{
+	// 		$db = DB::getConnection();
+	// 		$st = $db->prepare( 'SELECT id_korisnici FROM ' . self::USERS_TABLE . ' WHERE username=:username' );
+	// 		$st->execute( ['username' => $username] );
+	// 	}
+	// 	catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 
-    function getUserIdByName( $username )
+	// 	$row = $st->fetch();
+	// 	if( $row === false )
+	// 		return null;
+	// 	else
+	// 		return $row['id_korisnici'];
+	// }
+
+	// dohvaca ime korisnika 
+	public function getImenaKorisnika($ids)
 	{
-		try
-		{
+		if (empty($ids)) return [];
+	
+		try {
 			$db = DB::getConnection();
-			$st = $db->prepare( 'SELECT id_korisnici FROM ' . self::USERS_TABLE . ' WHERE username=:username' );
-			$st->execute( ['username' => $username] );
+			$placeholders = implode(',', array_fill(0, count($ids), '?'));
+			$st = $db->prepare('SELECT id_korisnici, username FROM ' . self::USERS_TABLE . ' WHERE id_korisnici IN (' . $placeholders . ')');
+			$st->execute($ids);
+			
+			$rezultat = [];
+			while ($row = $st->fetch()) {
+				$rezultat[$row['id_korisnici']] = $row['username'];
+			}
+			return $rezultat;
 		}
-		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
-
-		$row = $st->fetch();
-		if( $row === false )
-			return null;
-		else
-			return $row['id'];
+		catch (PDOException $e) {
+			exit('PDO error ' . $e->getMessage());
+		}
 	}
+	
 
+	// provjera ako se neko korisničko ime već koristi
 	function checkIfUsernameOccupied( $username ){
 		try
 		{
@@ -62,11 +91,12 @@ class SplannerService
 			return true;
 	}
 
+	// provjera ako slučajno nije generiran jednaki reg. seq. 
 	public function checkRegSeq($seq)
 	{
 		try {
 			$db = DB::getConnection();
-			$st = $db->prepare('SELECT 1 FROM splanner_korisnici WHERE registration_sequence = :seq');
+			$st = $db->prepare('SELECT 1 FROM ' . self::USERS_TABLE . ' WHERE registration_sequence = :seq');
 			$st->execute(['seq' => $seq]);
 
 			return $st->fetch() !== false;
@@ -76,7 +106,7 @@ class SplannerService
 		}
 	}
 
-
+	// ažuriranje baze nakon kliknutog linka u mailu
 	function updateRegSeq($reg_seq){
 		try
 		{
@@ -87,16 +117,20 @@ class SplannerService
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 	}
 
-	function addNewUser($username, $password, $email, $oib, $registration_sequence){
+	// dodavanje novog korisnika / trenera u bazu prilikom registracije
+	function addNewUser($username, $password, $email, $oib, $uloga, $spol, $datum, $registration_sequence){
 		try
 		{
 			$db = DB::getConnection();
-			$st = $db->prepare( 'INSERT INTO ' . self::USERS_TABLE . '(OIB, username, password_hash, email, registration_sequence, has_registered) VALUES ' .
-								'(:OIB, :username, :password_hash, :email, :registration_sequence, 0)' );
+			$st = $db->prepare( 'INSERT INTO ' . self::USERS_TABLE . '(OIB, username, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, prima_obavijest, has_registered) VALUES ' .
+								'(:OIB, :username, :password_hash, :email, :tip_korisnika, :spol, :datum_rodenja, :registration_sequence, True, 0)' );
 			$st->execute( array('OIB' => $oib,
 								'username' => $username, 
 								'password_hash' => password_hash( $password, PASSWORD_DEFAULT ), 
 								'email' => $email, 
+								'tip_korisnika' => $uloga, 
+								'spol' => $spol, 
+								'datum_rodenja' => $datum, 
 								'registration_sequence'  => $registration_sequence ) );
 		}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }

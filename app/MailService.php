@@ -27,7 +27,7 @@ class MailService
             $mail->setFrom('jelenazxy1@gmail.com', 'Splanner');
             $mail->addAddress($to);
 
-             $mail->isHTML(true);
+            $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body = $htmlBody;
             $mail->AltBody = $plainBody;

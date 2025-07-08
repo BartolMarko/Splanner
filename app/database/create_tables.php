@@ -5,11 +5,11 @@ require_once __DIR__ . '/db.class.php';
 create_table_korisnici();
 create_table_grupe();
 create_table_pripadnost();
-create_table_termini();
+create_table_redovni_termini();
+create_table_azurni_termini();
 create_table_obavijesti();
 create_table_aktivnosti();
 alter_table_grupe();
-
 
 exit( 0 );
 
@@ -52,8 +52,11 @@ function create_table_korisnici()
 			'password_hash varchar(255) NOT NULL,'.
 			'email varchar(50) NOT NULL,' .
 			'tip_korisnika ENUM("trener","dijete","roditelj"), ' .
+			'spol varchar(30), ' .
+			'datum_rodenja DATE,'.
 			'registration_sequence varchar(20) NOT NULL,' .
 			'fk_id_roditelja INT,' .
+			'prima_obavijest BOOL,' . 
 			'has_registered int)'
 		);
 
@@ -77,17 +80,17 @@ function create_table_aktivnosti()
 		$st = $db->prepare( 
 			'CREATE TABLE IF NOT EXISTS splanner_aktivnosti (' .
 			'id_aktivnosti INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
-			'fk_id_trenera INT  NOT NULL,' .
+			'ime varchar(100),' .
 			'description varchar(1000) NOT NULL,' .
-			'cijena DECIMAL(15,2), ' .
-			'ime varchar(100) )' 
+			'fk_id_trenera INT NOT NULL, ' .
+			'grad varchar(50))'
 		);
 
 		$st->execute();
 	}
 	catch( PDOException $e ) { exit( "PDO error [create splanner_aktivnosti]: " . $e->getMessage() ); }
 
-	//echo "Napravio tablicu splanner_aktivnosti.<br />";
+	echo "Napravio tablicu splanner_aktivnosti.<br />";
 }
 
 
@@ -105,8 +108,10 @@ function create_table_grupe()
 			'CREATE TABLE IF NOT EXISTS splanner_grupe (' .
 			'id_grupe INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
 			'ime varchar(100), ' .
-			'description varchar(1000) NOT NULL,' .
-            'cijena decimal(15,2) NOT NULL,' .
+			'cijena DECIMAL(15,2), ' .
+			'spol varchar(30), ' .
+			'uzrast_od INT,' .
+			'uzrast_do INT,' . 
 			'fk_id_aktivnosti INT NOT NULL)'
 		);
 
@@ -114,63 +119,87 @@ function create_table_grupe()
 	}
 	catch( PDOException $e ) { exit( "PDO error [create splanner_grupe]: " . $e->getMessage() ); }
 
-	//echo "Napravio tablicu splanner_grupe.<br />";
+	echo "Napravio tablicu splanner_grupe.<br />";
 }
 
 function create_table_pripadnost()
 {
 	$db = DB::getConnection();
 
-	if( has_table( 'veza_je_u' ) )
-		echo( 'Tablica veza_je_u vec postoji. Obrisite ju pa probajte ponovno.' );
+	if( has_table( 'splanner_pripadnost' ) )
+		echo( 'Tablica splanner_pripadnost vec postoji. Obrisite ju pa probajte ponovno.' );
 
 	try
 	{
 		$st = $db->prepare( 
-			'CREATE TABLE IF NOT EXISTS veza_je_u (' .
+			'CREATE TABLE IF NOT EXISTS splanner_pripadnost (' .
 			'id_veze INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
 			'id_grupe_fk INT NOT NULL,' .
-            'id_korisnik_fk INT NOT NULL, ' .
-			'description varchar(1000) NOT NULL,' .
-            'cijena decimal(15,2) NOT NULL)');
-			//'FOREIGN KEY(id_korisnik_fk) REFERENCES splanner_korisnici(id_korisnici),' .
-			//'FOREIGN KEY(id_grupe_fk) REFERENCES splanner_grupe(id_grupe))'
-
+            'id_korisnik_fk INT NOT NULL )'
+		);
 		$st->execute();
 	}
-	catch( PDOException $e ) { exit( "PDO error [create veza_je_u]: " . $e->getMessage() ); }
+	catch( PDOException $e ) { exit( "PDO error [create splanner_pripadnost]: " . $e->getMessage() ); }
 
-	//echo "Napravio tablicu veza_je_u.<br />";
+	echo "Napravio tablicu splanner_pripadnost.<br />";
 }
 
-function create_table_termini()
+function create_table_redovni_termini()
 {
 	$db = DB::getConnection();
 
-	if( has_table( 'splanner_termini' ) )
-		echo( 'Tablica splanner_termini vec postoji. Obrisite ju pa probajte ponovno.' );
+	if( has_table( 'splanner_redovni_termini' ) )
+		echo( 'Tablica splanner_redovni_termini vec postoji. Obrisite ju pa probajte ponovno.' );
 
 	try
 	{
 		$st = $db->prepare( 
-			'CREATE TABLE IF NOT EXISTS splanner_termini (' .
-			'id_termini INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
+			'CREATE TABLE IF NOT EXISTS splanner_redovni_termini (' .
+			'id_redovni_termini INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
 			'id_grupe_fk INT NOT NULL ,' . 
-			'id_trener_fk INT NOT NULL ,' . //da mi je lakse
-			'datum DATE,' .
+			'id_trener_fk INT NOT NULL ,' . 
+			'dan ENUM("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"), ' .
 			'vrijeme_poc TIME,' .
-			'vrijeme_traj INT,' .
-			'dvorana varchar(50),' .
-			'comment varchar(1000))');
-			//'FOREIGN KEY(id_trener_fk) REFERENCES splanner_korisnici(id_korisnici),' .
-			//'FOREIGN KEY(id_grupe_fk) REFERENCES splanner_grupe(id_grupe))'
+			'vrijeme_kraj TIME,' .
+			'dvorana varchar(50))'
+		);
+		$st->execute();
+	}
+	catch( PDOException $e ) { exit( "PDO error [create splanner_redovni_termini]: " . $e->getMessage() ); }
 
+	echo "Napravio tablicu splanner_redovni_termini.<br />";
+}
+
+function create_table_azurni_termini()
+{
+	$db = DB::getConnection();
+
+	if( has_table( 'splanner_azurni_termini' ) )
+		echo( 'Tablica splanner_azurni_termini vec postoji. Obrisite ju pa probajte ponovno.' );
+
+	try
+	{
+		$st = $db->prepare( 
+			'CREATE TABLE IF NOT EXISTS splanner_azurni_termini (' .
+			'id_azurni_termini INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
+			'fk_id_redovni_termini INT NOT NULL ,' .
+			'id_grupe_fk INT NOT NULL ,' . 
+			'id_trener_fk INT NOT NULL ,' . 
+			'datum_origin DATE,' .
+			'datum_novi DATE,' .
+			'vrijeme_poc_stari TIME,' .
+			'vrijeme_kraj_stari TIME,' .
+			'vrijeme_poc_novi TIME,' .
+			'vrijeme_kraj_novi TIME,' .
+			'dvorana varchar(50))'
+		);
 		$st->execute();
 	}
 	catch( PDOException $e ) { exit( "PDO error [create splanner_termini]: " . $e->getMessage() ); }
 
-	//echo "Napravio tablicu splanner_termini.<br />";
+	echo "Napravio tablicu splanner_termini.<br />";
 }
+
 
 
 function create_table_obavijesti()
@@ -188,33 +217,13 @@ function create_table_obavijesti()
 			'id_grupe_fk INT NOT NULL ,' .
 			'datum DATE,' .
 			'vrijeme TIME,' .
-			'comment varchar(1000))');
-			//'FOREIGN KEY(id_trener_fk) REFERENCES splanner_korisnici(id_korisnici),' .
-			//'FOREIGN KEY(id_grupe_fk) REFERENCES splanner_grupe(id_grupe))'
-
+			'comment varchar(1000))'
+		);
 		$st->execute();
 	}
 	catch( PDOException $e ) { exit( "PDO error [create splanner_obavijesti]: " . $e->getMessage() ); }
 
-	//echo "Napravio tablicu splanner_obavijesti.<br />";
+	echo "Napravio tablicu splanner_obavijesti.<br />";
 }
-
-function alter_table_grupe(){
-    $db = DB::getConnection();
-    if( !has_table( 'splanner_grupe' ) )
-		echo( 'Tablica splanner_grupe ne postoji.' );
-
-        try
-        {
-
-			/*$st = $db->prepare( 
-                'ALTER TABLE splanner_grupe ADD CONSTRAINT FOREIGN KEY(id_termin_fk) REFERENCES splanner_termini(id_termini)' 
-            );
-
-            $st->execute();*/
-        }
-        catch( PDOException $e ) { exit( "PDO error [create ALTER_GRUPE]: " . $e->getMessage() ); }
-}
-
 
 ?>

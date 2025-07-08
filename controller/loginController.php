@@ -5,16 +5,18 @@ class LoginController extends BaseController
     public function index()
     {   
         $this->registry->template->title = 'Prijava';
-
-        if (isset($_POST['username']) && isset($_POST['password'])) {
+        if (isset($_SESSION['username'])){
+            header('Location: ' . __SITE_URL . '/index.php?rt=raspored');
+        }
+        else if (isset($_POST['username']) && isset($_POST['password'])) {
             $username = $_POST['username'];
             $password = $_POST['password'];
 
             $ss = new SplannerService();
-            $userRow = $ss->checkLogin($username, $password);
+            $userRow = $ss->checkLogin($username, $password); 
 
             if (is_array($userRow)) {
-                // Login uspješan
+                // Login uspjesan
                 $_SESSION['username'] = $userRow['username'];
                 $_SESSION['id_user'] = $userRow['id_korisnici'];
                 $_SESSION['tip_korisnika'] = $userRow['tip_korisnika'];
@@ -31,6 +33,7 @@ class LoginController extends BaseController
                 $this->registry->template->show('login_index');
             }
             else {
+                // fallback za svaki slucaj
                 $this->registry->template->error = 'Došlo je do neočekivane greške.';
                 $this->registry->template->show('login_index');
             }
@@ -40,66 +43,79 @@ class LoginController extends BaseController
         }
     }
 
+
     public function registracija()
     {   
         $this->registry->template->title = 'Registracija';
         $ss = new SplannerService();
 
-        if (!isset($_POST['username']) || !isset($_POST['password']) || !isset($_POST['email']) || !isset($_POST['oib'])) {
+        if (!isset( $_POST['username'] ) || !isset( $_POST['password'] ) || !isset( $_POST['password_again'] ) || !isset( $_POST['email']) 
+            || !isset( $_POST['oib']) || !isset( $_POST['uloga']) || !isset( $_POST['spol'] ) || !isset( $_POST['datum'] )){
             $this->registry->template->show('login_registracija');
             return;
         }
-        else if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+        else if(strlen($_POST['password']) < 5){
+            $this->registry->template->error = 'Lozinka mora imati barem 5 znakova.';
+            $this->registry->template->show('login_registracija');
+            return;
+        }
+        else if($_POST['password'] !== $_POST['password_again']){
+            $this->registry->template->error = 'Naveli ste dvije različite lozinke.';
+            $this->registry->template->show('login_registracija');
+            return;
+        }
+        else if( !filter_var( $_POST['email'], FILTER_VALIDATE_EMAIL) ){
             $this->registry->template->error = 'Neispravna email adresa.';
             $this->registry->template->show('login_registracija');
             return;
         }
-        else if ($ss->checkIfUsernameOccupied($_POST['username'])) {
+        else if($ss->checkIfUsernameOccupied($_POST['username'])){
             $this->registry->template->error = 'Ovo korisničko ime već postoji, molimo izaberite novo.';
             $this->registry->template->show('login_registracija');
             return;
         }
+        else{
+             // Generiraj registracijski niz
+            do {
+                $reg_seq = '';
+                for ($i = 0; $i < 20; ++$i)
+                    $reg_seq .= chr(rand(0, 25) + ord('a'));
+            } while ($ss->checkRegSeq($reg_seq));
 
-        // Generiraj registracijski niz
-        do {
-            $reg_seq = '';
-            for ($i = 0; $i < 20; ++$i)
-                $reg_seq .= chr(rand(0, 25) + ord('a'));
-        } while ($ss->checkRegSeq($reg_seq));
+            $ss->addNewUser($_POST['username'], $_POST['password'], $_POST['email'], $_POST['oib'], $_POST['uloga'], $_POST['spol'], $_POST['datum'], $reg_seq);
 
-        $ss->addNewUser($_POST['username'], $_POST['password'], $_POST['email'], $_POST['oib'], $reg_seq);
+            $to = $_POST['email'];
+            $subject = 'Registracijski mail';
 
-        $to = $_POST['email'];
-        $subject = 'Registracijski mail';
+            // URL link
+            $link = 'https://rp2.studenti.math.hr' . __SITE_URL . '/index.php';
+            $link .= '?rt=login/potvrda&reg_seq=' . urlencode($reg_seq);
 
-        // URL link
-        $link = 'https://rp2.studenti.math.hr' . __SITE_URL . '/index.php';
-        $link .= '?rt=login/potvrda&reg_seq=' . urlencode($reg_seq);
+            // Tekst verzija poruke
+            $textMessage = "Poštovani " . $_POST['username'] . "!\nZa dovršetak registracije kliknite na donji link:\n" . $link;
 
-        // Tekst verzija poruke
-        $textMessage = "Poštovani " . $_POST['username'] . "!\nZa dovršetak registracije kliknite na donji link:\n" . $link;
+            // HTML verzija poruke
+            $htmlMessage = '
+                <p>Poštovani ' . htmlspecialchars($_POST['username']) . ',</p>
+                <p>Za dovršetak registracije kliknite na donji link:</p>
+                <p><a href="' . htmlspecialchars($link) . '" target="_blank">Potvrdi registraciju</a></p>
+                <p>Lijep pozdrav,<br>Splanner</p>
+            ';
 
-        // HTML verzija poruke
-        $htmlMessage = '
-            <p>Poštovani ' . htmlspecialchars($_POST['username']) . ',</p>
-            <p>Za dovršetak registracije kliknite na donji link:</p>
-            <p><a href="' . htmlspecialchars($link) . '" target="_blank">Potvrdi registraciju</a></p>
-            <p>Lijep pozdrav,<br>Splanner</p>
-        ';
+            require_once __DIR__ . '/../app/MailService.php';
 
-        require_once __DIR__ . '/../app/MailService.php';
+            try {
+                $isOK = MailService::posaljiMail($to, $subject, $textMessage, $htmlMessage);
+            } catch (Exception $e) {
+                exit('Greška kod slanja maila: ' . $e->getMessage());
+            }
 
-        try {
-            $isOK = MailService::posaljiMail($to, $subject, $textMessage, $htmlMessage);
-        } catch (Exception $e) {
-            exit('Greška kod slanja maila: ' . $e->getMessage());
+            if (!$isOK) {
+                exit('Greška: ne mogu poslati mail.');
+            }
+
+            $this->registry->template->show('login_slanje');
         }
-
-        if (!$isOK) {
-            exit('Greška: ne mogu poslati mail.');
-        }
-
-        $this->registry->template->show('login_slanje');
     }
 
     public function slanje()
@@ -110,7 +126,7 @@ class LoginController extends BaseController
 
     public function potvrda()
     {
-        $this->registry->template->title = 'Potvrđena registracija';
+        $this->registry->template->title = 'Uspješna registracija';
         $ss = new SplannerService();
 
         $reg_seq = $_GET['reg_seq'];
@@ -127,4 +143,6 @@ class LoginController extends BaseController
         exit();
     }
 }
+
+
 ?>
