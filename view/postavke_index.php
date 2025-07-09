@@ -156,7 +156,7 @@ $ukupnoDjeca = 0;
                 <ul class="kosarica-lista">
                 <?php foreach ($grupe as $g): ?>
                     <li>
-                        <a class="naziv-grupe" href="<?php echo __SITE_URL; ?>/index.php?rt=raspored/grupa&id=<?php echo $g['id_grupe']; ?>">
+                        <a class="naziv-grupe" href="<?php echo __SITE_URL; ?>/index.php?rt=aktivnosti/grupa&id=<?php echo $g['id_grupe']; ?>">
                             <?php echo htmlspecialchars($g['aktivnost_ime']); ?> – <?php echo htmlspecialchars($g['ime']); ?>
                         </a>
                         <span class="cijena"><?php echo $g['cijena']; ?> €</span>
