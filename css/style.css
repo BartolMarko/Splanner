@@ -1,0 +1,486 @@
+:root {
+  --color-darkest: #01013f;      /* najtamnija */
+  --color-dark: #100263;         /* tamna */
+  --color-main: #0605df;         /* glavna */
+  --color-light: #dbdbfd;        /* svijetla */
+  --color-lightest: #f0f0fa;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  background-color: var(--color-light);
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+}
+
+
+/* FIXED NAVIGATION */
+nav {
+  width: 200px;
+  min-height: 100vh;
+  background-color: var(--color-dark);
+  padding-top: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+nav ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+nav ul li {
+  margin-bottom: 10px;
+}
+
+nav ul li a {
+  display: block;
+  font-size: 15px;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 8px;
+  border: 2px solid var(--color-dark);
+  background-color: var(--color-dark);
+  color: var(--color-light);
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+nav ul li a:hover {
+  background-color: var(--color-light);
+  color: var(--color-dark);
+}
+
+body:not(.with-nav) {
+  background-image: url('pozadina.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+}
+
+/* MAIN CONTENT */
+body.with-nav main {
+  margin-left: 200px;
+  padding: 40px;
+  max-width: calc(100% - 200px);
+}
+
+body:not(.with-nav) main {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 700px; /* širina forme */
+}
+
+
+body.with-nav main {
+  margin-left: 200px;
+  max-width: calc(100% - 200px);
+}
+
+body:not(.with-nav) main {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 700px; /* širina forme */
+}
+
+
+/* HEADINGS */
+
+body:not(.with-nav) h1 {
+  font-size: 70px;
+  font-weight: 600;
+  margin-top: 100px;
+  font-family: 'Poppins', sans-serif;
+  color: var(--color-dark);
+  text-align: center;
+  margin-bottom: -30px;
+  position: relative;
+  z-index: 2;
+
+  background-color: var(--color-light);
+  padding: 40px;
+  border-radius: 12px;
+}
+
+h1 {
+  font-size: 70px;
+  font-weight: 600;
+  margin-top: 50px;
+  margin-bottom: 50px; /* razmak ispod naslova */
+  font-family: 'Poppins', sans-serif;
+  color: var(--color-dark);
+}
+
+h2 {
+  font-size: 50px;
+  font-weight: 600;
+  margin-top: 30px;
+  margin-bottom: 50px; /* razmak ispod naslova */
+  font-family: 'Poppins', sans-serif;
+  color: var(--color-dark);
+}
+
+h3 {
+  font-size: 30px;
+  font-weight: 600;
+  margin-top: 30px;
+  margin-bottom: 50px; /* razmak ispod naslova */
+  font-family: 'Poppins', sans-serif;
+  color: var(--color-dark);
+}
+
+/* FORMS */
+.login-form {
+  width: 700px;
+  background-color: var(--color-light);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+
+  display: flex;
+  flex-direction: column;
+
+  padding-top: 60px; /* da ne preklopi sadržaj */
+  position: relative;
+  z-index: 1;
+}
+
+.login-form label {
+  font-size: 16px;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  color: var(--color-dark);
+}
+
+.login-form input[type="text"],
+.login-form input[type="date"],
+.login-form input[type="password"] {
+  width: 100%;
+  height: 40px;
+  font-size: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid var(--color-dark);
+  margin: 10px 0;
+  box-sizing: border-box;
+}
+
+.login-form select {
+  width: 100%;
+  height: 40px;
+  font-size: 15px;
+  font-family: 'Poppins', sans-serif;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid var(--color-dark);
+  margin: 10px 0;
+  box-sizing: border-box;
+  background-color: white;
+  color: var(--color-darkest);
+}
+
+
+.login-form button {
+  width: 100%;
+  height: 40px;
+  font-size: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid var(--color-dark);
+  background-color: var(--color-dark);
+  color: var(--color-light);
+  cursor: pointer;
+  margin-top: 30px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.login-form button:hover {
+  background-color: var(--color-light);
+  color: var(--color-dark);
+}
+
+/* ERROR */
+.error {
+  color: red;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* LINKS */
+a {
+  color: var(--color-dark);
+  text-decoration: none;
+}
+
+/* TABLES */
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+td, th {
+  border: 1px solid #000;
+  padding: 5px;
+}
+
+td {
+  background-color: var(--color-light);
+}
+
+th {
+  background-color: var(--color-dark);
+  color: var(--color-light);
+}
+
+.button-link {
+  width: 100%;
+  display: inline-block;
+  font-size: 15px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 2px solid var(--color-dark);
+  background-color: var(--color-dark);
+  color: var(--color-light);
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.button-link:hover {
+  background-color: var(--color-light);
+  color: var(--color-dark);
+}
+
+.centered-text {
+  text-align: center;
+  margin-top: 20px;
+}
+
+/*OBAVIJESTI*/
+.obavijest {
+  background-color: var(--color-lightest);
+  border-left: 4px solid var(--color-main);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--color-darkest);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.obavijest:hover {
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.obavijest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.obavijest-naziv {
+  font-weight: bold;
+  color: var(--color-dark);
+  font-size: 1.1rem;
+}
+
+.obavijest-vrijeme {
+  font-size: 0.9rem;
+  color: var(--color-dark);
+  opacity: 0.75;
+}
+
+.obavijest-tekst {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.delete-btn {
+  background-color: transparent;
+  border: none;
+  color: var(--color-dark);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  margin-left: 1rem;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.delete-btn:hover {
+  background-color: var(--color-light);
+  color: var(--color-main);
+  transform: scale(1.1);
+}
+
+/*CHECKBOX OBAVIJESTI*/
+#filter-container {
+  padding: 0.5rem 0;
+  margin-bottom: 2rem;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  color: var(--color-darkest);
+}
+
+#filter-container p {
+  font-weight: bold;
+  font-size: 1.05rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-dark);
+}
+
+.korisnik-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.4rem 0;
+  cursor: pointer;
+  user-select: none;
+  font-size: 1rem;
+}
+
+/* Sakriveni checkbox */
+.korisnik-switch input[type="checkbox"] {
+  display: none;
+}
+
+/* Prekidač (switch stil) */
+.switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background-color: var(--color-dark);
+  border-radius: 999px;
+  transition: background-color 0.3s ease;
+}
+
+/* Kuglica unutar prekidača */
+.switch::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+/* Kad je checkbox uključen */
+.korisnik-switch input[type="checkbox"]:checked + .switch {
+  background-color: var(--color-main);
+}
+
+.korisnik-switch input[type="checkbox"]:checked + .switch::before {
+  transform: translateX(20px);
+}
+
+/* Tekst korisničkog imena */
+.korisnik-switch .username {
+  color: var(--color-darkest);
+}
+
+
+/*AKTIVNOST + GRUPA*/
+/* Gumb za prikaz detalja */
+#btnDetalji {
+  background-color: var(--color-main);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 1rem;
+}
+
+#btnDetalji:hover {
+  background-color: var(--color-dark);
+  transform: scale(1.03);
+}
+
+/* Kontejner s dodatnim informacijama */
+#dodatniDetaljiGrupa,  #dodatniDetaljiAktivnost{
+  background-color: var(--color-light);
+  padding: 1.2rem 1.6rem;
+  border-left: 6px solid var(--color-main);
+  border-radius: 1rem;
+  margin-top: 1em;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Naslov */
+#dodatniDetaljiGrupa h3 {
+  color: var(--color-darkest);
+  margin-bottom: 0.6rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* Lista informacija */
+#dodatniDetaljiGrupa ul, #dodatniDetaljiAktivnost ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+#dodatniDetaljiGrupa li, #dodatniDetaljiAktivnost li {
+  padding: 0.3rem 0;
+  color: var(--color-darkest);
+  font-size: 1rem;
+}
+
+/* Fade animacija */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.forma-obavijest {
+  margin-top: 2em;
+  padding: 1.5em;
+  background-color: var(--color-light);
+  border-left: 4px solid var(--color-main);
+  border-radius: 1rem;
+}
+
+.forma-obavijest textarea {
+  width: 100%;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  border: 1px solid var(--color-dark);
+  font-family: inherit;
+}
+
+.forma-obavijest button {
+  margin-top: 1em;
+  background-color: var(--color-main);
+  color: white;
+  border: none;
+  padding: 0.6em 1.2em;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.forma-obavijest button:hover {
+  background-color: var(--color-dark);
+}
+
+
