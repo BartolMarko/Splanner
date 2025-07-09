@@ -447,6 +447,23 @@ function displayMonthActivities(activities) {
             activity.width = width / $rasporedContainer.width() * 100;
             displayActivity(activity);
         }
+        if (activitiesOnDate.length > maxActivities) {
+            const $moreDiv = $('<div>')
+                .addClass('more-activities')
+                .css({
+                    position: 'absolute',
+                    top: (top + maxActivities * MONTH_ACTIVITY_HEIGHT) / $rasporedContainer.height() * 100 + '%',
+                    height: MONTH_ACTIVITY_HEIGHT / $rasporedContainer.height() * 100 + '%',
+                    left: left / $rasporedContainer.width() * 100 + '%',
+                    width: "auto",
+                })
+                .text(`+${activitiesOnDate.length - maxActivities}`)
+                .on('click', function(){
+                    dayToDisplay.setDate(dateObj.getDate());
+                    $dayButton.click();
+                });
+            $activitiesContainer.append($moreDiv);
+        }
     }
 }
 

@@ -117,3 +117,19 @@ button:hover {
 .today {
     background-color: lightblue;
 }
+
+.more-activities {
+    background-color: var(--color-main);
+    border-color: var(--color-dark);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.more-activities:hover {
+    background-color: var(--color-light);
+    color: black;
+}
+/* TODO: Urediti stil za more activities */
