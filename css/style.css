@@ -375,6 +375,64 @@ th {
   color: var(--color-dark);
 }
 
+.kosarica-content {
+    background-color: var(--color-light);
+    border: 2px solid var(--color-main);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.kosarica-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+}
+
+.kosarica-lista li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-light);
+}
+
+.kosarica-lista li:last-child {
+    border-bottom: none;
+}
+
+.naziv-grupe {
+    flex: 1;
+}
+
+.cijena {
+    font-weight: bold;
+    margin-left: 1rem;
+}
+
+.detalji-link {
+    margin-left: 1rem;
+    font-size: 0.9rem;
+    color: var(--color-main);
+    text-decoration: underline;
+}
+
+.detalji-link:hover {
+    color: var(--color-dark);
+}
+
+.prazno {
+    font-style: italic;
+    color: #555;
+}
+
+.ukupno-iznos {
+    margin-top: 1rem;
+}
+
+.ukupno-iznos p, .ukupno-iznos h3 {
+    margin: 0.3rem 0;
+}
 
 
 
