@@ -49,10 +49,6 @@ th.hours-column, td.hours-column {
     font-size: 1em;
 }
 
-.today {
-    background-color: lightblue;
-}
-
 input[type="checkbox"] {
     display: none;
 }
@@ -64,10 +60,7 @@ label.checkbox-button {
     transition: all 0.2s ease;
     user-select: none;
     margin-right: 2px;
-    
     border: 2px solid;
-    /* color: #007bff;
-    background-color: white; */
 }
 
 .flex-row {
@@ -113,4 +106,14 @@ button {
 button:hover {
     background-color: var(--color-light);
     color: black;
+}
+
+.month-row > td {
+    height: 10rem;
+    vertical-align: bottom;
+    text-align: right;
+}
+
+.today {
+    background-color: lightblue;
 }

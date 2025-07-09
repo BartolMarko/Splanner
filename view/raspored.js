@@ -1,5 +1,6 @@
 const DEFAULT_MIN_HOUR = 7;
 const DEFAULT_MAX_HOUR = 22;
+const MONTH_ACTIVITY_HEIGHT = 30; // in px
 
 const DANI = ['Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota', 'Nedjelja'];
 const DANI_SKR = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
@@ -55,6 +56,10 @@ function main() {
     $leftButton.on('click', decreaseReference);
     $rightButton.on('click', increaseReference);
     $todayButton.on('click', resetReference);
+    $(window).on('resize', function() {
+        displayActivities(filteredActivities);
+    });
+
     $DEFAULT_BUTTON.addClass('active');
     fetchUserInfo();
 }
@@ -123,7 +128,6 @@ function addCheckBox(id, name, hidden=false) {
 
     $filterCheckboxes.append($checkbox);
     $filterCheckboxes.append($label);
-    // $filterCheckboxes.append('<br>');
 }
 
 function filterActivities() {
@@ -159,9 +163,9 @@ function displayCompleteSchedule() {
     $rasporedContainer.empty();
 
     if ($dayButton.hasClass('active'))
-        displayScheduleGrid(DEFAULT_MAX_HOUR - DEFAULT_MIN_HOUR + 1, 1, true);
+        displayScheduleGrid(DEFAULT_MAX_HOUR - DEFAULT_MIN_HOUR + 1, 2, true);
     else if ($weekButton.hasClass('active'))
-        displayScheduleGrid(DEFAULT_MAX_HOUR - DEFAULT_MIN_HOUR + 1, 7, true);
+        displayScheduleGrid(DEFAULT_MAX_HOUR - DEFAULT_MIN_HOUR + 1, 8, true);
     else if ($monthButton.hasClass('active'))
         displayScheduleGrid(5, 7, false);
 
@@ -173,10 +177,13 @@ function displayScheduleGrid(rows, columns, displayHours) {
     const $thead = $('<thead>');
     const $trHead = $('<tr>');
 
-    if (displayHours)
+    let headerColumns = columns;
+    if (displayHours) {
         $trHead.append($('<th>').addClass('hours-column').text('Sat'));
+        headerColumns = columns - 1;
+    }
 
-    for (let i = 0; i < columns; i++) {
+    for (let i = 0; i < headerColumns; i++) {
         $th = $('<th>').attr('id', `day-${i}`).text(DANI[i])
         if (displayHours) {
             $th.append($('<br>'));
@@ -184,24 +191,45 @@ function displayScheduleGrid(rows, columns, displayHours) {
         }
         $trHead.append($th);
     }
+
     $thead.append($trHead);
     $table.append($thead);
 
     const $tbody = $('<tbody>');
     for (let row = 0; row < rows; row++) {
-        const $tr = $('<tr>');
-        if (displayHours) {
-            $tr.attr('id', `time-${DEFAULT_MIN_HOUR + row}`);
-            const hour = DEFAULT_MIN_HOUR + row;
-            const timeStr = `${getTwoDigitNumber(hour)}:00 - ${getTwoDigitNumber(hour + 1)}:00`;
-            $tr.append($('<td>').addClass('hours-column').text(timeStr));
-        }
-        for (let col = 0; col < columns; col++)
-            $tr.append($('<td>'));
+        const $tr = getNewRow(columns, row);
         $tbody.append($tr);
     }
+    
     $table.append($tbody);
     $rasporedContainer.append($table);
+
+    if (displayHours)
+        setRowTimes(DEFAULT_MIN_HOUR, DEFAULT_MAX_HOUR);
+}
+
+function getNewRow(columns, rowIndex) {
+    const $tr = $('<tr>');
+    for (let col = 0; col < columns; col++)
+        $tr.append($('<td>').addClass(`row-${rowIndex} col-${col}`));
+    return $tr;
+}
+
+function setRowTimes(minHour, maxHour) {
+    const rows = $rasporedContainer.find('tr');
+    if (rows.length - 1 !== (maxHour - minHour + 1)) {
+        console.error(`Broj redova u rasporedu (${rows.length}) ne odgovara broju sati (${maxHour - minHour + 1}).`);
+        return;
+    }
+    for (let i = 1; i < rows.length; i++)
+        $(rows[i]).find('td').eq(0).removeAttr('id');
+    
+    for (let i = 1; i < rows.length; i++) {
+        const hour = minHour + i - 1;
+        const timeStr = `${getTwoDigitNumber(hour)}:00 - ${getTwoDigitNumber(hour + 1)}:00`;
+        $(rows[i]).attr('id', `time-${hour}`);
+        $(rows[i]).find('td').eq(0).text(timeStr).addClass('hours-column');
+    }
 }
 
 function fetchActivitiesAndDisplay() {
@@ -230,8 +258,10 @@ function fetchActivitiesAndDisplay() {
         dataType: 'json',
         success: function(activities) {
             latestActivitiesFetched = activities;
+            const concatenatedActivities = concatActivities(activities);
+            parseActivityDates(concatenatedActivities);
             filterActivities();
-            adjustGrid(activities);
+            adjustGrid(concatenatedActivities);
             displayActivities(filteredActivities);
         },
         error: function() {
@@ -241,15 +271,22 @@ function fetchActivitiesAndDisplay() {
 }
 
 function adjustGrid(activities) {
-    if ($dayButton.hasClass('active'))
-        adjustDayGrid(DEFAULT_MIN_HOUR, DEFAULT_MAX_HOUR);
-    else if ($weekButton.hasClass('active'))
-        adjustWeekGrid(DEFAULT_MIN_HOUR, DEFAULT_MAX_HOUR);
+    if ($dayButton.hasClass('active')) {
+        const { minHour, maxHour } = getMinMaxHours(activities);
+        adjustDayGrid(minHour, maxHour);
+    }
+    else if ($weekButton.hasClass('active')) {
+        const { minHour, maxHour } = getMinMaxHours(activities);
+        adjustWeekGrid(minHour, maxHour);
+    }
     else if ($monthButton.hasClass('active'))
         adjustMonthGrid();
 }
 
 function adjustDayGrid(min_hour, max_hour) {
+    adjustNumberofRows(max_hour - min_hour + 1, 2);
+    setRowTimes(min_hour, max_hour);
+
     const dateStr = getDateString(dayToDisplay);
     $rasporedTitle.text(dateStr);
 
@@ -262,6 +299,9 @@ function adjustDayGrid(min_hour, max_hour) {
 }
 
 function adjustWeekGrid(min_hour, max_hour) {
+    adjustNumberofRows(max_hour - min_hour + 1, 2);
+    setRowTimes(min_hour, max_hour);
+
     const start = new Date(weekReferenceMonday);
     const end = new Date(weekReferenceMonday);
     end.setDate(start.getDate() + 6);
@@ -296,7 +336,51 @@ function adjustWeekGrid(min_hour, max_hour) {
 function adjustMonthGrid() {
     const monthName = MJESECI[monthToDisplay.month];
     const year = monthToDisplay.year;
-    $rasporedTitle.text(`${monthName} ${year}`);
+    $rasporedTitle.text(`${monthName} ${year}.`);
+
+    const monthDays = new Date(monthToDisplay.year, monthToDisplay.month + 1, 0).getDate();
+    let row = 0;
+    let col = getDayOfWeekIndex(getFirstDayOfMonth(monthToDisplay.year, monthToDisplay.month));
+    const desiredRows = Math.ceil((monthDays + col) / 7);
+    adjustNumberofRows(desiredRows, 7);
+
+    $rasporedContainer.find('td').empty()
+    $rasporedContainer.find('tbody tr').addClass('month-row');
+    $rasporedContainer.find('.today').removeClass('today');
+
+    const today = new Date();
+    for (let i = 1; i <= monthDays; i++) {
+        const $td = $rasporedContainer.find(`td.row-${row}.col-${col}`);
+        $td.text(i);
+        $td.addClass(`month-day-${i}`);
+        if (
+            i === today.getDate() &&
+            monthToDisplay.month === today.getMonth() &&
+            monthToDisplay.year === today.getFullYear()
+        ) {
+            $td.addClass('today');
+        }
+
+        col = (col + 1) % 7;
+        if (col === 0)
+            row++;
+    }
+}
+
+function adjustNumberofRows(newRows, columns) {
+    const $tbody = $rasporedContainer.find('tbody');
+    let currentNumRows = $tbody.find('tr').length;
+    if (newRows === currentNumRows)
+        return;
+    while (newRows < currentNumRows) {
+        $tbody.find('tr:last').remove();
+        currentNumRows--;
+    }
+    while (newRows > currentNumRows) {
+        const $tr = getNewRow(columns, currentNumRows);
+        $tbody.append($tr);
+        currentNumRows++;
+    }
 }
 
 function displayActivities(activities) {
@@ -306,6 +390,8 @@ function displayActivities(activities) {
         displayDayActivities(activities);
     else if ($weekButton.hasClass('active'))
         displayWeekActivities(activities);
+    else if ($monthButton.hasClass('active'))
+        displayMonthActivities(activities);
 }
 
 function displayDayActivities(activities) {
@@ -323,6 +409,41 @@ function displayWeekActivities(activities) {
         calculateWeekActivityXPosition(activity);
         calculateWeekActivityYPosition(activity);
         displayActivity(activity);
+    }
+}
+
+function displayMonthActivities(activities) {
+    activities.sort((a, b) => {
+        return a.datePoc - b.datePoc;
+    });
+    const activitiesByDate = {};
+    for (const activity of activities) {
+        if (!activitiesByDate[activity.datum])
+            activitiesByDate[activity.datum] = [];
+        activitiesByDate[activity.datum].push(activity);
+    }
+    for (const [date, activitiesOnDate] of Object.entries(activitiesByDate)) {
+        const dateObj = new Date(date);
+        const dayIndex = getDayOfWeekIndex(dateObj);
+        const $td = $rasporedContainer.find(`td.month-day-${dateObj.getDate()}`);
+        if ($td.length === 0) {
+            console.warn(`Nema ćelije za datum ${date}`);
+            continue;
+        }
+
+        const top = $td.offset().top - $rasporedContainer.offset().top;
+        const height = $td.innerHeight(), width = $td.outerWidth();
+        const left = $td.offset().left - $rasporedContainer.offset().left;
+        const maxActivities = Math.floor(height / MONTH_ACTIVITY_HEIGHT) - 1;
+
+        for (let i = 0; i < Math.min(activitiesOnDate.length, maxActivities); i++) {
+            const activity = activitiesOnDate[i];
+            activity.top = (top + i * MONTH_ACTIVITY_HEIGHT) / $rasporedContainer.height() * 100;
+            activity.height = MONTH_ACTIVITY_HEIGHT / $rasporedContainer.height() * 100;
+            activity.left = left / $rasporedContainer.width() * 100;
+            activity.width = width / $rasporedContainer.width() * 100;
+            displayActivity(activity);
+        }
     }
 }
 
@@ -384,47 +505,6 @@ function displayActivity(activity) {
             <span class="activity-dvorana">${activity.dvorana}</span>
         `);
     $activitiesContainer.append($activityDiv);
-}
-
-function displayMonthGrid() {
-    const $table = $('<table>').addClass('raspored-table');
-    const $thead = $('<thead>');
-    const $trHead = $('<tr>');
-
-    for (let i = 0; i < DANI.length; i++) {
-        const day = DANI[i];
-        $trHead.append($('<th>').text(day));
-    }
-    $thead.append($trHead);
-    $table.append($thead);
-
-    const monthDays = new Date(monthToDisplay.year, monthToDisplay.month + 1, 0).getDate();
-    const firstDayOfMonth = new Date(monthToDisplay.year, monthToDisplay.month, 1).getDay();
-    
-    const $tbody = $('<tbody>');
-    let $tr = $('<tr>');
-    
-    for (let i = 1; i < firstDayOfMonth; i++) {
-        $tr.append($('<td>'));
-    }
-
-    for (let day = 1; day <= monthDays; day++) {
-        if ($tr.children().length === DANI.length) {
-            $tbody.append($tr);
-            $tr = $('<tr>');
-        }
-        const dateStr = `${getTwoDigitNumber(day)}.${getTwoDigitNumber(monthToDisplay.month + 1)}.${monthToDisplay.year}`;
-        $tr.append($('<td>').html(`<span class="date">${dateStr}</span>`));
-    }
-
-    while ($tr.children().length < DANI.length) {
-        $tr.append($('<td>'));
-    }
-    
-    $tbody.append($tr);
-    $table.append($tbody);
-    
-    $rasporedContainer.append($table);
 }
 
 function increaseReference() {
@@ -616,4 +696,25 @@ function getDarkerColor(color) {
 
 function getLighterColor(color) {
     return chroma(color).brighten(0.5).hex();
+}
+
+function getMinMaxHours(activities) {
+    let minHour = DEFAULT_MIN_HOUR, maxHour = DEFAULT_MAX_HOUR;
+    for (const activity of activities) {
+        const startHour = activity.datePoc.getHours();
+        let endHour = activity.dateKraj.getHours();
+        if (activity.dateKraj.getMinutes() > 0)
+            endHour += 1;
+        
+        minHour = Math.min(minHour, startHour);
+        maxHour = Math.max(maxHour, endHour);
+    }
+    return { minHour, maxHour };
+}
+
+function concatActivities(activities) {
+    let all = [];
+    for (const acts of Object.values(activities))
+        all = all.concat(acts);
+    return all;
 }
