@@ -314,6 +314,7 @@ class SplannerService
 	}
 
 
+	// --------- Raspored upiti
 	static function getDjecaKorisnika( $userId ) {
 		try
 		{
@@ -324,6 +325,24 @@ class SplannerService
 				WHERE fk_id_roditelja = :id_korisnika
 			" );
 			$st->execute( ['id_korisnika' => $userId] );
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		return $st->fetchAll();
+	}
+
+	public static function getGrupeTrenera( $userId )
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( "
+				SELECT g.id_grupe, g.ime
+				FROM " . self::GRUPE_TABLE . " g
+				INNER JOIN " . self::AKTIVNOSTI_TABLE . " a ON g.fk_id_aktivnosti = a.id_aktivnosti
+				WHERE a.fk_id_trenera = :id_trenera
+			" );
+			$st->execute( ['id_trenera' => $userId] );
 		}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 
@@ -350,6 +369,34 @@ class SplannerService
 			);
 			$st->execute([
 				'userId' => $userId,
+				'datumOd' => $datumOd,
+				'datumDo' => $datumDo
+			]);
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		return $st->fetchAll();
+	}
+
+	public static function getTerminiForGrupa($id_grupe, $datumOd, $datumDo)
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare(
+				'SELECT t.datum_novi as datum,
+					t.vrijeme_poc_novi AS vrijeme_poc,
+					t.vrijeme_kraj_novi as vrijeme_kraj,
+					t.dvorana, g.ime AS ime_grupe,
+					a.ime AS ime_aktivnosti
+				 FROM ' . self::AZURNI_TERMINI_TABLE . ' t
+				 INNER JOIN ' . self::GRUPE_TABLE . ' g ON t.id_grupe_fk = g.id_grupe
+				 INNER JOIN ' . self::AKTIVNOSTI_TABLE . ' a ON g.fk_id_aktivnosti = a.id_aktivnosti
+				 WHERE t.id_grupe_fk = :id_grupe
+				 	AND t.datum_novi BETWEEN :datumOd AND :datumDo'
+			);
+			$st->execute([
+				'id_grupe' => $id_grupe,
 				'datumOd' => $datumOd,
 				'datumDo' => $datumDo
 			]);

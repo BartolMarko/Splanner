@@ -88,6 +88,9 @@ function displayFilterCheckboxes() {
             addCheckBox(dijete.id_korisnici, dijete.username);
     } else if (userInfo.tip_korisnika === 'dijete') {
         addCheckBox(userInfo.id_korisnici, "Moje aktivnosti", true);
+    } else if (userInfo.tip_korisnika === 'trener') {
+        for (const grupa of userInfo.grupe)
+            addCheckBox(grupa.id_grupe, grupa.ime);
     }
 }
 

@@ -22,12 +22,20 @@ class RasporedController extends BaseController
 			echo json_encode(['error' => 'Unauthorized']);
 			exit(0);
 		}
-		$djeca = SplannerService::getDjecaKorisnika($_SESSION["id_user"]);
+		$djeca = [];
+		$grupe = [];
+		
+		if ($_SESSION["tip_korisnika"] == 'roditelj')
+			$djeca = SplannerService::getDjecaKorisnika($_SESSION["id_user"]);
+		else if ($_SESSION["tip_korisnika"] == 'trener')
+			$grupe = SplannerService::getGrupeTrenera($_SESSION["id_user"]);
+		
 		$userInfo = [
 			'id_korisnici' => $_SESSION["id_user"],
 			'username' => $_SESSION["username"],
 			'tip_korisnika' => $_SESSION["tip_korisnika"],
-			'djeca' => $djeca
+			'djeca' => $djeca,
+			'grupe' => $grupe,
 		];
 		header('Content-Type: application/json');
 		echo json_encode($userInfo);
@@ -44,11 +52,23 @@ class RasporedController extends BaseController
 			exit(0);
 		}
 		$activitiesById = [];
-		$activitiesById[$_SESSION["id_user"]] = SplannerService::getTerminiForUser(
-			$_SESSION["id_user"],
-			$datumOd,
-			$datumDo
-		);
+		if ($_SESSION["tip_korisnika"] == 'dijete' || $_SESSION["tip_korisnika"] == 'roditelj') {
+			$activitiesById[$_SESSION["id_user"]] = SplannerService::getTerminiForUser(
+				$_SESSION["id_user"],
+				$datumOd,
+				$datumDo
+			);
+		} else if ($_SESSION["tip_korisnika"] == 'trener') {
+			$grupe = SplannerService::getGrupeTrenera($_SESSION["id_user"]);
+			foreach ($grupe as $grupa) {
+				$activitiesById[$grupa['id_grupe']] = SplannerService::getTerminiForGrupa(
+					$grupa['id_grupe'],
+					$datumOd,
+					$datumDo
+				);
+			}
+		}
+		
 		if ($_SESSION["tip_korisnika"] == 'roditelj') {
 			$djeca = SplannerService::getDjecaKorisnika($_SESSION["id_user"]);
 			foreach ($djeca as $dijete) {
