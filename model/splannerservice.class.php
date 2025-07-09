@@ -33,23 +33,23 @@ class SplannerService
 		}
 	}
 
-	// dohvaca id korisnika s nekim imenom
-    // function getUserIdByName( $username )
-	// {
-	// 	try
-	// 	{
-	// 		$db = DB::getConnection();
-	// 		$st = $db->prepare( 'SELECT id_korisnici FROM ' . self::USERS_TABLE . ' WHERE username=:username' );
-	// 		$st->execute( ['username' => $username] );
-	// 	}
-	// 	catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+	// dohvaca ime korisnika s nekim id-om
+    function getImeKorisnikaFormId( $id )
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( 'SELECT username FROM ' . self::USERS_TABLE . ' WHERE id_korisnici=:id' );
+			$st->execute( ['id' => $id] );
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 
-	// 	$row = $st->fetch();
-	// 	if( $row === false )
-	// 		return null;
-	// 	else
-	// 		return $row['id_korisnici'];
-	// }
+		$row = $st->fetch();
+		if( $row === false )
+			return null;
+		else
+			return $row['username'];
+	}
 
 	// dohvaca ime korisnika 
 	public function getImenaKorisnika($ids)
@@ -137,7 +137,7 @@ class SplannerService
 	}
 
 	//dohvaćanje svih obavijesti
-	public function getAllObavijesti()
+	function getAllObavijesti()
 	{
 		$povezani = $this->dohvatiPovezaneKorisnike($_SESSION['id_user']);
 		if (empty($povezani)) return [];
@@ -172,7 +172,7 @@ class SplannerService
 		return $arr;
 	}
 
-	public function getObavijestiZaGrupe($grupe)
+	function getObavijestiZaGrupe($grupe)
 	{
 		if (empty($grupe)) return [];
 		try {
@@ -185,6 +185,33 @@ class SplannerService
 		} catch (PDOException $e) {
 			exit('PDO error ' . $e->getMessage());
 		}
+		$arr = [];
+		while ($row = $st->fetch()) {
+			$arr[] = new Obavijest(
+				$row['id_obavijest'],
+				$row['id_grupe_fk'],
+				$this->getGrupaImeById($row['id_grupe_fk']),
+				$this->getAktivnostImeByIdGrupa($row['id_grupe_fk']),
+				$row['datum'],
+				$row['vrijeme'],
+				$row['comment']
+			);
+		}
+		return $arr;
+	}
+
+	function getObavijestiZaGrupuFromId($id)
+	{
+		try {
+			$db = DB::getConnection();
+			$st = $db->prepare(
+				'SELECT * FROM ' . self::OBAVIJESTI_TABLE . ' WHERE id_grupe_fk=:id'
+			);
+			$st->execute(array('id' => $id));
+		} catch (PDOException $e) {
+			exit('PDO error ' . $e->getMessage());
+		}
+
 		$arr = [];
 		while ($row = $st->fetch()) {
 			$arr[] = new Obavijest(
@@ -218,6 +245,21 @@ class SplannerService
 			return $row['ime'];
 	}
 
+	//dohvaćanje cijelog reda grupe iz id_grupa
+	function getGrupaById( $id )
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( 'SELECT * FROM ' . self::GRUPE_TABLE . ' WHERE id_grupe=:id' );
+			$st->execute( ['id' => $id] );
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		$row = $st->fetch();
+		return $row ?: null;
+	}
+
 	//dohvaćanje imena aktivnosti iz id_grupa (za ispis na koju aktivnost se obavijest odnosi)
 	function getAktivnostImeByIdGrupa( $id )
 	{
@@ -238,6 +280,36 @@ class SplannerService
 			return null;
 		else
 			return $row['ime_aktivnosti'];
+	}
+
+	// dohvaćanje cijelog reda aktivnosti na temelju id_grupa
+	function getAktivnostByIdGrupa($id)
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare('
+				SELECT a.*
+				FROM ' . self::GRUPE_TABLE . ' g
+				JOIN ' . self::AKTIVNOSTI_TABLE . ' a ON g.fk_id_aktivnosti = a.id_aktivnosti
+				WHERE g.id_grupe = :id
+			');
+			$st->execute(['id' => $id]);
+		}
+		catch(PDOException $e) {
+			exit('PDO error ' . $e->getMessage());
+		}
+
+		$row = $st->fetch();
+		return $row ?: null;
+	}
+
+	public function obrisiObavijest($id_obavijesti)
+	{
+		$db = DB::getConnection();
+
+		$st = $db->prepare('DELETE FROM splanner_obavijesti WHERE id_obavijest = :id');
+		$st->execute(['id' => $id_obavijesti]);
 	}
 
 	//ako je id dijeteta, funkcija vraća samo njegov id, a ako je id roditelja, onda se vraćaju idijevi njega i svi idijevi njegove djece
@@ -309,6 +381,50 @@ class SplannerService
 		return $rezultat;
 	}
 
+	public function dodajObavijest($id_grupe, $comment)
+	{
+		try {
+			$db = DB::getConnection();
+
+			$st = $db->prepare(
+				'INSERT INTO ' . self::OBAVIJESTI_TABLE . ' (id_grupe_fk, datum, vrijeme, comment) 
+				VALUES (:id_grupe, CURRENT_DATE, CURRENT_TIME, :comment)'
+			);
+
+			$st->execute([
+				'id_grupe' => $id_grupe,
+				'comment' => $comment
+			]);
+		} catch (PDOException $e) {
+			exit('PDO error: ' . $e->getMessage());
+		}
+	}
+
+	function dohvatiEmailoveZaGrupu($id_grupe)
+	{
+		$db = DB::getConnection();
+
+		try {
+			$st = $db->prepare(
+				'SELECT k.email
+				FROM splanner_korisnici k
+				JOIN splanner_pripadnost p ON k.id_korisnici = p.id_korisnik_fk
+				WHERE p.id_grupe_fk = :id_grupe AND k.prima_obavijest = TRUE'
+			);
+
+			$st->execute(['id_grupe' => $id_grupe]);
+
+			$rezultat = [];
+			while ($row = $st->fetch()) {
+				$rezultat[] = $row['email'];
+			}
+
+			return $rezultat;
+		}
+		catch (PDOException $e) {
+			exit("Greška kod dohvaćanja emailova: " . $e->getMessage());
+		}
+	}
 	
 	//------- Jelena = postavke ----------------------------
 	// Provjera postoji li korisnicko ime

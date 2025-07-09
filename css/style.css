@@ -124,7 +124,16 @@ h1 {
 h2 {
   font-size: 50px;
   font-weight: 600;
-  margin-top: 10px;
+  margin-top: 30px;
+  margin-bottom: 50px; /* razmak ispod naslova */
+  font-family: 'Poppins', sans-serif;
+  color: var(--color-dark);
+}
+
+h3 {
+  font-size: 30px;
+  font-weight: 600;
+  margin-top: 30px;
   margin-bottom: 50px; /* razmak ispod naslova */
   font-family: 'Poppins', sans-serif;
   color: var(--color-dark);
@@ -300,6 +309,24 @@ th {
   line-height: 1.5;
 }
 
+.delete-btn {
+  background-color: transparent;
+  border: none;
+  color: var(--color-dark);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  margin-left: 1rem;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.delete-btn:hover {
+  background-color: var(--color-light);
+  color: var(--color-main);
+  transform: scale(1.1);
+}
+
 /*CHECKBOX OBAVIJESTI*/
 #filter-container {
   padding: 0.5rem 0;
@@ -365,6 +392,95 @@ th {
 /* Tekst korisničkog imena */
 .korisnik-switch .username {
   color: var(--color-darkest);
+}
+
+
+/*AKTIVNOST + GRUPA*/
+/* Gumb za prikaz detalja */
+#btnDetalji {
+  background-color: var(--color-main);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 1rem;
+}
+
+#btnDetalji:hover {
+  background-color: var(--color-dark);
+  transform: scale(1.03);
+}
+
+/* Kontejner s dodatnim informacijama */
+#dodatniDetaljiGrupa,  #dodatniDetaljiAktivnost{
+  background-color: var(--color-light);
+  padding: 1.2rem 1.6rem;
+  border-left: 6px solid var(--color-main);
+  border-radius: 1rem;
+  margin-top: 1em;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Naslov */
+#dodatniDetaljiGrupa h3 {
+  color: var(--color-darkest);
+  margin-bottom: 0.6rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* Lista informacija */
+#dodatniDetaljiGrupa ul, #dodatniDetaljiAktivnost ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+#dodatniDetaljiGrupa li, #dodatniDetaljiAktivnost li {
+  padding: 0.3rem 0;
+  color: var(--color-darkest);
+  font-size: 1rem;
+}
+
+/* Fade animacija */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.forma-obavijest {
+  margin-top: 2em;
+  padding: 1.5em;
+  background-color: var(--color-light);
+  border-left: 4px solid var(--color-main);
+  border-radius: 1rem;
+}
+
+.forma-obavijest textarea {
+  width: 100%;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  border: 1px solid var(--color-dark);
+  font-family: inherit;
+}
+
+.forma-obavijest button {
+  margin-top: 1em;
+  background-color: var(--color-main);
+  color: white;
+  border: none;
+  padding: 0.6em 1.2em;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.forma-obavijest button:hover {
+  background-color: var(--color-dark);
 }
 
 

@@ -1,6 +1,7 @@
 
 <?php require_once __SITE_PATH . '/view/_header.php'; ?>
 
+<?php if ($_SESSION['tip_korisnika'] === 'roditelj'): ?>
 <div id="filter-container">
     <p>Filtriraj obavijesti po korisniku:</p>
     <?php foreach ($imenaKorisnika as $id => $username): ?>
@@ -11,6 +12,7 @@
         </label>
     <?php endforeach; ?>
 </div>
+<?php endif; ?>
 
 <div id="obavijesti-container">
     <?php require __SITE_PATH . '/view/obavijesti_filter.php'; ?>
