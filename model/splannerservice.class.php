@@ -476,8 +476,170 @@ class SplannerService
 		]);
 	}
 
+	//brisanje racuna
+	public function obrisiKorisnika($id_user)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
+		$st->execute(['id' => $id_user]);
+	}
 
-	
+	//za dodavanje novog clana
+	public function dohvatiEmailKorisnika($id_user)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('SELECT email FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
+		$st->execute(['id' => $id_user]);
+
+		return $st->fetchColumn();
+	}
+
+	public function dodajDijete($id_roditelja, $username, $oib, $email, $password, $spol, $datum)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare(
+			'INSERT INTO ' . self::USERS_TABLE . '
+			(OIB, username, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, has_registered, fk_id_roditelja)
+			VALUES
+			(:oib, :username, :hash, :email, "dijete", :spol, :datum, "", 1, :id_roditelja)'
+		);
+
+		$st->execute([
+			'oib' => $oib,
+			'username' => $username,
+			'hash' => password_hash($password, PASSWORD_DEFAULT),
+			'email' => $email,
+			'spol' => $spol,
+			'datum' => $datum,
+			'id_roditelja' => $id_roditelja
+		]);
+	}
+
+
+	public function dohvatiDjecu($id_roditelja)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('SELECT id_korisnici, username FROM ' . self::USERS_TABLE . ' WHERE fk_id_roditelja = :id');
+		$st->execute(['id' => $id_roditelja]);
+		$rezultat = $st->fetchAll();
+    	return $rezultat;
+	}
+
+	public function provjeriDijeteId($id_roditelja, $id_djeteta)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('SELECT COUNT(*) FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id AND fk_id_roditelja = :roditelj');
+		$st->execute(['id' => $id_djeteta, 'roditelj' => $id_roditelja]);
+		return $st->fetchColumn() > 0;
+	}
+
+	public function obrisiDijeteId($id_roditelja, $id_djeteta)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id AND fk_id_roditelja = :roditelj');
+		$st->execute(['id' => $id_djeteta, 'roditelj' => $id_roditelja]);
+	}
+
+	public function postaviPrimaObavijesti($id_user, $prima)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET prima_obavijest = :p WHERE id_korisnici = :id');
+		$st->execute([
+			'p' => $prima ? 1 : 0,
+			'id' => $id_user
+		]);
+	}
+
+	// dohvat trenutnog stanja
+	public function dohvatiPrimaObavijesti($id_user)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('SELECT prima_obavijest FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
+		$st->execute(['id' => $id_user]);
+		return $st->fetchColumn();
+	}
+
+	// Dohvati grupe u koje je korisnik upisan
+	public function dohvatiGrupeZaKorisnika($id_korisnik)
+	{	
+		$db = DB::getConnection();
+		$st = $db->prepare(
+			'SELECT g.id_grupe, g.ime, g.cijena, a.ime AS aktivnost_ime
+			FROM splanner_grupe g
+			JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
+			JOIN splanner_pripadnost p ON p.id_grupe_fk = g.id_grupe
+			WHERE p.id_korisnik_fk = :id'
+		);
+		$st->execute(['id' => $id_korisnik]);
+
+		return $st->fetchAll();
+	}
+
+	public function dohvatiRoditeljaOdDjeteta($id_djeteta)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('
+			SELECT r.username, r.email, r.prima_obavijest
+			FROM ' . self::USERS_TABLE . ' d
+			JOIN ' . self::USERS_TABLE . ' r ON d.fk_id_roditelja = r.id_korisnici
+			WHERE d.id_korisnici = :id
+		');
+		$st->execute(['id' => $id_djeteta]);
+
+		return $st->fetch(PDO::FETCH_ASSOC);
+	}
+
+		public function dohvatiUkupnuZaraduTrenera($id_trenera)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('
+			SELECT SUM(g.cijena) as ukupno
+			FROM ' . self::GRUPE_TABLE . ' g
+			JOIN ' . self::AKTIVNOSTI_TABLE . ' a ON g.fk_id_aktivnosti = a.id_aktivnosti
+			WHERE a.fk_id_trenera = :id
+		');
+		$st->execute(['id' => $id_trenera]);
+		return $st->fetchColumn() ?: 0;
+	}
+
+	public function dohvatiZaraduPoGrupamaTrenera($id_trenera)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('
+			SELECT 
+				g.ime AS ime_grupe,
+				g.id_grupe,   
+				g.cijena,
+				COUNT(p.id_korisnik_fk) AS broj_polaznika
+			FROM ' . self::GRUPE_TABLE . ' g
+			JOIN ' . self::AKTIVNOSTI_TABLE . ' a ON g.fk_id_aktivnosti = a.id_aktivnosti
+			LEFT JOIN ' . self::PRIPADNOST_TABLE . ' p ON p.id_grupe_fk = g.id_grupe
+			WHERE a.fk_id_trenera = :id
+			GROUP BY g.id_grupe, g.ime, g.cijena
+			HAVING broj_polaznika > 0
+		');
+		$st->execute(['id' => $id_trenera]);
+		return $st->fetchAll();
+	}
+
+
+	public function promijeniEmail($id_user, $noviEmail)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET email = :email WHERE id_korisnici = :id');
+		$st->execute([
+			'email' => $noviEmail,
+			'id' => $id_user
+		]);
+	}
+
+	public function emailExists($email)
+	{
+		$db = DB::getConnection();
+		$st = $db->prepare('SELECT COUNT(*) FROM ' . self::USERS_TABLE . ' WHERE email = :email');
+		$st->execute(['email' => $email]);
+		return $st->fetchColumn() > 0;
+	}
 }
 
 ?>
