@@ -890,7 +890,7 @@ class SplannerService
 		{
 			$db = DB::getConnection();
 			$st = $db->prepare( 
-				'DELETE FROM veza_je_u WHERE id_grupe_fk = :idg AND id_korisnik_fk = :idk'
+				'DELETE FROM ' . self::PRIPADNOST_TABLE . ' WHERE id_grupe_fk = :idg AND id_korisnik_fk = :idk'
 			);
 			$st->execute( array( 'idg' => $idAkt, 'idk'=>$userKojiIspisujem) );
 		}
@@ -935,7 +935,7 @@ class SplannerService
 			$st->execute( array( 'id' => $id) );
 			while($row=$st->fetch()){
 				$st2 = $db->prepare( 
-					'DELETE FROM veza_je_u WHERE id_grupe_fk = :id'
+					'DELETE FROM ' . self::PRIPADNOST_TABLE . ' WHERE id_grupe_fk = :id'
 				);
 				$st2->execute( array( 'id' => $row['id_grupe']) );
 				
@@ -1250,7 +1250,7 @@ class SplannerService
 				$st = $db->prepare( 
 					'SELECT DISTINCT g.*
 					FROM splanner_grupe g
-					JOIN veza_je_u v ON g.id_grupe = v.id_grupe_fk
+					JOIN ' . self::PRIPADNOST_TABLE .' v ON g.id_grupe = v.id_grupe_fk
 					JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
 					WHERE v.id_korisnik_fk = :id'
 				); // vrati sve grupe korisnika
@@ -1277,7 +1277,7 @@ class SplannerService
 				'SELECT DISTINCT a.*
 			 FROM splanner_aktivnosti a
 			 JOIN splanner_grupe g ON a.id_aktivnosti = g.fk_id_aktivnosti
-			 JOIN veza_je_u v ON g.id_grupe = v.id_grupe_fk
+			 JOIN ' . self::PRIPADNOST_TABLE .  ' v ON g.id_grupe = v.id_grupe_fk
 			 WHERE v.id_korisnik_fk = :id'
 			 ); //vratim sve aktivnosti u koje je upisana osoba, gledajuci u koje grupe je upisana i onda za koju aktivnost je ta grupa
 			$st->execute( array( 'id' => $idUser ) );
