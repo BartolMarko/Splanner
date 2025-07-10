@@ -35,12 +35,12 @@ class SplannerService
 	}
 
 	// dohvaca ime korisnika s nekim id-om
-    function getImeKorisnikaFormId( $id )
+    function getImePrezimeKorisnikaFormId( $id )
 	{
 		try
 		{
 			$db = DB::getConnection();
-			$st = $db->prepare( 'SELECT username FROM ' . self::USERS_TABLE . ' WHERE id_korisnici=:id' );
+			$st = $db->prepare( 'SELECT ime, prezime FROM ' . self::USERS_TABLE . ' WHERE id_korisnici=:id' );
 			$st->execute( ['id' => $id] );
 		}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
@@ -49,23 +49,27 @@ class SplannerService
 		if( $row === false )
 			return null;
 		else
-			return $row['username'];
+			return $row['ime'] . ' ' . $row['prezime'];
 	}
 
 	// dohvaca ime korisnika 
-	public function getImenaKorisnika($ids)
+	public function getImenaKorisnika($ids, $imePrezime = false)
 	{
 		if (empty($ids)) return [];
 	
 		try {
 			$db = DB::getConnection();
 			$placeholders = implode(',', array_fill(0, count($ids), '?'));
-			$st = $db->prepare('SELECT id_korisnici, username FROM ' . self::USERS_TABLE . ' WHERE id_korisnici IN (' . $placeholders . ')');
+			$st = $db->prepare('SELECT id_korisnici, username, ime, prezime FROM ' . self::USERS_TABLE . ' WHERE id_korisnici IN (' . $placeholders . ')');
 			$st->execute($ids);
 			
 			$rezultat = [];
 			while ($row = $st->fetch()) {
-				$rezultat[$row['id_korisnici']] = $row['username'];
+				if ($imePrezime) {
+					$rezultat[$row['id_korisnici']] = $row['ime'] . ' ' . $row['prezime'];
+				} else {
+					$rezultat[$row['id_korisnici']] = $row['username'];
+				}
 			}
 			return $rezultat;
 		}

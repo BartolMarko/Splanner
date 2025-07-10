@@ -114,7 +114,7 @@ class AktivnostiController extends BaseController
 		$this->registry->template->aktivnost_detalji = $aktivnost_detalji;
 
 		$this->registry->template->obavijestiList = $ss->getObavijestiZaGrupuFromId($id_grupe);
-		$this->registry->template->ime_trenera = $ss->getImeKorisnikaFormId($aktivnost_detalji['fk_id_trenera']);
+		$this->registry->template->ime_trenera = $ss->getImePrezimeKorisnikaFormId($aktivnost_detalji['fk_id_trenera']);
 
 		$povezaniKorisnici = $ss->dohvatiPovezaneKorisnike($_SESSION['id_user']);
 		$this->registry->template->povezaniKorisnici = $povezaniKorisnici;
@@ -138,12 +138,12 @@ class AktivnostiController extends BaseController
 
 		$this->registry->template->clanoviZaUpisId = $clanoviKojeMozesUpisati;
 		$clanoviZaUpis = $ss->getImenaKorisnika($clanoviKojeMozesUpisati);
-		 $this->registry->template->clanoviZaUpis = $clanoviZaUpis;
+		$this->registry->template->clanoviZaUpis = $clanoviZaUpis;
 		//$clanoviZaUpis su svi tvoji povezani korisnici koji još nisu u grupi i zadovoljavaju uvjete.
 
 		//ČLANOVI GRUPE ZA TRENERA
 		$clanoviGrupe = $ss->dohvatiIdeveClanovaGrupe($id_grupe);
-		$this->registry->template->imenaClanovaGrupe = $ss->getImenaKorisnika($clanoviGrupe);
+		$this->registry->template->imenaClanovaGrupe = $ss->getImenaKorisnika($clanoviGrupe, true);
 
 
 
