@@ -119,14 +119,16 @@ class SplannerService
 	}
 
 	// dodavanje novog korisnika / trenera u bazu prilikom registracije
-	function addNewUser($username, $password, $email, $oib, $uloga, $spol, $datum, $registration_sequence){
+	function addNewUser($username, $ime, $prezime, $password, $email, $oib, $uloga, $spol, $datum, $registration_sequence){
 		try
 		{
 			$db = DB::getConnection();
-			$st = $db->prepare( 'INSERT INTO ' . self::USERS_TABLE . '(OIB, username, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, prima_obavijest, has_registered) VALUES ' .
-								'(:OIB, :username, :password_hash, :email, :tip_korisnika, :spol, :datum_rodenja, :registration_sequence, True, 0)' );
+			$st = $db->prepare( 'INSERT INTO ' . self::USERS_TABLE . '(OIB, username, ime, prezime, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, prima_obavijest, has_registered) VALUES ' .
+								'(:OIB, :username, :ime, :prezime, :password_hash, :email, :tip_korisnika, :spol, :datum_rodenja, :registration_sequence, True, 0)' );
 			$st->execute( array('OIB' => $oib,
-								'username' => $username, 
+								'username' => $username,
+								'ime' => $ime,
+								'prezime' => $prezime,
 								'password_hash' => password_hash( $password, PASSWORD_DEFAULT ), 
 								'email' => $email, 
 								'tip_korisnika' => $uloga, 

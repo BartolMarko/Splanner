@@ -50,7 +50,8 @@ class LoginController extends BaseController
         $ss = new SplannerService();
 
         if (!isset( $_POST['username'] ) || !isset( $_POST['password'] ) || !isset( $_POST['password_again'] ) || !isset( $_POST['email']) 
-            || !isset( $_POST['oib']) || !isset( $_POST['uloga']) || !isset( $_POST['spol'] ) || !isset( $_POST['datum'] )){
+            || !isset( $_POST['oib']) || !isset( $_POST['uloga']) || !isset( $_POST['spol'] ) || !isset( $_POST['datum'] )
+            || !isset( $_POST['ime'] ) || !isset( $_POST['prezime'] )) {
             $this->registry->template->show('login_registracija');
             return;
         }
@@ -82,7 +83,10 @@ class LoginController extends BaseController
                     $reg_seq .= chr(rand(0, 25) + ord('a'));
             } while ($ss->checkRegSeq($reg_seq));
 
-            $ss->addNewUser($_POST['username'], $_POST['password'], $_POST['email'], $_POST['oib'], $_POST['uloga'], $_POST['spol'], $_POST['datum'], $reg_seq);
+            $ss->addNewUser(
+                $_POST['username'], $_POST['ime'], $_POST['prezime'], $_POST['password'], $_POST['email'],
+                $_POST['oib'], $_POST['uloga'], $_POST['spol'], $_POST['datum'], $reg_seq
+            );
 
             $to = $_POST['email'];
             $subject = '=?UTF-8?B?' . base64_encode('Registracijski mail') . '?=';
