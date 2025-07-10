@@ -36,7 +36,7 @@ class MojeAktivnostiController extends BaseController
 			$this->registry->template->aktivnosti = $aktivnosti;
 			$this->registry->template->tip = 'dijete';
 		}
-			$this->registry->template->show( 'aktivnosti_index' );
+			$this->registry->template->show( 'mojeaktivnosti_index' );
 	}
 }
 
