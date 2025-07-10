@@ -9,6 +9,29 @@ class AktivnostiController extends BaseController
         $this->registry->template->show( 'aktivnosti_index' );
 	}
 
+	function zadovoljava($user, $grupa_detalji) {
+		if ($user['spol'] !== $grupa_detalji['spol'] && $grupa_detalji['spol'] !== 'mješovito')
+			return false;
+	
+		if (empty($user['datum_rodenja']))
+			return false;
+	
+		$datum_rodjenja = new DateTime($user['datum_rodenja']);
+		$danas = new DateTime();
+	
+		$razlika = $danas->diff($datum_rodjenja);
+		$godine = $razlika->y;
+	
+		if ($grupa_detalji['uzrast_od'] !== NULL && $godine < $grupa_detalji['uzrast_od'])
+			return false;
+	
+		if ($grupa_detalji['uzrast_do'] !== NULL && $godine > $grupa_detalji['uzrast_do'])
+			return false;
+	
+		return true;
+	}
+	
+
 	public function grupa() {
 
         if (!isset($_GET['id'])) {
@@ -16,11 +39,13 @@ class AktivnostiController extends BaseController
             return;
         }
 
+		$id_grupe = $_GET['id'];
+		$ss = new SplannerService();
+
 		// BRISANJE OBAVIJESTI
 		if (isset($_POST['id_obavijesti'])) {
 			$id_obavijesti = intval($_POST['id_obavijesti']);
 	
-			$ss = new SplannerService();
 			$ss->obrisiObavijest($id_obavijesti);
 		}
 	
@@ -29,7 +54,6 @@ class AktivnostiController extends BaseController
 			$id_grupe = intval($_POST['id_grupe']);
 			$comment = trim($_POST['comment']);
 
-			$ss = new SplannerService();
 			$ss->dodajObavijest($id_grupe, $comment);
 
 			$lista_mailova_korisnika = $ss->dohvatiEmailoveZaGrupu($id_grupe);
@@ -64,20 +88,55 @@ class AktivnostiController extends BaseController
 
 		}
 
-        $id_grupe = $_GET['id'];
-
-        $ss = new SplannerService();
+		//UPIS ČLANA
+		if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_clana_upis'])) {
+			$id_clana = $_POST['id_clana_upis'];
+			$ss->dodajKorisnikaUGrupu((int)$id_clana, (int)$id_grupe);
+		}
+		
+        //ISPIS ČLANA
+		if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_clana_ispis'])) {
+			$id_clana = $_POST['id_clana_ispis'];
+			$ss->obrisiKorisnikaIzGrupe((int)$id_clana, (int)$id_grupe);
+		}
 
 		$aktivnost_detalji = $ss->getAktivnostByIdGrupa($id_grupe);
 		$grupa_detalji = $ss->getGrupaById($id_grupe);
         
-		$this->registry->template->title = $aktivnost_detalji['ime'];
+		$this->registry->template->title = 'Detalji o aktivnosti i grupi';
+		$this->registry->template->title2 = $aktivnost_detalji['ime'];
 		$this->registry->template->subtitle = $grupa_detalji['ime'];
 		$this->registry->template->grupa_detalji = $grupa_detalji;
 		$this->registry->template->aktivnost_detalji = $aktivnost_detalji;
 
 		$this->registry->template->obavijestiList = $ss->getObavijestiZaGrupuFromId($id_grupe);
 		$this->registry->template->ime_trenera = $ss->getImeKorisnikaFormId($aktivnost_detalji['fk_id_trenera']);
+
+		$povezaniKorisnici = $ss->dohvatiPovezaneKorisnike($_SESSION['id_user']);
+		$this->registry->template->povezaniKorisnici = $povezaniKorisnici;
+
+		$povezaniUGrupi = $ss->getClanoviGrupeIzListeKorisnika($id_grupe, $povezaniKorisnici);
+
+		$imenaPovezanihUGrupi = $ss->getImenaKorisnika($povezaniUGrupi);
+		$this->registry->template->imenaPovezanihUGrupi = $imenaPovezanihUGrupi;
+
+		$povezaniZaUpis = array_diff($povezaniKorisnici, $povezaniUGrupi);
+		
+		$clanoviKojeMozesUpisati = [];
+
+		foreach ($povezaniZaUpis as $id) {
+			$user = $ss->getKorisnikaFromId($id);
+		
+			if ($this->zadovoljava($user, $grupa_detalji))
+				$clanoviKojeMozesUpisati[] = $id;
+		}
+
+		$this->registry->template->clanoviZaUpisId = $clanoviKojeMozesUpisati;
+		$this->registry->template->clanoviZaUpis = $ss->getImenaKorisnika($clanoviKojeMozesUpisati);
+
+		//ČLANOVI GRUPE ZA TRENERA
+		$clanoviGrupe = $ss->dohvatiIdeveClanovaGrupe($id_grupe);
+		$this->registry->template->imenaClanovaGrupe = $ss->getImenaKorisnika($clanoviGrupe);
 
         $this->registry->template->show( 'aktivnosti_grupa' );
     }

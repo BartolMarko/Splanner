@@ -29,7 +29,7 @@ class SplannerService
 		else if (!password_verify($password, $row['password_hash'])) {
 			return 0; 
 		} else {
-			return $row;  // <---- ode je promjena! umjesto 1 vracamo cijeli red da poslije mogu dohvatiti tip korisnika
+			return $row;
 		}
 	}
 
@@ -424,6 +424,101 @@ class SplannerService
 		catch (PDOException $e) {
 			exit("Greška kod dohvaćanja emailova: " . $e->getMessage());
 		}
+	}
+
+	public function getClanoviGrupeIzListeKorisnika($id_grupe, $ids)
+	{
+		if (empty($ids)) return [];
+
+		try {
+			$db = DB::getConnection();
+			$placeholders = implode(',', array_fill(0, count($ids), '?'));
+			// Priprema upita s IN klauzulom
+			$sql = 'SELECT id_korisnik_fk 
+					FROM splanner_pripadnost 
+					WHERE id_grupe_fk = ? 
+					AND id_korisnik_fk IN (' . $placeholders . ')';
+
+			$st = $db->prepare($sql);
+			$st->execute(array_merge([$id_grupe], $ids));
+
+			$rezultat = [];
+			while ($row = $st->fetch()) {
+				$rezultat[] = $row['id_korisnik_fk'];
+			}
+			return $rezultat;
+		}
+		catch (PDOException $e) {
+			exit('PDO error ' . $e->getMessage());
+		}
+	}
+
+	public function dodajKorisnikaUGrupu($id_korisnik, $id_grupa)
+	{
+		try {
+			$db = DB::getConnection();
+			$st = $db->prepare('INSERT INTO splanner_pripadnost (id_grupe_fk, id_korisnik_fk) VALUES (:id_grupe, :id_korisnik)');
+			$st->execute(['id_grupe' => $id_grupa, 'id_korisnik' => $id_korisnik]);
+		} 
+		catch (PDOException $e) {
+			exit('PDO error: ' . $e->getMessage());
+		}
+	}
+
+	public function obrisiKorisnikaIzGrupe($id_korisnik, $id_grupa)
+	{
+		try {
+			$db = DB::getConnection();
+			$st = $db->prepare('
+				DELETE FROM splanner_pripadnost
+				WHERE id_grupe_fk = :id_grupe AND id_korisnik_fk = :id_korisnik
+			');
+			$st->execute(['id_grupe' => $id_grupa, 'id_korisnik' => $id_korisnik]);
+		} 
+		catch (PDOException $e) {
+			exit('PDO error: ' . $e->getMessage());
+		}
+	}
+
+	public function dohvatiIdeveClanovaGrupe($id_grupa)
+	{
+		try {
+			$db = DB::getConnection();
+			$st = $db->prepare('
+				SELECT id_korisnik_fk 
+				FROM splanner_pripadnost 
+				WHERE id_grupe_fk = :id_grupa
+			');
+			$st->execute(['id_grupa' => $id_grupa]);
+
+			$rezultat = [];
+			while ($row = $st->fetch()) {
+				$rezultat[] = $row['id_korisnik_fk'];
+			}
+
+			return $rezultat;
+		} 
+		catch (PDOException $e) {
+			exit('PDO error: ' . $e->getMessage());
+		}
+	}
+
+	// dohvaca ime korisnika s nekim id-om
+    function getKorisnikaFromId( $id )
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( 'SELECT * FROM ' . self::USERS_TABLE . ' WHERE id_korisnici=:id' );
+			$st->execute( ['id' => $id] );
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		$row = $st->fetch();
+		if( $row === false )
+			return null;
+		else
+			return $row;
 	}
 	
 	//------- Jelena = postavke ----------------------------

@@ -125,7 +125,7 @@ h2 {
   font-size: 50px;
   font-weight: 600;
   margin-top: 30px;
-  margin-bottom: 50px; /* razmak ispod naslova */
+  margin-bottom: 25px; /* razmak ispod naslova */
   font-family: 'Poppins', sans-serif;
   color: var(--color-dark);
 }
@@ -134,7 +134,7 @@ h3 {
   font-size: 30px;
   font-weight: 600;
   margin-top: 30px;
-  margin-bottom: 50px; /* razmak ispod naslova */
+  margin-bottom: 25px; /* razmak ispod naslova */
   font-family: 'Poppins', sans-serif;
   color: var(--color-dark);
 }
