@@ -28,6 +28,7 @@ class MailService
             $mail->addAddress($to);
 
             $mail->isHTML(true);
+            $mail->CharSet = 'UTF-8'; //promjena!!
             $mail->Subject = $subject;
             $mail->Body = $htmlBody;
             $mail->AltBody = $plainBody;

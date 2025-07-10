@@ -684,19 +684,6 @@ class SplannerService
 		return $st->fetch(PDO::FETCH_ASSOC);
 	}
 
-		public function dohvatiUkupnuZaraduTrenera($id_trenera)
-	{
-		$db = DB::getConnection();
-		$st = $db->prepare('
-			SELECT SUM(g.cijena) as ukupno
-			FROM ' . self::GRUPE_TABLE . ' g
-			JOIN ' . self::AKTIVNOSTI_TABLE . ' a ON g.fk_id_aktivnosti = a.id_aktivnosti
-			WHERE a.fk_id_trenera = :id
-		');
-		$st->execute(['id' => $id_trenera]);
-		return $st->fetchColumn() ?: 0;
-	}
-
 	public function dohvatiZaraduPoGrupamaTrenera($id_trenera)
 	{
 		$db = DB::getConnection();

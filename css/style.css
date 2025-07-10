@@ -32,9 +32,13 @@ nav {
 }
 
 nav ul {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centriraj sve stavke */
+  height: 100%;
   list-style-type: none;
-  padding: 0;
 }
+
 
 nav ul li {
   margin-bottom: 10px;
@@ -615,6 +619,33 @@ th {
 
 .ukupno-iznos p, .ukupno-iznos h3 {
     margin: 0.3rem 0;
+}
+
+/*------------*/
+
+.odabir_spola{
+  width: 100%;
+  height: 40px;
+  font-size: 15px;
+  font-family: 'Poppins', sans-serif;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid var(--color-dark);
+  margin: 10px 0;
+  box-sizing: border-box;
+  background-color: white;
+  color: var(--color-darkest);
+}
+
+.datum_rodjenja {
+  width: 100%;
+  height: 40px;
+  font-size: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid var(--color-dark);
+  margin: 10px 0;
+  box-sizing: border-box;
 }
 
 

@@ -66,14 +66,14 @@
         <input type="text" name="oib" required><br><br>
 
         <label>Spol:</label><br>
-        <select name="spol" required>
-            <option value="">Odaberite spol</option>
-            <option value="muško">Muški</option>
-            <option value="žensko">Ženski</option>
+        <select name="spol" class="odabir_spola" required>
+            <option value="">-- Odaberi --</option>
+            <option value="muško">Muško</option>
+            <option value="žensko">Žensko</option>
         </select><br><br>
 
         <label>Datum rođenja:</label><br>
-        <input type="date" name="datum" required><br><br>
+        <input type="date" name="datum" class="datum_rodjenja" required><br><br>
 
         <label>Lozinka:</label><br>
         <input type="password" name="password" required><br><br>
@@ -184,9 +184,9 @@ $ukupnoDjeca = 0;
 
 
 <?php if ($_SESSION['tip_korisnika'] === 'trener'): ?>
-    <h3 class="toggle-header">Ukupna zarada</h3>
+    <h3 class="toggle-header">Zarada</h3>
     <div class="toggle-content">
-        <p>Vaša ukupna zarada iz svih grupa je:</p>
+        <p>Vaša mjesečna zarada iz svih grupa je:</p>
         <h2 style="color:green;"><?php echo number_format($ukupna_zarada, 2); ?> €</h2>
         <?php if (!empty($zaradaGrupe)): ?>
             <table style="width:100%; border-collapse: collapse; margin-top:15px;">

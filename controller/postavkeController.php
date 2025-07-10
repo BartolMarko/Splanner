@@ -14,7 +14,7 @@ class PostavkeController extends BaseController
         $ss = new SplannerService();
         $lista_djece = [];
 
-                // Ako je roditelj, dohvaća djecu i status obavijesti
+        // Ako je roditelj, dohvaća djecu i status obavijesti
         if ($_SESSION['tip_korisnika'] === 'roditelj') {
             $lista_djece = $ss->dohvatiDjecu($_SESSION['id_user']);
             $this->registry->template->prima_obavijesti = $ss->dohvatiPrimaObavijesti($_SESSION['id_user']);
@@ -102,7 +102,7 @@ class PostavkeController extends BaseController
 
                 require_once __DIR__ . '/../app/MailService.php';
 
-                $subject = 'Obavijest o promjeni korisničkog imena';
+                $subject = '=?UTF-8?B?' . base64_encode('Obavijest o promjeni korisničkog imena') . '?=';
                 $textMessage = "Poštovani {$roditelj['username']},\n\nVaše dijete je promijenilo svoje korisničko ime.\n\nStaro korisničko ime: {$stariUsername}\nNovo korisničko ime: {$novoUsername}";
                 $htmlMessage = "
                     <p>Poštovani {$roditelj['username']},</p>
@@ -111,6 +111,7 @@ class PostavkeController extends BaseController
                     <p>Novo korisničko ime: <strong>{$novoUsername}</strong></p>
                     <p>Lijep pozdrav,<br>Splanner</p>
                 ";
+                $htmlMessage = mb_convert_encoding($htmlMessage, 'UTF-8', 'auto'); //moza ne treba??
                 try {
                     MailService::posaljiMail($emailRoditelja, $subject, $textMessage, $htmlMessage);
                 } catch (Exception $e) {

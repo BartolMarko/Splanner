@@ -92,20 +92,24 @@ class AktivnostiController extends BaseController
 		if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_clana_upis'])) {
 			$id_clana = $_POST['id_clana_upis'];
 			$ss->dodajKorisnikaUGrupu((int)$id_clana, (int)$id_grupe);
+			header('Location: ' . __SITE_URL . '/index.php?rt=aktivnosti/grupa&id=' . $id_grupe);
+			exit();
 		}
+
 		
         //ISPIS ČLANA
 		if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_clana_ispis'])) {
 			$id_clana = $_POST['id_clana_ispis'];
 			$ss->obrisiKorisnikaIzGrupe((int)$id_clana, (int)$id_grupe);
+			header('Location: ' . __SITE_URL . '/index.php?rt=aktivnosti/grupa&id=' . $id_grupe);
+			exit();
 		}
 
 		$aktivnost_detalji = $ss->getAktivnostByIdGrupa($id_grupe);
 		$grupa_detalji = $ss->getGrupaById($id_grupe);
         
-		$this->registry->template->title = 'Detalji o aktivnosti i grupi';
-		$this->registry->template->title2 = $aktivnost_detalji['ime'];
-		$this->registry->template->subtitle = $grupa_detalji['ime'];
+		$this->registry->template->title = $grupa_detalji['ime'];
+		$this->registry->template->naziv_aktivnosti = $aktivnost_detalji['ime'];
 		$this->registry->template->grupa_detalji = $grupa_detalji;
 		$this->registry->template->aktivnost_detalji = $aktivnost_detalji;
 
@@ -120,7 +124,8 @@ class AktivnostiController extends BaseController
 		$imenaPovezanihUGrupi = $ss->getImenaKorisnika($povezaniUGrupi);
 		$this->registry->template->imenaPovezanihUGrupi = $imenaPovezanihUGrupi;
 
-		$povezaniZaUpis = array_diff($povezaniKorisnici, $povezaniUGrupi);
+		$povezaniZaUpis = array_diff($povezaniKorisnici, $povezaniUGrupi); //koje potencijalno mozemo upisati
+		$this->registry->template->povezaniZaUpis = $povezaniZaUpis;
 		
 		$clanoviKojeMozesUpisati = [];
 
@@ -132,11 +137,17 @@ class AktivnostiController extends BaseController
 		}
 
 		$this->registry->template->clanoviZaUpisId = $clanoviKojeMozesUpisati;
-		$this->registry->template->clanoviZaUpis = $ss->getImenaKorisnika($clanoviKojeMozesUpisati);
+		$clanoviZaUpis = $ss->getImenaKorisnika($clanoviKojeMozesUpisati);
+		 $this->registry->template->clanoviZaUpis = $clanoviZaUpis;
+		//$clanoviZaUpis su svi tvoji povezani korisnici koji još nisu u grupi i zadovoljavaju uvjete.
 
 		//ČLANOVI GRUPE ZA TRENERA
 		$clanoviGrupe = $ss->dohvatiIdeveClanovaGrupe($id_grupe);
 		$this->registry->template->imenaClanovaGrupe = $ss->getImenaKorisnika($clanoviGrupe);
+
+
+
+
 
         $this->registry->template->show( 'aktivnosti_grupa' );
     }

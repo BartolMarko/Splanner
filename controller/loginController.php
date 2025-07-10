@@ -85,7 +85,7 @@ class LoginController extends BaseController
             $ss->addNewUser($_POST['username'], $_POST['password'], $_POST['email'], $_POST['oib'], $_POST['uloga'], $_POST['spol'], $_POST['datum'], $reg_seq);
 
             $to = $_POST['email'];
-            $subject = 'Registracijski mail';
+            $subject = '=?UTF-8?B?' . base64_encode('Registracijski mail') . '?=';
 
             // URL link
             $link = 'https://rp2.studenti.math.hr' . __SITE_URL . '/index.php';
@@ -101,6 +101,7 @@ class LoginController extends BaseController
                 <p><a href="' . htmlspecialchars($link) . '" target="_blank">Potvrdi registraciju</a></p>
                 <p>Lijep pozdrav,<br>Splanner</p>
             ';
+            $htmlMessage = mb_convert_encoding($htmlMessage, 'UTF-8', 'auto'); //mozda ne treba?
 
             require_once __DIR__ . '/../app/MailService.php';
 
