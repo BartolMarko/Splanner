@@ -43,7 +43,7 @@ function create_table_korisnici()
 
 	try
 	{
-		$st = $db->prepare( 
+		$st = $db->prepare(
 			'CREATE TABLE IF NOT EXISTS splanner_korisnici (' .
 			'id_korisnici INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
 			'OIB CHAR(11) NOT NULL  ,' .
@@ -152,7 +152,7 @@ function create_table_redovni_termini()
 
 	try
 	{
-		$st = $db->prepare( 
+		$st = $db->prepare(
 			'CREATE TABLE IF NOT EXISTS splanner_redovni_termini (' .
 			'id_redovni_termini INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
 			'id_grupe_fk INT NOT NULL ,' . 
@@ -178,7 +178,7 @@ function create_table_azurni_termini()
 
 	try
 	{
-		$st = $db->prepare( 
+		$st = $db->prepare(
 			'CREATE TABLE IF NOT EXISTS splanner_azurni_termini (' .
 			'id_azurni_termini INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
 			'fk_id_redovni_termini INT NOT NULL ,' .

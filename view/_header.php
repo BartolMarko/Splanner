@@ -5,7 +5,13 @@
 	<title>Splanner</title>
 	<link rel="stylesheet" href="<?php echo __SITE_URL;?>/css/style.css">
 	<link rel="icon" type="image/webp" href="<?= __SITE_URL ?>/css/sticker.webp">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.js"></script> 
+	<?php
+		if (isset($cssFile)) {
+			echo '<link rel="stylesheet" href="' . __SITE_URL . '/css/' . $cssFile . '">';
+		}
+	?>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.js"></script>
 </head>
 <body <?php if (isset($_SESSION['username'])) echo ' class="with-nav"'; ?>>
 
