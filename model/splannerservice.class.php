@@ -27,7 +27,7 @@ class SplannerService
 		else if ($row['has_registered'] === '0') {
 			return 2;
 		}
-		else if (!password_verify($password, $row['password_hash'])) {
+		else if (!password_verify($password, $row['password_hash']) || $row['username'] !== $username) {
 			return 0; 
 		} else {
 			return $row;
