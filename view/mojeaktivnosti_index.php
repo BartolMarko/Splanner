@@ -1,0 +1,608 @@
+<?php require_once __SITE_PATH . '/view/_header.php'; ?>
+
+<!-- <h2>Moje aktivnosti</h2> -->
+
+<?php if ($tip === 'roditelj'): ?>
+    <label for="dijete_select">Prikaži aktivnosti za:</label>
+    <select id="dijete_select">
+        <option value="<?= $_SESSION['id_user'] ?>">Sebe</option>
+        <?php foreach ($djeca as $d): ?>
+            <option value="<?= $d['id_korisnici'] ?>"><?= htmlspecialchars($d['username']) ?></option>
+        <?php endforeach; ?>
+    </select>
+<?php endif; ?>
+<?php if ($tip === 'trener'): ?>
+    <button id="nova-aktivnost-btn">&#x2795; Stvori novu aktivnost</button>
+<?php endif; ?>
+<div id="aktivnosti_container">
+    <?php $i=0;?>
+    <?php foreach ($aktivnosti as $a): ?>
+        <div class="aktivnost kosarica" data-aktivnost-id="<?php if($tip==='trener') echo $a['id_aktivnosti'];
+        else echo $a['id_grupe']; ?>">
+        <?php if ($tip === 'trener'): ?>
+            <h3><?= htmlspecialchars($a['ime']) ?></h3>
+            <p><?= htmlspecialchars($a['description']) ?></p>
+            <p>Grad: <?= htmlspecialchars($a['grad']) ?></p>
+            <button class="uredi-btn" data-id="<?= $a['id_aktivnosti'] ?>">Uredi aktivnost</button>
+            <button class="toggle-grupe-btn" data-id="<?= $a['id_aktivnosti'] ?>">➤ Prikaži grupe</button>
+            <button class="dodaj-grupu-btn" data-aktivnost-id="<?= $a['id_aktivnosti'] ?>">➕ Nova grupa</button>
+            <div class="grupe" id="grupe_<?= $a['id_aktivnosti'] ?>" style="display:none;">
+                <!-- tu cu grupe ucitati ajaxom i ispisati -->
+            </div>
+            <?php else: ?>
+                <h3><?php echo htmlspecialchars($detalji_akt[$i]['ime']) .': '. htmlspecialchars($a['ime']); ?></h3>
+                <p>Opis: <?= htmlspecialchars($detalji_akt[$i]['description']) ?></p>
+                <p>Grad: <?= htmlspecialchars($detalji_akt[$i]['grad']) ?></p>
+                <p>Cijena: <?= htmlspecialchars($a['cijena']) ?></p>
+                <p>Dob članova: <?= htmlspecialchars($a['uzrast_od']) ?> - <?= htmlspecialchars($a['uzrast_do']) ?></p>
+                <?php if ($tip === 'roditelj'): ?>
+                <button class="ispisi-btn" data-id="<?= $detalji_akt[$i]['id_aktivnosti'] ?>">Ispiši se</button>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+    <?php ++$i; ?>
+    <?php endforeach; ?>
+</div>
+
+<?php require_once __SITE_PATH . '/view/_footer.php'; ?>
+
+
+<!-- tu mi je javascript za sve -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    //TODO!!!!!: DODATI GUMB TRENERU ZA STVARANJE NOVE AKTIVNOSTI
+    // roditelj odabrao dijete (ili sebe)
+    $('#dijete_select').on('change', function() {
+        let dijeteId = $(this).val();
+        getAktivnostiDjeteta(dijeteId);
+    });
+
+    // trener zeli urediti aktivnost
+    $('.uredi-btn').on('click', function() {
+        let aktivnostId = $(this).data('id');
+        urediAktivnost(aktivnostId);
+    });
+
+    // trener zeli da prikazem (ili maknem prikaz) svih grupa za danu aktivnost
+    $('.toggle-grupe-btn').on('click', function() {
+        let aktivnostId = $(this).data('id');
+        toggleGrupe(aktivnostId);
+    });
+
+    // roditelj pritisnuo gummb za ispisati se
+    $('.ispisi-btn').on('click', function() {
+        let aktivnostId = $(this).data('id');
+        ispisiSe(aktivnostId);
+    });
+
+    $('#nova-aktivnost-btn').on('click', function () {
+    const formaHtml = `
+        <div class="aktivnost-form nova-aktivnost-form">
+            <input type="text" placeholder="Ime aktivnosti" class="ime" required>
+            <textarea placeholder="Opis" class="opis"></textarea>
+            <input type="text" placeholder="Grad" class="grad" required>
+            <button class="spremi-novu-btn">✅ Spremi</button>
+            <button class="odustani-btn">❌ Odustani</button>
+        </div>
+    `;
+    $('#aktivnosti_container').prepend(formaHtml);
+    });
+
+    $(document).on('click', '.odustani-btn', function () { //odustao
+    $(this).closest('.nova-aktivnost-form').remove();
+    });
+
+
+    $(document).on('click', '.odustani-btn-uredi', function () { //odustao
+    $(this).closest('.aktivnost-form').remove();
+    location.reload();
+    });
+
+    $(document).on('click', '.dodaj-grupu-btn', function () {
+    const aktivnostId = $(this).data('aktivnost-id');
+    const $grupeDiv = $('#grupe_' + aktivnostId);
+
+    const novaGrupaHtml = `
+        <div class="grupa nova-grupa-form">
+            <label>Ime grupe: <input type="text" class="ime-grupe" required></label><br>
+            <label>Spol grupe:
+            <select class="spol" name="spol" required>
+                <option value="oboje">Oboje</option>
+                <option value="žensko">Ženski</option>
+                <option value="muško">Muški</option>
+            </select>
+            </label><br>
+            <label>Minimalna dob: <input type="number" class="dob-min"></label><br>
+            <label>Maksimalna dob: <input type="number" class="dob-max"></label><br>
+            Cijena:<input type="number" class="cijena" step="0.01">
+            <button class="spremi-grupu-btn" data-aktivnost-id="${aktivnostId}">💾 Spremi</button>
+            <button class="odustani-grupa-btn">❌ Odustani</button>
+        </div>
+    `;
+
+    $grupeDiv.prepend(novaGrupaHtml).slideDown();
+    });
+
+
+    $(document).on('click', '.odustani-grupa-btn', function () {
+    $(this).closest('.nova-grupa-form').remove();
+});
+
+$(document).on('click', '.spremi-grupu-btn', function () {
+    const $form = $(this).closest('.nova-grupa-form');
+    const aktivnostId = $(this).data('aktivnost-id');
+    const imeGrupe = $form.find('.ime-grupe').val().trim();
+    const cijena = $form.find('.cijena').val().trim();
+    const dobMin= $form.find('.dob-min').val().trim();
+    const dobMax = $form.find('.dob-max').val().trim();
+    const spol = $form.find('.spol').val().trim();
+
+    if (!imeGrupe) {
+        alert("Ime grupe je obavezno.");
+        return;
+    }
+
+    $.ajax({
+        url: 'ajax/aktivnosti_ajax.php',
+        method: 'POST',
+        data: {
+            action: 'create_grupa',
+            aktivnost_id: aktivnostId,
+            ime: imeGrupe,
+            cijena: cijena,
+            dobMin: dobMin,
+            dobMax: dobMax,
+            spol:spol
+        },
+        success: function (response) {
+            if (response.success) {
+                alert("Grupa dodana.");
+                $form.remove();
+                toggleGrupe(aktivnostId); // osvježi grupe
+            } else {
+                alert("Greška: " + (response.error || "Nepoznata greška."));
+            }
+        },
+        error: function () {
+            alert("Greška pri dodavanju grupe.");
+        }
+    });
+});
+
+
+
+
+
+    $(document).on('click', '.spremi-novu-btn', function () { //trener sprema novu aktivnost
+        const $form = $(this).closest('.nova-aktivnost-form');
+
+        const ime = $form.find('.ime').val().trim();
+        const opis = $form.find('.opis').val().trim();
+        const grad = $form.find('.grad').val().trim();
+
+        if (!ime || !opis || !grad) {
+            alert("Sva polja su obavezna.");
+            return;
+        }
+
+        $.ajax({
+            url: 'ajax/aktivnosti_ajax.php',
+            method: 'POST',
+            data: {
+                action: 'create_aktivnost',
+                ime: ime,
+                description: opis,
+                grad: grad
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert("Aktivnost je uspješno dodana!");
+                    location.reload(); //ponovno ucitam stranicu
+                } else if (response.error) {
+                    alert("Greška: " + response.error);
+                }
+            },
+            error: function () {
+                alert("Došlo je do greške pri slanju zahtjeva.");
+            }
+        });
+    });
+
+    $(document).on('click', '.spremi-termin-btn', function () {
+    const $grupaDiv = $(this).closest('.grupa');
+    const datum = $grupaDiv.find('.datum').val();
+    const vrijemePoc = $grupaDiv.find('.vrijeme_poc').val();
+    const vrijemeKraj = $grupaDiv.find('.vrijeme_kraj').val();
+    const dvorana = $grupaDiv.find('.dvorana').val();
+    const komentar= $grupaDiv.find('.komentar').val();
+    const idGrupe = $grupaDiv.data('grupa-id');
+    const $terminDiv = $(this).closest('.termin');
+    const izvanredan = ($terminDiv.find('.izvanredan-check-term').is(':checked') ? ('izvanredan') : ('redovan'));
+    const idTerminRed=$terminDiv.attr('valuered');
+    const idTerminAzur=$terminDiv.attr('valueazur');
+    const aktivnostId = $grupaDiv.closest('.aktivnost').data('aktivnost-id');
+    if (!datum || !vrijemePoc || !vrijemeKraj || !dvorana) {
+    alert("Sva polja su obavezna.");
+    return;
+    }
+
+        $.ajax({
+            url: 'ajax/aktivnosti_ajax.php',
+            method: 'POST',
+            data: {
+                action: 'update_termin',
+                grupa_id: idGrupe,
+                datum: datum,
+                vrijeme_poc: vrijemePoc,
+                vrijeme_kraj: vrijemeKraj,
+                dvorana: dvorana,
+                comment: komentar,
+                tip_termina: izvanredan,
+                id_red: idTerminRed,
+                id_azur: idTerminAzur
+            },
+            success: function (response) {
+                if (response.success) {
+                    //$terminDiv.html(`<strong class="ime">${response.ime}</strong> - <span class="termin">${response.termin}</span> <button class="uredi-termin-btn">✏️ Uredi termin</button>`);
+                    toggleGrupe(aktivnostId);
+                } else {
+                    alert(response.error || "Greška.");
+                }
+            },
+            error: function () {
+                alert("Greška pri spremanju termina.");
+            }
+        });
+    });
+
+    $(document).on('click', '.spremi-novi-termin-btn', function () {
+    const $grupaDiv = $(this).closest('.grupa');
+    const datum = $grupaDiv.find('.datum').val();
+    const vrijemePoc = $grupaDiv.find('.vrijeme_poc').val();
+    const vrijemeKraj = $grupaDiv.find('.vrijeme_kraj').val();
+    const dvorana = $grupaDiv.find('.dvorana').val();
+    const izvanredan = ($grupaDiv.find('.izvanredan-check-grp').is(':checked') ? ('izvanredan') : ('redovan'));
+    const comment = $grupaDiv.find('.komentar').val() || '';
+    const idGrupe = $grupaDiv.data('grupa-id');
+    const idTrener = <?= json_encode($_SESSION['id_user']) ?>;
+
+    if (!datum || !vrijemePoc || !vrijemeKraj || !dvorana) {
+        alert("Sva polja su obavezna.");
+        return;
+    }
+
+    $.ajax({
+        url: 'ajax/aktivnosti_ajax.php',
+        method: 'POST',
+        data: {
+            action: 'create_termin',
+            tip_termina: izvanredan,
+            id_grupe: idGrupe,
+            id_trener: idTrener,
+            datum: datum,
+            vrijeme_poc: vrijemePoc,
+            vrijeme_kraj: vrijemeKraj,
+            dvorana: dvorana,
+            comment: comment
+        },
+        success: function (response) {
+            if (response.success) {
+                alert("Termin dodan.");
+                toggleGrupe($grupaDiv.closest('.aktivnost').data('aktivnost-id')); // osvježi prikaz
+            } else {
+                alert("Greška: " + (response.error || "Nepoznata greška."));
+            }
+        },
+        error: function () {
+            alert("Greška pri dodavanju termina.");
+        }
+    });
+});
+
+
+$(document).on('click', '.odustani-termin-btn-grp', function () {
+    const $grupaDiv = $(this).closest('.grupa');
+    const originalHtml = $grupaDiv.data('originalHtml');
+
+    if (originalHtml) {
+        $grupaDiv.html(originalHtml);
+        console.log('Restored original HTML');
+    } else {
+        console.warn('No original HTML found on .grupa');
+        console.log('Closest .grupa:', $grupaDiv[0]);
+        console.log('Current .grupa HTML:', $grupaDiv.html());
+    }
+});
+
+$(document).on('click', '.odustani-termin-btn-term', function () {
+    const $grupaDiv = $(this).closest('.termin');
+    const originalHtml = $grupaDiv.data('originalHtml');
+
+    if (originalHtml) {
+        $grupaDiv.html(originalHtml);
+        console.log('Restored original HTML');
+    } else {
+        console.warn('No original HTML found on .grupa');
+        console.log('Closest .grupa:', $grupaDiv[0]);
+        console.log('Current .grupa HTML:', $grupaDiv.html());
+    }
+});
+
+
+
+$(document).on('click', '.spremi-btn', function () { //trener sprema promjene na aktivnosti
+    const form = $(this).closest('.aktivnost-form');
+    const id = $(this).data('id');
+    const ime = form.find('.ime').val();
+    const opis = form.find('.opis').val();
+    const grad= form.find('.grad').val().trim();
+
+    if(grad==='' || ime==='' || opis===''){
+        alert('Unos u sva polja je obavezan.');
+        return;
+    }
+
+    $.ajax({
+        url: 'ajax/aktivnosti_ajax.php',
+        method: 'POST',
+        data: {
+            action: 'update_aktivnost',
+            id: id,
+            ime: ime,
+            description: opis,
+            grad:grad,
+        },
+        success: function () {
+            location.reload();
+        },
+        error: function () {
+            alert('Greška pri ažuriranju.');
+        }
+    });
+});
+
+$(document).on('click', '.izvanredan-check-term', function () {
+    const $label = $(this).closest('.termin').find('.datum-label');
+
+    const isChecked = $(this).is(':checked');
+
+    if (isChecked) {
+        // IZBORT DATUMA
+        $label.html('Datum: <input type="date" class="datum">');
+    } else {
+        // IZBOR DANA  U TJ
+        $label.html(`Dan u tjednu: 
+            <select class="datum">
+                <option value="Monday">Ponedjeljak</option>
+                <option value="Tuesday">Utorak</option>
+                <option value="Wednesday">Srijeda</option>
+                <option value="Thursday">Četvrtak</option>
+                <option value="Friday">Petak</option>
+                <option value="Saturday">Subota</option>
+                <option value="Sunday">Nedjelja</option>
+            </select>`);
+    }
+});
+
+
+$(document).on('click', '.izvanredan-check-grp', function () {
+    const $label = $(this).closest('.grupa').find('.datum-label');
+
+    const isChecked = $(this).is(':checked');
+
+    if (isChecked) {
+        // IZBOR DATUMA
+        $label.html('Datum: <input type="date" class="datum">');
+    } else {
+        // IZBOR DANA U TJ
+        $label.html(`Dan u tjednu: 
+            <select class="datum">
+                <option value="Monday">Ponedjeljak</option>
+                <option value="Tuesday">Utorak</option>
+                <option value="Wednesday">Srijeda</option>
+                <option value="Thursday">Četvrtak</option>
+                <option value="Friday">Petak</option>
+                <option value="Saturday">Subota</option>
+                <option value="Sunday">Nedjelja</option>
+            </select>`);
+    }
+});
+
+$(document).on('click', '.dodaj-termin-btn', function () {
+    const $termDiv = $(this).closest('.grupa');
+    if (!$termDiv.data('originalHtml')) {
+    $termDiv.data('originalHtml', $termDiv.html());
+    }
+    const formHtml = `
+    <label class="datum-label">Dan u tjednu: <select class="datum">
+                <option value="Monday">Ponedjeljak</option>
+                <option value="Tuesday">Utorak</option>
+                <option value="Wednesday">Srijeda</option>
+                <option value="Thursday">Četvrtak</option>
+                <option value="Friday">Petak</option>
+                <option value="Saturday">Subota</option>
+                <option value="Sunday">Nedjelja</option>
+            </select></label><br>
+    <label>Vrijeme početka: <input type="time" class="vrijeme_poc"></label><br>
+    <label>Trajanje (u min): <input type="time" class="vrijeme_kraj"></label><br>
+    <label>Dvorana: <input type="text" class="dvorana"></label><br>
+    <label>Komentar: <input type="text" class="komentar"></label><br>
+    <label><input type="checkbox" class="izvanredan-check-grp"> Izvanredan</label><br>
+    <button class="spremi-novi-termin-btn">💾 Spremi</button>
+    <button class="odustani-termin-btn-grp">❌ Odustani</button>
+`;
+
+    $ // spremam stari prikaz
+    $termDiv.html(formHtml);
+});
+
+
+$(document).on('click', '.uredi-termin-btn', function () {
+    const $grupaDiv = $(this).closest('.termin');
+    if (!$grupaDiv.data('originalHtml')) {
+    $grupaDiv.data('originalHtml', $grupaDiv.html()); // spremam stari prikaz
+    }
+    const formHtml = `
+    <label class="datum-label">Dan u tjednu: <select class="datum">
+                <option value="Monday">Ponedjeljak</option>
+                <option value="Tuesday">Utorak</option>
+                <option value="Wednesday">Srijeda</option>
+                <option value="Thursday">Četvrtak</option>
+                <option value="Friday">Petak</option>
+                <option value="Saturday">Subota</option>
+                <option value="Sunday">Nedjelja</option>
+            </select></label><br>
+    <label>Vrijeme početka: <input type="time" class="vrijeme_poc"></label><br>
+    <label>Trajanje (u min): <input type="time" class="vrijeme_kraj"></label><br>
+    <label>Dvorana: <input type="text" class="dvorana"></label><br>
+    <label>Komentar: <input type="text" class="komentar"></label><br>
+    <label><input type="checkbox" class="izvanredan-check-term"> Izvanredan</label><br>
+    <button class="spremi-termin-btn">💾 Spremi</button>
+    <button class="odustani-termin-btn-term">❌ Odustani</button>
+`;
+
+    
+    $grupaDiv.html(formHtml);
+});
+
+
+
+
+
+$(document).on('click', '.obrisi-btn', function () { //trener brise aktivnost
+    const id = $(this).data('id');
+    if (!confirm("Jeste li sigurni da želite obrisati ovu aktivnost?")) return;
+
+    $.ajax({
+        url: 'ajax/aktivnosti_ajax.php',
+        method: 'POST',
+        data: {
+            action: 'delete_aktivnost',
+            id: id
+        },
+        success: function () {
+            location.reload();
+        },
+        error: function () {
+            alert('Greška pri brisanju.');
+        }
+    });
+});
+
+
+
+$(document).on('click', '.obrisi-termin-btn', function () { //trener brise termin
+    const id = $(this).data('id');
+    if (!confirm("Jeste li sigurni da želite obrisati ovaj termin?")) return;
+
+    $.ajax({
+        url: 'ajax/aktivnosti_ajax.php',
+        method: 'POST',
+        data: {
+            action: 'delete_termin',
+            id: id
+        },
+        success: function () {
+            location.reload();
+        },
+        error: function () {
+            alert('Greška pri brisanju.');
+        }
+    });
+});
+
+
+
+    function getAktivnostiDjeteta(dijeteId) {
+        console.log("Dohvacam grupe djeteta ID:", childId);
+        // ajax za reloadanje containera za aktivnosti
+        $.ajax({
+            url: 'ajax/aktivnosti_ajax.php',
+            method: 'POST',
+            data: {
+                action: 'get_grupe_user',
+                user_id: dijeteId
+            },
+            success: function(dobiveniPod) {
+                if (dobiveniPod.error) alert(dobiveniPod.error);
+                else $('#aktivnosti_container').html(dobiveniPod.html);
+            },
+            error: function() {
+                alert('Greška pri dohvaćanju aktivnosti.');
+            }
+        });
+    }
+
+    function urediAktivnost(aktivnostId) {
+        console.log("Uredujem aktivnost:", aktivnostId);
+        const aktivnostDiv = $(`.aktivnost[data-aktivnost-id="${aktivnostId}"]`); //nadem div aktivnosti koju sam odabrao
+        const ime = aktivnostDiv.find('.naziv').text();
+        const opis = aktivnostDiv.find('.opis').text();
+        const cijenaText = aktivnostDiv.find('.cijena').text().replace(/\D/g, ''); //izbrise sve znakove koji nisu brojevi u polju za cijenu
+        //banana
+        const formaHtml = `
+            <div class="aktivnost-form">
+                Ime:<input type="text" class="ime" placeholder="${ime}" value="${ime}" required>
+                Opis:<textarea class="opis" placeholder="${opis}" >${opis}</textarea>
+                Grad:<input type="text" placeholder="Grad" class="grad" required>
+                <button class="spremi-btn" data-id="${aktivnostId}">💾 Spremi</button> 
+                <button class="odustani-btn-uredi">❌ Odustani</button>
+                <button class="obrisi-btn" data-id="${aktivnostId}" style="color:red;">🗑️ Obriši</button>
+            </div>
+        `;
+
+
+
+    aktivnostDiv.html(formaHtml); 
+    }
+
+    function toggleGrupe(aktivnostId) {
+        console.log("Togglam grupe za aktivnost:", aktivnostId);
+        // ili obrisem ili ucitam ajax-om sve grupe
+        //gledat cu jel prvi ili ne-prvi put kliknut
+        const grupeDiv = $('#grupe_' + aktivnostId);
+        if (grupeDiv.is(':visible')) {
+            grupeDiv.slideUp();
+        } else {
+            $.ajax({
+                url: 'ajax/aktivnosti_ajax.php',
+                method: 'POST',
+                data: {
+                    action: 'get_grupe',
+                    aktivnost_id: aktivnostId
+                },
+                success: function(dobiveniPod) {
+                    grupeDiv.html(dobiveniPod.html).slideDown();
+                },
+                error: function() {
+                    alert('Greška pri dohvaćanju grupa.');
+                }
+            });
+        }
+    }
+
+    function ispisiSe(aktivnostId) {
+        console.log("Ispis sa:", aktivnostId);
+        // ajax kojim izbrisem iz tablica
+        if (!confirm("Jeste li sigurni da se želite ispisati s ove aktivnosti?")) return;
+
+        $.ajax({
+            url: 'ajax/aktivnosti_ajax.php',
+            method: 'POST',
+            data: {
+                action: 'ispisi_se',
+                aktivnost_id: aktivnostId,
+                child_id: $('#dijete_select').val() || $_SESSION['id_user']
+            },
+            success: function(dobiveniPod) {
+                getAktivnostiDjeteta($('#dijete_select').val() || $_SESSION['id_user']); //ili svoje aktivnosti ili odabranog djeteta
+            },
+            error: function() {
+                alert('Greška pri ispisu.');
+            }
+        });
+    }
+
+});
+</script>
