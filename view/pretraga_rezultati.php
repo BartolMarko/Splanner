@@ -4,18 +4,22 @@
 
 <?php if (!empty($rezultati)): ?>
 	<ul>
-		<?php foreach ($rezultati as $rez): ?>
-			<li>
-				<b><?php echo htmlspecialchars($rez[0]); ?></b> —
-				<?php echo htmlspecialchars($rez[1]); ?> EUR<br>
-				<i><?php echo htmlspecialchars($rez[2]); ?></i>
-			</li>
-		<?php endforeach; ?>
+	<?php foreach ($rezultati as $rez): ?>
+		<div class="rezpret">
+		<li>
+			<strong><?= htmlspecialchars($rez['ime']) ?></strong><br>
+			Cijena: <?= htmlspecialchars($rez['cijena']) ?> EUR<br>
+			Grad: <?= htmlspecialchars($rez['grad']) ?>
+			<br>
+			<a href="<?= __SITE_URL ?>/index.php?rt=aktivnosti/grupa&id=<?= htmlspecialchars($rez['id_grupe']) ?>">Detalji</a>
+		</li>
+		</div>
+	<?php endforeach; ?>
 	</ul>
 <?php else: ?>
-	<p>Nema rezultata.</p>
+	<p>Nema rezultata koji odgovaraju pretrazi.</p>
 <?php endif; ?>
 
-<a href="<?php echo __SITE_URL; ?>/index.php?rt=pretraga">Natrag na pretragu</a>
+<a href="<?= __SITE_URL ?>/index.php?rt=pretraga">↩ Natrag</a>
 
 <?php require_once __SITE_PATH . '/view/_footer.php'; ?>

@@ -19,10 +19,13 @@ class AktivnostiController extends BaseController
 			$this->registry->template->tip = 'trener';
 		}
 		else if ($_SESSION['tip_korisnika'] === 'roditelj') {
-			$aktivnosti = $service->getAktivnostiForUser($_SESSION['id_user']);
-
+			$detalji_akt=array();
+			$aktivnosti = $service->getGrupeForUser($_SESSION['id_user']);
+			foreach($aktivnosti as $a){
+				$detalji_akt[]=$service->getAktZaGrupu($a['id_grupe']);
+			}
 			$djeca = $service->getDjecaByRoditelj($_SESSION['id_user']);
-
+			$this->registry->template->detalji_akt=$detalji_akt;
 			$this->registry->template->aktivnosti = $aktivnosti;
 			$this->registry->template->djeca = $djeca;
 			$this->registry->template->tip = 'roditelj';

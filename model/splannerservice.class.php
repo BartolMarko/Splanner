@@ -6,12 +6,151 @@ class SplannerService
 {
     const USERS_TABLE = 'splanner_korisnici';
 
+	public function searchGrupe($ime, $grad, $spol, $uzod, $uzdo){
+	try
+	{
+		$db = DB::getConnection();
+
+		$query = 'SELECT g.*, a.grad
+		          FROM splanner_grupe g
+		          JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
+		          WHERE 1=1';
+
+		$params = [];
+
+		if ($ime !== '') //dodajem uvjete ako su uneseni u pretrazivanju
+		{
+			$query .= ' AND g.ime LIKE :ime';
+			$params['ime'] = '%' . $ime . '%';
+		}
+
+		if ($grad !== '')
+		{
+			$query .= ' AND a.grad LIKE :grad';
+			$params['grad'] = '%' . $grad . '%';
+		}
+
+		if ($spol !== '' && $spol !== 'oboje') {
+			$query .= ' AND g.spol = :spol';
+			$params['spol'] = $spol;
+		}
+
+		if ($uzod>0)
+		{
+			$query .= ' AND g.uzrast_od >= :uzod';
+			$params['uzod'] = $uzod;
+		}
+
+		if ($uzdo<99)
+		{
+			$query .= ' AND g.uzrast_do <= :uzdo';
+			$params['uzdo'] = $uzdo;
+		}
+
+		$st = $db->prepare($query);
+		$st->execute($params);
+
+		return $st->fetchAll();
+	}
+	catch (PDOException $e)
+	{
+		exit('PDO error [searchGrupe]: ' . $e->getMessage());
+	}
+}
+
+	public function getAktZaGrupu($idAkt){
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( 
+				'SELECT * FROM splanner_aktivnosti WHERE id_aktivnosti = :id'
+			);
+			$st->execute( array( 'id' =>$idAkt) );
+			$row=$st->fetch();
+			return $row;
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+	}
+
+	public function ispisiUseraSaAkt($userKojiIspisujem, $idAkt){
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( 
+				'DELETE FROM veza_je_u WHERE id_grupe_fk = :idg AND id_korisnik_fk = :idk'
+			);
+			$st->execute( array( 'idg' => $idAkt, 'idk'=>$userKojiIspisujem) );
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+	}
+
+	public function deleteTermin($id){
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( 
+				'SELECT fk_id_redovni_termini FROM splanner_azurni_termini WHERE id_azurni_termini = :id'
+			);
+			$st->execute( array( 'id' => $id) );
+			$row=$st->fetch();
+			if($row['fk_id_redovni_termini']!==null){
+				$st = $db->prepare( 
+					'DELETE FROM splanner_redovni_termini WHERE id_redovni_termini = :id'
+				);
+				$st->execute( array( 'id' => $row['fk_id_redovni_termini']) );
+				$st = $db->prepare( 
+					'DELETE FROM splanner_azurni_termini WHERE fk_id_redovni_termini = :id'
+				);
+				$st->execute( array( 'id' => $row['fk_id_redovni_termini']) );
+			}
+			$st = $db->prepare( 
+				'DELETE FROM splanner_azurni_termini WHERE id_azurni_termini = :id'
+			);
+			$st->execute( array( 'id' => $id) );
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+	}
+
+
+	public function deleteAktivnost($id){
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare( 
+				'SELECT id_grupe FROM splanner_grupe WHERE fk_id_aktivnosti = :id'
+			);
+			$st->execute( array( 'id' => $id) );
+			while($row=$st->fetch()){
+				$st2 = $db->prepare( 
+					'DELETE FROM veza_je_u WHERE id_grupe_fk = :id'
+				);
+				$st2->execute( array( 'id' => $row['id_grupe']) );
+				
+				$st2 = $db->prepare( 
+					'DELETE FROM splanner_redovni_termini WHERE id_grupe_fk = :id'
+				);
+				$st2->execute( array( 'id' => $row['id_grupe']) );
+
+				$st2 = $db->prepare( 
+					'DELETE FROM splanner_azurni_termini WHERE id_grupe_fk = :id'
+				);
+				$st2->execute( array( 'id' => $row['id_grupe']) );
+			}
+			$st = $db->prepare( 
+				'DELETE FROM splanner_aktivnosti WHERE id_aktivnosti = :id'
+			);
+			$st->execute( array( 'id' => $id) );
+
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+	}
+
 	public function makeTerminZaGrupu($id,$datum,$trener,$vrijeme_poc,$vrijeme_kraj,$dvorana,$comment,$tip_termina){
 		try
 	{
 		$db = DB::getConnection();
 		$id_aktivnosti=null;
-		if($tip_termina==='redovni'){
+		if($tip_termina==='redovan'){
 		$st = $db->prepare( 
 			'INSERT INTO splanner_redovni_termini (id_grupe_fk, id_trener_fk, dan, vrijeme_poc, vrijeme_kraj, dvorana, comment) VALUES (:id_grup,:id_tren,:dan,:vrpoc,:vrkr,:dvo,:kom)'
 		);
@@ -81,31 +220,31 @@ class SplannerService
 	}
 
 
-	public function createGrupa($aktivnostId, $ime){
+	public function createGrupa($aktivnostId, $ime, $cijena, $dobMin,$dobMax, $spol){
 		try
 	{
 		$db = DB::getConnection();
 
 		$st = $db->prepare( 
-			'INSERT INTO splanner_grupe (ime, fk_id_aktivnosti) VALUES (:ime,:aktivnost)'
+			'INSERT INTO splanner_grupe (ime, cijena, spol, uzrast_od, uzrast_do, fk_id_aktivnosti) VALUES (:ime,:cijena,:spol,:uzod,:uzdo,:aktivnost)'
 		);
 
-		$st->execute( array( 'aktivnost' => $aktivnostId, 'ime' => $ime) );
+		$st->execute( array( 'aktivnost' => $aktivnostId, 'ime' => $ime, 'spol'=>$spol,'uzod'=>$dobMin,'uzdo'=>$dobMax,'cijena'=>$cijena) );
 		
 	}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 	}
 
-	public function updateAktivnost($id, $ime, $opis, $cijena){
+	public function updateAktivnost($id, $ime, $opis, $grad){
 		try
 	{
 		$db = DB::getConnection();
 
 		$st = $db->prepare( 
-			'UPDATE splanner_aktivnosti SET ime=:ime, description=:opis, cijena=:cijena WHERE id_aktivnosti=:id'
+			'UPDATE splanner_aktivnosti SET ime=:ime, description=:opis, grad=:cijena,  WHERE id_aktivnosti=:id'
 		);
 
-		$st->execute( array( 'id' => $id, 'ime' => $ime, 'opis' => $opis, 'cijena' => $cijena ) );
+		$st->execute( array( 'id' => $id, 'ime' => $ime, 'opis' => $opis, 'grad' => $grad ) );
 		
 	}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
@@ -155,7 +294,7 @@ class SplannerService
 
 	}
 
-	public function updateRedovniTermin($id, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment)
+	public function updateRedovniTermin($id, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment,$idAzur)
 	{
 		try {
 			$db = DB::getConnection();
@@ -172,6 +311,38 @@ class SplannerService
 				'dvorana' => $dvorana,
 				'comment' => $comment
 			]);
+
+
+			$st = $db->prepare(
+				'SELECT datum_origin 
+				FROM splanner_azurni_termini 
+				WHERE id_azurni_termini = :id_redovni' 
+			);
+			$st->execute(['id_redovni' => $idAzur]);
+			$redak=$st->fetch();
+
+			$datumPrvi = (new DateTime($redak['datum_origin']))->format('Y-m-d');
+			$st = $db->prepare(
+				'SELECT id_azurni_termini, datum_origin 
+				FROM splanner_azurni_termini 
+				WHERE fk_id_redovni_termini = :id_redovni 
+				AND datum_origin >= :today'
+			);
+			$st->execute(['id_redovni' => $id, 'today' => $datumPrvi]);
+			
+			while ($row = $st->fetch()) {
+				$this->updateAzurniTermin(
+					$id,                   // id_redovni
+					$row['id_azurni_termini'], // id_azur
+					$datum,            // dan u tjednu, ali ovaj updateAzurniTermin zna do handleat
+					$vrijeme_poc, 
+					$vrijeme_kraj,
+					$dvorana,
+					$comment,
+					0                       // $jelAzurno = 0 (znaci da je stvarni update, a ne izvanredni)
+				);
+			}
+
 		} catch (PDOException $e) {
 			throw new Exception("Greška u upisu termina: " . $e->getMessage());
 		}
@@ -187,7 +358,6 @@ class SplannerService
 			 SET datum_novi = :datum, vrijeme_poc_novi = :vp, vrijeme_kraj_novi = :vk, dvorana = :dvorana, comment = :comment
 			 WHERE id_azurni_termini = :id_az'
 		);
-	
 		$st->execute([
 			'id_az' => $id_azur,
 			'datum' => $datum,
@@ -210,24 +380,35 @@ class SplannerService
 			}
 		
 			$stariDatum = new DateTime($row['datum_origin']);
+			$today = new DateTime();
 		
+			// RAZLIKA U TJEDNIMA OD DANAS
+			$weekDiff = (int)floor($stariDatum->diff($today)->days / 7);
+		
+			// IZRACUNAM NOVI DATUM, OCUVAJUCI RAZMAK U TJEDNIMA
+			$noviDanUTj = strtolower($datum); // npr "subota"
+			$noviDatum = clone $today;
 			
-			$noviDanUTj = strtolower($datum); //
-			$noviDatum = clone $stariDatum;
-		
-			if (strtolower($stariDatum->format('l')) === $noviDanUTj) {
-				//ako nije promijenjen dan u tjednu...
+			if ($weekDiff === 0) {
+				// u trenutnom tjednu sam
+				$noviDatum->modify('this ' . $noviDanUTj);
 			} else {
-				$noviDatum->modify('next ' . $noviDanUTj); //inace stavim na prvi sljedeci
+				// buduci tjedni
+				$noviDatum->modify('this ' . $noviDanUTj)->modify('+' . $weekDiff . ' weeks');
 			}
 		
-			
+			// ovdje pazim da ne premjestim u proslost (prebacim sljedeci tjedan ako je taj dan u tjednu vec prosao ovaj tjedan)
+			if ($noviDatum < $today) {
+				$noviDatum->modify('+1 week');
+			}
+		
+			// i tek sad updateam azurni termin
 			$st = $db->prepare(
 				'UPDATE splanner_azurni_termini 
-				 SET datum_origin = :datum, vrijeme_poc_stari = :vp, vrijeme_kraj_stari = :vk, dvorana = :dvorana, comment = :comment
+				 SET datum_origin = :datum, vrijeme_poc_stari = :vp, vrijeme_kraj_stari = :vk, 
+					 dvorana = :dvorana, comment = :comment
 				 WHERE id_azurni_termini = :id_az'
 			);
-		
 			$st->execute([
 				'id_az' => $id_azur,
 				'datum' => $noviDatum->format('Y-m-d'),
@@ -250,6 +431,30 @@ class SplannerService
 			return $st->fetch();
 		}
 
+		function getGrupeForUser($idUser){
+			try {
+				$db = DB::getConnection();
+		
+				$st = $db->prepare( 
+					'SELECT DISTINCT g.*
+					FROM splanner_grupe g
+					JOIN veza_je_u v ON g.id_grupe = v.id_grupe_fk
+					JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
+					WHERE v.id_korisnik_fk = :id'
+				); // vrati sve grupe korisnika
+		
+				$st->execute( array( 'id' => $idUser ) );
+			}
+			catch( PDOException $e ) {
+				exit( 'PDO error [getGrupeForUser]: ' . $e->getMessage() );
+			}
+		
+			$popisGrupa = array();
+			while($row = $st->fetch()) {
+				$popisGrupa[] = $row;
+			}
+			return $popisGrupa;
+		}
 
 		function getAktivnostiForUser($idUser){
 			try
@@ -338,16 +543,16 @@ class SplannerService
 			return $row['id'];
 	}
 	
-	function upisAkt($idTrener,$imeAkt,$descAkt,$cijenaAkt){
+	function upisAkt($idTrener,$imeAkt,$descAkt,$gradAkt){
 		try
 	{
 		$db = DB::getConnection();
 
 		$st = $db->prepare( 
-			'INSERT INTO splanner_aktivnosti (fk_id_trenera, description, cijena, ime) VALUES (:id,:descr,:cijena,:ime)'
+			'INSERT INTO splanner_aktivnosti (fk_id_trenera, description, grad, ime) VALUES (:id,:descr,:grad,:ime)'
 		);
 
-		$st->execute( array( 'id' => $idTrener, 'ime' => $imeAkt, 'descr' => $descAkt, 'cijena' => $cijenaAkt ) );
+		$st->execute( array( 'id' => $idTrener, 'ime' => $imeAkt, 'descr' => $descAkt, 'grad' => $gradAkt ) );
 		
 	}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }

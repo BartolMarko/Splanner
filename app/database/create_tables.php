@@ -52,8 +52,11 @@ function create_table_korisnici()
 			'password_hash varchar(255) NOT NULL,'.
 			'email varchar(50) NOT NULL,' .
 			'tip_korisnika ENUM("trener","dijete","roditelj"), ' .
+			'spol varchar(30), ' .
+			'datum_rodenja DATE,'.
 			'registration_sequence varchar(20) NOT NULL,' .
 			'fk_id_roditelja INT,' .
+			'prima_obavijest BOOL,' . 
 			'has_registered int)'
 		);
 
@@ -79,11 +82,8 @@ function create_table_aktivnosti()
 			'id_aktivnosti INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
 			'ime varchar(100),' .
 			'description varchar(1000) NOT NULL,' .
-			'cijena DECIMAL(15,2), ' .
-			'fk_id_trenera INT NOT NULL,' .
-			'spol varchar(30), ' .
-			'uzrast_od INT,' .
-			'uzrast_do INT)' 
+			'fk_id_trenera INT NOT NULL, ' .
+			'grad varchar(50))'
 		);
 
 		$st->execute();
@@ -108,6 +108,10 @@ function create_table_grupe()
 			'CREATE TABLE IF NOT EXISTS splanner_grupe (' .
 			'id_grupe INT NOT NULL PRIMARY KEY AUTO_INCREMENT, ' .
 			'ime varchar(100), ' .
+			'cijena DECIMAL(15,2), ' .
+			'spol varchar(30), ' .
+			'uzrast_od INT,' .
+			'uzrast_do INT,' . 
 			'fk_id_aktivnosti INT NOT NULL)'
 		);
 

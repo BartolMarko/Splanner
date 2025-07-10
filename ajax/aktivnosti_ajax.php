@@ -26,9 +26,33 @@ $tip = $_SESSION['tip_korisnika'] ?? null;
 
 switch ($action) {
 
+    case 'get_grupe_user':
+        $targetId = ($_POST['user_id'] === $_SESSION['id_user']) ? $idUser : intval($_POST['user_id']);
+        $grupe = $ss->getGrupeForUser($targetId);
+
+        ob_start();
+        foreach ($grupe as $g): ?>
+            <div class="grupa" data-grupa-id="<?= $g['id_grupe'] ?>">
+                <h4 class="naziv"><?= htmlspecialchars($g['ime']) ?></h4>
+                <p><strong>Spol:</strong> <?= htmlspecialchars($g['spol']) ?></p>
+                <p><strong>Uzrast:</strong> <?= htmlspecialchars($g['uzrast_od']) ?> - <?= htmlspecialchars($g['uzrast_do']) ?> godina</p>
+                <p><strong>Cijena:</strong> <?= htmlspecialchars($g['cijena']) ?> EUR</p>
+
+                <?php if ($tip === 'roditelj' && $_POST['user_id'] === 'self'): ?>
+                    <button class="ispisi-grupu-btn" data-id="<?= $g['id_grupe'] ?>">Ispiši se iz grupe</button>
+                <?php elseif ($tip === 'roditelj'): ?>
+                    <button class="ispisi-grupu-btn" data-id="<?= $g['id_grupe'] ?>" data-child="<?= $targetId ?>">Ispiši dijete iz grupe</button>
+                <?php endif; ?>
+            </div>
+        <?php endforeach;
+        $html = ob_get_clean();
+        sendJSONandExit(['html' => $html]);
+        break;
+
+
     case 'get_aktivnosti':
         $targetId = ($_POST['user_id'] === 'self') ? $idUser : intval($_POST['user_id']);
-        $aktivnosti = $ss->getAktivnostiZaUser($targetId); //TODO u splannerservice
+        $aktivnosti = $ss->getAktivnostiUser($targetId); 
 
         ob_start(); //ovo stavlja sve echo-e, print-ove i stvari van php tag-a u buffer, umjesto da ih isprinta
         foreach ($aktivnosti as $a): ?>
@@ -62,7 +86,7 @@ switch ($action) {
         $grupe = $ss->getGrupeZaAkt($idAkt);
         $sadasnje_vrijeme_php = new DateTime();
         $datum_za_14_dana = clone $sadasnje_vrijeme_php;
-        $datum_za_14_dana->modify('next sunday'); //NEDJELJA SLJEDECA
+        $datum_za_14_dana->modify('next sunday')->modify('next sunday'); //NEDJELJA SLJEDECA
         $datum_za_14_dana->format('Y-m-d');
         $daniTjedna = [
             'Monday'    => 'Ponedjeljak',
@@ -75,23 +99,45 @@ switch ($action) {
         ];
         ob_start(); //NAPORAVEI HANDLANJE ZA DATUM I ZA OICAN DAN U TJEDNU ZA UIS/EDIT AKTIVNOSTI
         foreach ($grupe as $g): 
-            $redovniTermini = $ss->getRedovniTerminiZaGrupu($g['id_grupe']);
             $azurniTermini = $ss->getAzurniTerminiZaGrupu($g['id_grupe']);?>
             <div class="grupa" data-grupa-id="<?= $g['id_grupe'] ?>">
             <strong class="ime"><?= htmlspecialchars($g['ime']) ?></strong> : 
             <br>
             <span class="termin"><?php
             foreach($azurniTermini as $termin):
+                $flag=0;
                 $dan_u_tj=date('l', strtotime($termin['datum_origin']));
-                if(new DateTime($termin['datum_origin']) >= $sadasnje_vrijeme_php && new DateTime($termin['datum_origin']) <= $datum_za_14_dana){
-                    echo '<span class="termin" valueAzur='.$termin['id_azurni_termini'].' valueRed='.$termin['fk_id_redovni_termini'].'>'.$daniTjedna[$dan_u_tj].': '.$termin['vrijeme_poc_stari'].'-'.$termin['vrijeme_kraj_stari'];
+                if(new DateTime($termin['datum_origin']) >= $sadasnje_vrijeme_php && new DateTime($termin['datum_origin']) <= $datum_za_14_dana ||
+                new DateTime($termin['datum_origin']) !== null && new DateTime($termin['datum_origin']) !==null && new DateTime($termin['datum_novi']) >= $sadasnje_vrijeme_php && new DateTime($termin['datum_novi']) <= $datum_za_14_dana  ){
+                    if($termin['fk_id_redovni_termini']!==null){
+                    $vrijemePoc = DateTime::createFromFormat('H:i:s', $termin['vrijeme_poc_stari']);
+                    $satMinut = $vrijemePoc->format('H:i');
+                    $vrijemeKraj = DateTime::createFromFormat('H:i:s', $termin['vrijeme_kraj_stari']);
+                    $satMinutKraj = $vrijemeKraj->format('H:i');
+                    $datumFormatiran = (new DateTime($termin['datum_origin']))->format('d-m');
+                    echo '<span class="termin" valueAzur='.$termin['id_azurni_termini'].' valueRed='.$termin['fk_id_redovni_termini'].'>'.$daniTjedna[$dan_u_tj].', '.$datumFormatiran.': '.$satMinut.'-'.$satMinutKraj;
+                    }
+                    else{
+                        $vrijemePoc = DateTime::createFromFormat('H:i:s', $termin['vrijeme_poc_stari']);
+                            $satMinut = $vrijemePoc->format('H:i');
+                            $vrijemeKraj = DateTime::createFromFormat('H:i:s', $termin['vrijeme_kraj_stari']);
+                            $satMinutKraj = $vrijemeKraj->format('H:i');
+                            echo ' (Izvanredno: '. $daniTjedna[date('l', strtotime($termin['datum_origin']))] .', '. $termin['datum_origin']. ' '.$satMinut.'-'.$satMinutKraj.')';
+                            $dan_u_tj=date('l', strtotime($termin['datum_origin']));
+                            echo '<br>';
+                            continue;
+                    }
                     if($termin['datum_novi']!==null){
-                        echo ' (Izvanredno: '. $daniTjedna[date('l', strtotime($termin['datum_novi']))] .', '. $termin['datum_novi']. ' '.$termin['vrijeme_poc_novi'].'-'.$termin['vrijeme_kraj_novi'].')';
+                        $vrijemePoc = DateTime::createFromFormat('H:i:s', $termin['vrijeme_poc_novi']);
+                        $satMinut = $vrijemePoc->format('H:i');
+                        $vrijemeKraj = DateTime::createFromFormat('H:i:s', $termin['vrijeme_kraj_novi']);
+                        $satMinutKraj = $vrijemeKraj->format('H:i');
+                        echo ' (Izvanredno: '. $daniTjedna[date('l', strtotime($termin['datum_novi']))] .', '. $termin['datum_novi']. ' '.$satMinut.'-'.$satMinutKraj.')';
                         $dan_u_tj=date('l', strtotime($termin['datum_novi']));
-                        echo '<span>'.'</span>';
                     }
                     if ($tip === 'trener'):
                     echo '<button class="uredi-termin-btn">✏️ Uredi termin</button></span>';
+                    echo '<button class="obrisi-termin-btn" data-id="'.$termin['id_azurni_termini'].'" style="color:red;">🗑️ Obriši</button>';
                     echo '<br>';
                     endif;
                 }
@@ -121,8 +167,12 @@ switch ($action) {
             $vrijeme_kraj = $_POST['vrijeme_kraj'];
             $dvorana = $_POST['dvorana'];
             $comment = $_POST['comment'];
-
+            if($tip_termina==='redovan'){
             $ss->makeTerminZaGrupu($id,$datum,$trener,$vrijeme_poc,$vrijeme_kraj,$dvorana,$comment,$tip_termina);
+            }
+            else{
+
+            }
             sendJSONandExit(['success' => true]);
             break;
 
@@ -141,19 +191,20 @@ switch ($action) {
             $vrijeme_kraj = $_POST['vrijeme_kraj'];
             $dvorana = $_POST['dvorana'];
             $comment = $_POST['comment'];
+            $grupaId=$_POST['grupa_id'];
             $id_azur=intval($_POST['id_azur']);
             //tu updateaj i redovni i azurni ako je rijec o redovnoj promjeni termina - jedinstveno je azurni odreden sa id_Azur i fk_id_red
             try {
                 if ($tip_termina === 'redovan'){
-                    $ss->updateRedovniTermin($id_red, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment);
-                    $ss->updateAzurniTermin($id_red, $id_azur, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment,0);
+                    $ss->updateRedovniTermin($id_red, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment,$id_azur);
                 }
                     elseif ($tip_termina === 'izvanredan')
                     $ss->updateAzurniTermin($id_red, $id_azur, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment,1);
                 else
                     sendErrorAndExit("Nepoznat tip termina.");
         
-                sendJSONandExit(['success' => true]); //TU DODAJ IME I TERMIN
+            $grupa=$ss->getGrupa($grupaId);
+                sendJSONandExit(['success' => true, 'ime' => $grupa['ime']]); //TU DODAJ termin onako napisano kao u stvaranju grupe
             } catch (Exception $e) {
                 sendErrorAndExit("Greška: " . $e->getMessage());
             }
@@ -165,13 +216,17 @@ switch ($action) {
     
         $aktivnostId = $_POST['aktivnost_id'] ?? null;
         $ime = $_POST['ime'] ?? '';
+        $cijena = floatval($_POST['cijena']);
+        $dobMin = $_POST['dobMin'] ?? null;
+        $dobMax = $_POST['dobMax'] ?? null;
+        $spol = $_POST['spol'] ?? null;
     
         if (!$aktivnostId || !$ime) {
             sendErrorAndExit("Nedostaju obavezni podaci.");
         }
     
         try {
-            $ss->createGrupa($aktivnostId, $ime);
+            $ss->createGrupa($aktivnostId, $ime, $cijena, $dobMin,$dobMax, $spol);
             sendJSONandExit(['success' => true]);
         } catch (Exception $e) {
             sendErrorAndExit("Greška: " . $e->getMessage());
@@ -185,8 +240,8 @@ switch ($action) {
         $id = intval($_POST['id']);
         $ime = trim($_POST['ime']);
         $opis = trim($_POST['description']);
-        $cijena = floatval($_POST['cijena']);
-        $ss->updateAktivnost($id, $ime, $opis, $cijena);
+        $grad = $_POST['spol'];
+        $ss->updateAktivnost($id, $ime, $opis, $grad);
         sendJSONandExit(['success' => true]);
         break;
 
@@ -194,17 +249,22 @@ switch ($action) {
         if ($tip !== 'trener') sendErrorAndExit("Nemate pristup ovome.");
         $ime = trim($_POST['ime']);
         $opis = trim($_POST['description']);
-        $cijena = floatval($_POST['cijena']);
-        $dobMin = $_POST['dobMin'] ?? null;
-        $dobMax = $_POST['dobMax'] ?? null;
-        $ss->upisAkt($idUser, $ime, $opis, $cijena,$dobMin,$dobMax);
+        $grad = $_POST['grad'];
+        $ss->upisAkt($idUser, $ime, $opis, $grad);
         sendJSONandExit(['success' => true]);
         break;
     
     case 'delete_aktivnost':
         if ($tip !== 'trener') sendErrorAndExit("Nemate pristup ovome.");
         $id = intval($_POST['id']);
-        $ss->deleteAktivnost($id); //TODO u splannerservice
+        $ss->deleteAktivnost($id); 
+        sendJSONandExit(['success' => true]);
+        break;
+
+    case 'delete_termin':
+        if ($tip !== 'trener') sendErrorAndExit("Nemate pristup ovome.");
+        $id = intval($_POST['id']);
+        $ss->deleteTermin($id); 
         sendJSONandExit(['success' => true]);
         break;
 
