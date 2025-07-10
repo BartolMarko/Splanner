@@ -592,19 +592,21 @@ class SplannerService
 		return $st->fetchColumn();
 	}
 
-	public function dodajDijete($id_roditelja, $username, $oib, $email, $password, $spol, $datum)
+	public function dodajDijete($id_roditelja, $username, $ime, $prezime, $oib, $email, $password, $spol, $datum)
 	{
 		$db = DB::getConnection();
 		$st = $db->prepare(
 			'INSERT INTO ' . self::USERS_TABLE . '
-			(OIB, username, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, has_registered, fk_id_roditelja)
+			(OIB, username, ime, prezime, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, has_registered, fk_id_roditelja)
 			VALUES
-			(:oib, :username, :hash, :email, "dijete", :spol, :datum, "", 1, :id_roditelja)'
+			(:oib, :username, :ime, :prezime, :hash, :email, "dijete", :spol, :datum, "", 1, :id_roditelja)'
 		);
 
 		$st->execute([
 			'oib' => $oib,
 			'username' => $username,
+			'ime' => $ime,
+			'prezime' => $prezime,
 			'hash' => password_hash($password, PASSWORD_DEFAULT),
 			'email' => $email,
 			'spol' => $spol,
