@@ -30,7 +30,7 @@
 			<li>
 				<a href="<?php echo __SITE_URL; ?>/index.php?rt=login/logout"
 				onclick="return confirm('Jeste li sigurni da se želite odjaviti?');">
-				Logout
+				Odjava
 				</a>
 			</li>
 		</ul>

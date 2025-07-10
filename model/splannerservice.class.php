@@ -86,7 +86,7 @@ class SplannerService
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 
 		$row = $st->fetch();
-		if( $row === false )
+		if( $row === false || $row['username'] !== $username)
 			return false;
 		else
 			return true;
