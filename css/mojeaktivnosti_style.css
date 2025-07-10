@@ -17,9 +17,18 @@ button {
     font-size: 14px;
 }
 
+#nova-aktivnost-btn{
+    margin-bottom: 14px;
+}
+
 button:hover {
     background-color: #216bd6;
 }
+
+h3 {
+    margin-top: 0px;
+}
+
 
 .kosarcica{
     background-color: #ffffff;;

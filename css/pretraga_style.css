@@ -6,6 +6,10 @@
     margin-bottom: 30px;
 }
 
+h3 {
+    margin-top: 0px;
+}
+
 button {
     background-color: #0605df;
     color: white;
