@@ -9,19 +9,32 @@ const MJESECI = ['Siječanj', 'Veljača', 'Ožujak', 'Travanj', 'Svibanj', 'Lipa
 
 const COLORS = [
     '#e6194b', // red
-    '#ffe119', // yellow
+    '#ffe135', // yellow
     '#3cb44b', // green
     '#4363d8', // blue
-    '#46f0f0', // cyan
     '#bcf60c', // lime
     '#911eb4', // purple
     '#f032e6', // magenta
     '#f58231', // orange
-    '#fabebe',  // pink
+    '#46f0f0', // cyan
+    '#008080', // teal
+    '#ffd700', // gold
+    '#a52a2a', // brown
+    '#7fffd4', // aquamarine
+    '#00ced1', // dark turquoise
+    '#b22222', // firebrick
+    '#8b008b', // dark magenta
+    '#2e8b57', // sea green
+    '#daa520', // goldenrod
+    '#5f9ea0', // cadet blue
+    '#9932cc', // dark orchid
+    '#ffb6c1', // light pink
 ];
 
 const TERMINI_URL_BASE = window.location.href + "/termini";
 const USER_INFO_URL = window.location.href + "/userinfo";
+const GRUPE_URL_BASE = (window.location.href).split("=")[0] + "=aktivnosti/grupa&id=";
+const PROMJENA_TERMINA_URL = (window.location.href).split("=")[0] + "=termini";
 
 const $dayButton = $('#day-button');
 const $weekButton = $('#week-button');
@@ -36,6 +49,13 @@ const $rasporedTitle = $('#raspored-title');
 const $rasporedContainer = $('#raspored-container');
 const $activitiesContainer = $('#activities-container');
 const $filterCheckboxes = $('#filter-checkboxes');
+
+const $popup = $('#popup');
+const $popupTitle = $('#popup-title');
+const $popupContent = $('#popup-content');
+const $popupCloseButton = $('#popup-close-button');
+const $popupGrupeLink = $('#popup-grupe-link');
+const $popupPromjenaLink = $('#popup-promjena-link');
 
 let userInfo = null;
 let checkBoxCount = 0, idToIndex = {}, indexToId = {};
@@ -58,6 +78,11 @@ function main() {
     $todayButton.on('click', resetReference);
     $(window).on('resize', function() {
         displayActivities(filteredActivities);
+    });
+
+    $popup.hide();
+    $popupCloseButton.on('click', function() {
+        $popup.hide();
     });
 
     $DEFAULT_BUTTON.addClass('active');
@@ -104,15 +129,17 @@ function addCheckBox(id, name, hidden=false) {
         .attr('id', "checkbox-" + index)
         .prop('checked', true)
         .on('change', function() {
-            // if ($(this).is(':checked')) {
-            //     $(`#checkbox-label-${index}`).css(
-            //         'background-color', COLORS[index % COLORS.length]
-            //     );
-            // } else {
-            //     $(`#checkbox-label-${index}`).css(
-            //         'background-color', getLighterColor(COLORS[index % COLORS.length])
-            //     );
-            // }
+            if ($(this).is(':checked')) {
+                $(`#checkbox-label-${index}`).css({
+                    'background-color': COLORS[index % COLORS.length],
+                    "color": "white"
+                });
+            } else {
+                $(`#checkbox-label-${index}`).css({
+                    'background-color': "#f0f0fa",
+                    "color": "#01013f"
+                });
+            }
             filterActivities();
             displayActivities(filteredActivities);
         });
@@ -445,7 +472,7 @@ function displayMonthActivities(activities) {
             activity.height = MONTH_ACTIVITY_HEIGHT / $rasporedContainer.height() * 100;
             activity.left = left / $rasporedContainer.width() * 100;
             activity.width = width / $rasporedContainer.width() * 100;
-            displayActivity(activity);
+            displayActivity(activity, true);
         }
         if (activitiesOnDate.length > maxActivities) {
             const $moreDiv = $('<div>')
@@ -457,7 +484,7 @@ function displayMonthActivities(activities) {
                     left: left / $rasporedContainer.width() * 100 + '%',
                     width: "auto",
                 })
-                .text(`+${activitiesOnDate.length - maxActivities}`)
+                .text(`+${activitiesOnDate.length - maxActivities} aktivnosti`)
                 .on('click', function(){
                     dayToDisplay.setDate(dateObj.getDate());
                     $dayButton.click();
@@ -506,9 +533,20 @@ function calculateWeekActivityYPosition(activity) {
     activity.height = (bottomPos - topPos) / $rasporedContainer.height() * 100;
 }
 
-function displayActivity(activity) {
+function displayActivity(activity, oneRow) {
     const startTime = getTwoDigitNumber(activity.datePoc.getHours()) + ':' + getTwoDigitNumber(activity.datePoc.getMinutes());
     const endTime = getTwoDigitNumber(activity.dateKraj.getHours()) + ':' + getTwoDigitNumber(activity.dateKraj.getMinutes());
+    
+    let htmlContent = '';
+    if (oneRow)
+        htmlContent = `<span class="activity-combo">${activity.ime_aktivnosti}, ${startTime} - ${endTime}</span>`;
+    else 
+        htmlContent = `
+            <span class="activity-time">${startTime} - ${endTime}</span><br>
+            <span class="activity-title">${activity.ime_aktivnosti}</span><br>
+            <span class="activity-dvorana">${activity.dvorana}</span>
+        `
+    
     const $activityDiv = $('<div>')
         .addClass('activity')
         .css({
@@ -519,11 +557,10 @@ function displayActivity(activity) {
             width: activity.width + '%'
         })
         .css(getDefaultCssForIndex(activity.index))
-        .html(`
-            <span class="activity-time">${startTime} - ${endTime}</span><br>
-            <span class="activity-title">${activity.ime_aktivnosti}</span><br>
-            <span class="activity-dvorana">${activity.dvorana}</span>
-        `);
+        .html(htmlContent)
+        .on('click', function() {
+            displayPopup(activity);
+        });
     $activitiesContainer.append($activityDiv);
 }
 
@@ -680,7 +717,7 @@ function parseActivityDates(activities) {
 }
 
 function parseDate(dateString, timeString) {
-    const [day, month, year] = dateString.split('-').map(Number);
+    const [year, month, day] = dateString.split('-').map(Number);
     const [hours, minutes, seconds] = timeString.split(':').map(Number);
     return new Date(year, month - 1, day, hours, minutes, seconds);
 }
@@ -715,7 +752,7 @@ function getDarkerColor(color) {
 }
 
 function getLighterColor(color) {
-    return chroma(color).brighten(0.5).hex();
+    return chroma(color).brighten(0.8).hex();
 }
 
 function getMinMaxHours(activities) {
@@ -737,4 +774,31 @@ function concatActivities(activities) {
     for (const acts of Object.values(activities))
         all = all.concat(acts);
     return all;
+}
+
+function displayPopup(activity) {
+    console.log(activity);
+    const startTime = getTwoDigitNumber(activity.datePoc.getHours()) + ':' + getTwoDigitNumber(activity.datePoc.getMinutes());
+    const endTime = getTwoDigitNumber(activity.dateKraj.getHours()) + ':' + getTwoDigitNumber(activity.dateKraj.getMinutes());
+    const datum = getDateString(activity.datePoc);
+
+    const termin = `${DANI[getDayOfWeekIndex(activity.datePoc)]} ${datum}, ${startTime} - ${endTime}`;
+
+    const popupContent = `
+        <p><strong>Grupa:</strong> ${activity.ime_grupe}</p>
+        <p><strong>Termin:</strong> ${termin}<p>
+        <p><strong>Dvorana:</strong> ${activity.dvorana}</p>
+    `;
+    
+    $popupTitle.text(activity.ime_aktivnosti);
+    $popupContent.html(popupContent);
+
+    $popupGrupeLink.attr('href', GRUPE_URL_BASE + activity.id_grupe);
+    $popupPromjenaLink.attr('href', PROMJENA_TERMINA_URL + `?id=${activity.id_termini}`); // TODO: Uskladi s Nikolom
+    if (userInfo.tip_korisnika === 'trener')
+        $popupPromjenaLink.show();
+    else
+        $popupPromjenaLink.hide();
+
+    $popup.show();
 }

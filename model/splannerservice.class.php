@@ -358,7 +358,8 @@ class SplannerService
 				'SELECT t.datum_novi as datum,
 					t.vrijeme_poc_novi AS vrijeme_poc,
 					t.vrijeme_kraj_novi as vrijeme_kraj,
-					t.dvorana, g.ime AS ime_grupe,
+					t.dvorana,
+					g.ime AS ime_grupe, g.id_grupe,
 					a.ime AS ime_aktivnosti
 				 FROM ' . self::AZURNI_TERMINI_TABLE . ' t
 				 INNER JOIN ' . self::PRIPADNOST_TABLE . ' p ON t.id_grupe_fk = p.id_grupe_fk
@@ -387,7 +388,8 @@ class SplannerService
 				'SELECT t.datum_novi as datum,
 					t.vrijeme_poc_novi AS vrijeme_poc,
 					t.vrijeme_kraj_novi as vrijeme_kraj,
-					t.dvorana, g.ime AS ime_grupe,
+					t.dvorana,
+					g.ime AS ime_grupe, g.id_grupe,
 					a.ime AS ime_aktivnosti
 				 FROM ' . self::AZURNI_TERMINI_TABLE . ' t
 				 INNER JOIN ' . self::GRUPE_TABLE . ' g ON t.id_grupe_fk = g.id_grupe

@@ -35,6 +35,27 @@
     </div>
 </div>
 
+<!-- Popup Overlay for blur effect -->
+<!-- <div id="popup-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); backdrop-filter: blur(4px); z-index:9998;"></div> -->
+
+<div id="popup">
+    <div id="popup-header" class="flex-row">
+        <h3 id="popup-title"></h3>
+        <button id="popup-close-button">&times;</button>
+    </div>
+    <div id="popup-content">
+
+    </div>
+    <div id="popup-buttons" class="flex-row">
+        <a id="popup-promjena-link" href="">
+            <button id="popup-promjena-button">Promjena termina</button>
+        </a>
+        <a id="popup-grupe-link" href="">
+            <button id="popup-grupe-button">Detalji grupe</button>
+        </a>
+    </div>
+</div>
+
 
 <script src="view/raspored.js"></script>
 
