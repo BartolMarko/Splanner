@@ -3,19 +3,15 @@
 <h3>Rezultati pretrage:</h3>
 
 <?php if (!empty($rezultati)): ?>
-	<ul>
 	<?php foreach ($rezultati as $rez): ?>
-		<div class="rezpret">
-		<li>
+		<div class="rezpret kosarica">
 			<strong><?= htmlspecialchars($rez['ime']) ?></strong><br>
 			Cijena: <?= htmlspecialchars($rez['cijena']) ?> EUR<br>
 			Grad: <?= htmlspecialchars($rez['grad']) ?>
 			<br>
 			<a href="<?= __SITE_URL ?>/index.php?rt=aktivnosti/grupa&id=<?= htmlspecialchars($rez['id_grupe']) ?>">Detalji</a>
-		</li>
 		</div>
 	<?php endforeach; ?>
-	</ul>
 <?php else: ?>
 	<p>Nema rezultata koji odgovaraju pretrazi.</p>
 <?php endif; ?>

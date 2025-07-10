@@ -158,15 +158,14 @@ class SplannerService
 		$st->execute( array( 'id_grup' => $id, 'id_tren' => $trener, 'dan'=>$dan,'vrpoc'=>$vrijeme_poc,'vrkr'=>$vrijeme_kraj,'dvo'=>$dvorana,'kom'=>$comment) );
 		$id_aktivnosti = $db->lastInsertId();	//ovo je fja iz PDO koja vrati najnoviji id indeksa (autoincrement)
 	}
-		if($id_aktivnosti===null){ //NIJE REDOVNI - ZNACI DA JE BAS DATUM, NE DAN U TJEDNU
+		if($id_aktivnosti===null){ //NIJE REDOVNI (NIJE SE TAMO DODALO NSTA) - ZNACI DATUM, NE DAN U TJEDNU
 			$st = $db->prepare( 
 				'INSERT INTO splanner_azurni_termini (fk_id_redovni_termini,id_grupe_fk, id_trener_fk, datum_origin, vrijeme_poc_stari, vrijeme_kraj_stari, dvorana, comment) VALUES (:id_redovni,:id_grup,:id_tren,:dan,:vrpoc,:vrkr,:dvo,:kom)'
 			);
 			$dan = date('l', strtotime($datum));
 			$st->execute( array( 'id_redovni'=>$id_aktivnosti,'id_grup' => $id, 'id_tren' => $trener, 'dan'=>$datum,'vrpoc'=>$vrijeme_poc,'vrkr'=>$vrijeme_kraj,'dvo'=>$dvorana,'kom'=>$comment) );
-		
 		}
-		else {//REDOVNI JE, ZNACI DA JE DAN U TJEDNU
+		else {//NIJE REDOVAN, ZNACI DA JE DATUM
 			$danas = new DateTime();
 			$endDatum = clone $danas;
 			$endDatum->modify('next sunday')->modify('next sunday'); //modify na datetime mijenja dani datum in-place, ovo npr ga promijeni na sljedecu nedjelju, pa taj opet na sljedecu nedjelju toj nedjelji
@@ -241,7 +240,7 @@ class SplannerService
 		$db = DB::getConnection();
 
 		$st = $db->prepare( 
-			'UPDATE splanner_aktivnosti SET ime=:ime, description=:opis, grad=:cijena,  WHERE id_aktivnosti=:id'
+			'UPDATE splanner_aktivnosti SET ime=:ime, description=:opis, grad=:grad  WHERE id_aktivnosti=:id'
 		);
 
 		$st->execute( array( 'id' => $id, 'ime' => $ime, 'opis' => $opis, 'grad' => $grad ) );

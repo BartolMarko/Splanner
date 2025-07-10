@@ -1,6 +1,6 @@
 <?php require_once __SITE_PATH . '/view/_header.php'; ?>
 
-<h2>Moje aktivnosti</h2>
+<!-- <h2>Moje aktivnosti</h2> -->
 
 <?php if ($tip === 'roditelj'): ?>
     <label for="dijete_select">Prikaži aktivnosti za:</label>
@@ -17,12 +17,12 @@
 <div id="aktivnosti_container">
     <?php $i=0;?>
     <?php foreach ($aktivnosti as $a): ?>
-        <div class="aktivnost" data-aktivnost-id="<?php if($tip==='trener') echo $a['id_aktivnosti'];
+        <div class="aktivnost kosarica" data-aktivnost-id="<?php if($tip==='trener') echo $a['id_aktivnosti'];
         else echo $a['id_grupe']; ?>">
         <?php if ($tip === 'trener'): ?>
             <h3><?= htmlspecialchars($a['ime']) ?></h3>
             <p><?= htmlspecialchars($a['description']) ?></p>
-            <p>Grad: <?= htmlspecialchars($a['grad']) ?> EUR</p>
+            <p>Grad: <?= htmlspecialchars($a['grad']) ?></p>
             <button class="uredi-btn" data-id="<?= $a['id_aktivnosti'] ?>">Uredi aktivnost</button>
             <button class="toggle-grupe-btn" data-id="<?= $a['id_aktivnosti'] ?>">➤ Prikaži grupe</button>
             <button class="dodaj-grupu-btn" data-aktivnost-id="<?= $a['id_aktivnosti'] ?>">➕ Nova grupa</button>
@@ -262,7 +262,7 @@ $(document).on('click', '.spremi-grupu-btn', function () {
     const vrijemePoc = $grupaDiv.find('.vrijeme_poc').val();
     const vrijemeKraj = $grupaDiv.find('.vrijeme_kraj').val();
     const dvorana = $grupaDiv.find('.dvorana').val();
-    const izvanredan = ($grupaDiv.find('.izvanredan-check-term').is(':checked') ? ('izvanredan') : ('redovan'));
+    const izvanredan = ($grupaDiv.find('.izvanredan-check-grp').is(':checked') ? ('izvanredan') : ('redovan'));
     const comment = $grupaDiv.find('.komentar').val() || '';
     const idGrupe = $grupaDiv.data('grupa-id');
     const idTrener = <?= json_encode($_SESSION['id_user']) ?>;
@@ -336,7 +336,12 @@ $(document).on('click', '.spremi-btn', function () { //trener sprema promjene na
     const id = $(this).data('id');
     const ime = form.find('.ime').val();
     const opis = form.find('.opis').val();
-    const grad= $form.find('.grad').val().trim();
+    const grad= form.find('.grad').val().trim();
+
+    if(grad==='' || ime==='' || opis===''){
+        alert('Unos u sva polja je obavezan.');
+        return;
+    }
 
     $.ajax({
         url: 'ajax/aktivnosti_ajax.php',
@@ -538,9 +543,9 @@ $(document).on('click', '.obrisi-termin-btn', function () { //trener brise termi
         //banana
         const formaHtml = `
             <div class="aktivnost-form">
-                <input type="text" class="ime" placeholder="${ime}" value="${ime}" required>
-                <textarea class="opis" placeholder="${opis}" >${opis}</textarea>
-                <input type="text" placeholder="Grad" class="grad" required>
+                Ime:<input type="text" class="ime" placeholder="${ime}" value="${ime}" required>
+                Opis:<textarea class="opis" placeholder="${opis}" >${opis}</textarea>
+                Grad:<input type="text" placeholder="Grad" class="grad" required>
                 <button class="spremi-btn" data-id="${aktivnostId}">💾 Spremi</button> 
                 <button class="odustani-btn-uredi">❌ Odustani</button>
                 <button class="obrisi-btn" data-id="${aktivnostId}" style="color:red;">🗑️ Obriši</button>

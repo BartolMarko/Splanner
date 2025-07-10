@@ -32,7 +32,7 @@ switch ($action) {
 
         ob_start();
         foreach ($grupe as $g): ?>
-            <div class="grupa" data-grupa-id="<?= $g['id_grupe'] ?>">
+            <div class="grupa kosarcica" data-grupa-id="<?= $g['id_grupe'] ?>">
                 <h4 class="naziv"><?= htmlspecialchars($g['ime']) ?></h4>
                 <p><strong>Spol:</strong> <?= htmlspecialchars($g['spol']) ?></p>
                 <p><strong>Uzrast:</strong> <?= htmlspecialchars($g['uzrast_od']) ?> - <?= htmlspecialchars($g['uzrast_do']) ?> godina</p>
@@ -100,7 +100,7 @@ switch ($action) {
         ob_start(); //NAPORAVEI HANDLANJE ZA DATUM I ZA OICAN DAN U TJEDNU ZA UIS/EDIT AKTIVNOSTI
         foreach ($grupe as $g): 
             $azurniTermini = $ss->getAzurniTerminiZaGrupu($g['id_grupe']);?>
-            <div class="grupa" data-grupa-id="<?= $g['id_grupe'] ?>">
+            <div class="grupa kosarcica" data-grupa-id="<?= $g['id_grupe'] ?>">
             <strong class="ime"><?= htmlspecialchars($g['ime']) ?></strong> : 
             <br>
             <span class="termin"><?php
@@ -115,16 +115,21 @@ switch ($action) {
                     $vrijemeKraj = DateTime::createFromFormat('H:i:s', $termin['vrijeme_kraj_stari']);
                     $satMinutKraj = $vrijemeKraj->format('H:i');
                     $datumFormatiran = (new DateTime($termin['datum_origin']))->format('d-m');
-                    echo '<span class="termin" valueAzur='.$termin['id_azurni_termini'].' valueRed='.$termin['fk_id_redovni_termini'].'>'.$daniTjedna[$dan_u_tj].', '.$datumFormatiran.': '.$satMinut.'-'.$satMinutKraj;
+                    echo '<span class="termin" valueAzur='.$termin['id_azurni_termini'].' valueRed='.$termin['fk_id_redovni_termini'].'>'.$daniTjedna[$dan_u_tj].', '.$datumFormatiran.': '.$satMinut.'-'.$satMinutKraj.', '.$termin['dvorana'];
                     }
                     else{
                         $vrijemePoc = DateTime::createFromFormat('H:i:s', $termin['vrijeme_poc_stari']);
                             $satMinut = $vrijemePoc->format('H:i');
                             $vrijemeKraj = DateTime::createFromFormat('H:i:s', $termin['vrijeme_kraj_stari']);
                             $satMinutKraj = $vrijemeKraj->format('H:i');
-                            echo ' (Izvanredno: '. $daniTjedna[date('l', strtotime($termin['datum_origin']))] .', '. $termin['datum_origin']. ' '.$satMinut.'-'.$satMinutKraj.')';
+                            $datumFormatiran = (new DateTime($termin['datum_origin']))->format('d-m');
+                            echo ' (Izvanredno: '. $daniTjedna[date('l', strtotime($termin['datum_origin']))] .', '. $datumFormatiran. ' '.$satMinut.'-'.$satMinutKraj.', '.$termin['dvorana'].')';
                             $dan_u_tj=date('l', strtotime($termin['datum_origin']));
-                            echo '<br>';
+                            
+                            if($tip==='trener'){
+                                echo '<button class="obrisi-termin-btn" data-id="'.$termin['id_azurni_termini'].'" style="color:white;">🗑️ Obriši</button>';
+                                echo '<br>';
+                            }
                             continue;
                     }
                     if($termin['datum_novi']!==null){
@@ -132,12 +137,13 @@ switch ($action) {
                         $satMinut = $vrijemePoc->format('H:i');
                         $vrijemeKraj = DateTime::createFromFormat('H:i:s', $termin['vrijeme_kraj_novi']);
                         $satMinutKraj = $vrijemeKraj->format('H:i');
-                        echo ' (Izvanredno: '. $daniTjedna[date('l', strtotime($termin['datum_novi']))] .', '. $termin['datum_novi']. ' '.$satMinut.'-'.$satMinutKraj.')';
+                        $datumFormatiran = (new DateTime($termin['datum_origin']))->format('d-m');
+                        echo ' (Izvanredno: '. $daniTjedna[date('l', strtotime($termin['datum_novi']))] .', '. $datumFormatiran. ' '.$satMinut.'-'.$satMinutKraj.', '.$termin['dvorana'].')';
                         $dan_u_tj=date('l', strtotime($termin['datum_novi']));
                     }
                     if ($tip === 'trener'):
                     echo '<button class="uredi-termin-btn">✏️ Uredi termin</button></span>';
-                    echo '<button class="obrisi-termin-btn" data-id="'.$termin['id_azurni_termini'].'" style="color:red;">🗑️ Obriši</button>';
+                    echo '<button class="obrisi-termin-btn" data-id="'.$termin['id_azurni_termini'].'" style="color:white;">🗑️ Obriši</button>';
                     echo '<br>';
                     endif;
                 }
@@ -167,12 +173,11 @@ switch ($action) {
             $vrijeme_kraj = $_POST['vrijeme_kraj'];
             $dvorana = $_POST['dvorana'];
             $comment = $_POST['comment'];
-            if($tip_termina==='redovan'){
+            // if($tip_termina==='redovan'){
             $ss->makeTerminZaGrupu($id,$datum,$trener,$vrijeme_poc,$vrijeme_kraj,$dvorana,$comment,$tip_termina);
-            }
-            else{
-
-            }
+            // }
+            // else{
+            // }
             sendJSONandExit(['success' => true]);
             break;
 
@@ -240,7 +245,7 @@ switch ($action) {
         $id = intval($_POST['id']);
         $ime = trim($_POST['ime']);
         $opis = trim($_POST['description']);
-        $grad = $_POST['spol'];
+        $grad = $_POST['grad'];
         $ss->updateAktivnost($id, $ime, $opis, $grad);
         sendJSONandExit(['success' => true]);
         break;

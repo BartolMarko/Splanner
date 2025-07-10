@@ -4,6 +4,7 @@ class PretragaController extends BaseController
 {
 		public function index() 
 	{
+		$this->registry->template->cssFile = "pretraga_style.css";
 		$this->registry->template->title = 'Pretraga aktivnosti';
 
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {

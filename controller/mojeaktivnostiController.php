@@ -1,9 +1,10 @@
 <?php
 
-class AktivnostiController extends BaseController
+class MojeAktivnostiController extends BaseController
 {
 	public function index() 
 	{
+		$this->registry->template->cssFile = "mojeaktivnosti_style.css";
 		$this->registry->template->title = 'Moje aktivnosti';
 
 		if (!isset($_SESSION['username'])) { //nisi ulobiran, baca te na login
