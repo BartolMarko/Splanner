@@ -854,7 +854,7 @@ class SplannerService
 	{
 		$db = DB::getConnection();
 
-		$q = "SELECT * FROM splanner_grupe g
+		$q = "SELECT * , g.ime AS grupa_ime, a.ime AS aktivnost_ime FROM splanner_grupe g
 			JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
 			WHERE 1=1";
 
@@ -871,7 +871,7 @@ class SplannerService
 		}
 
 		if ($spol !== 'oboje') {
-			$q .= " AND g.spol = :spol";
+			$q .= " AND (g.spol = :spol OR g.spol = 'oboje')";
 			$params[':spol'] = $spol;
 		}
 

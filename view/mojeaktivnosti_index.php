@@ -55,6 +55,7 @@
 <!-- tu mi je javascript za sve -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    let jel_otvorena_grupa=false;
 $(document).ready(function() {
     //TODO!!!!!: DODATI GUMB TRENERU ZA STVARANJE NOVE AKTIVNOSTI
     // roditelj odabrao dijete (ili sebe)
@@ -105,9 +106,10 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.dodaj-grupu-btn', function () {
+    if(jel_otvorena_grupa) return;
     const aktivnostId = $(this).data('aktivnost-id');
     const $grupeDiv = $('#grupe_' + aktivnostId);
-
+    jel_otvorena_grupa=true;
     const novaGrupaHtml = `
         <div class="grupa nova-grupa-form">
             <label>Ime grupe: <br><input type="text" class="ime-grupe" required></label><br>
@@ -132,10 +134,12 @@ $(document).ready(function() {
 
 
     $(document).on('click', '.odustani-grupa-btn', function () {
+    jel_otvorena_grupa=false;
     $(this).closest('.nova-grupa-form').remove();
 });
 
 $(document).on('click', '.spremi-grupu-btn', function () {
+    jel_otvorena_grupa=false;
     const $form = $(this).closest('.nova-grupa-form');
     const aktivnostId = $(this).data('aktivnost-id');
     const imeGrupe = $form.find('.ime-grupe').val().trim();
