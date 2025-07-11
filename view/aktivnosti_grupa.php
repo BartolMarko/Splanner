@@ -89,6 +89,7 @@
     <h3 class="toggle-header">Objavi novu obavijest</h3>
     <div class="toggle-content">
         <form method="post" action="<?= __SITE_URL . '/index.php?rt=aktivnosti/grupa&id=' . $grupa_detalji['id_grupe'] ?>" class="forma-obavijest">
+            <input type="hidden" name="id_grupe" value="<?php echo $grupa_detalji['id_grupe']; ?>">
             <label for="comment">Tekst obavijesti:</label><br>
             <textarea name="comment" id="comment" rows="4" required></textarea><br>
             <button type="submit">Objavi obavijest</button>
