@@ -644,10 +644,10 @@ function escapeHtml(text) {
             data: {
                 action: 'ispisi_se',
                 aktivnost_id: aktivnostId,
-                child_id: $('#dijete_select').val() || $_SESSION['id_user']
+                child_id: $('#dijete_select').val() || <?= json_encode($_SESSION['id_user']) ?>
             },
             success: function(dobiveniPod) {
-                getAktivnostiDjeteta($('#dijete_select').val() || $_SESSION['id_user']); //ili svoje aktivnosti ili odabranog djeteta
+                getAktivnostiDjeteta($('#dijete_select').val() || <?= json_encode($_SESSION['id_user']) ?>); //ili svoje aktivnosti ili odabranog djeteta
 
             },
             error: function() {
