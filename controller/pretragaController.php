@@ -9,11 +9,6 @@ class PretragaController extends BaseController
 
 		$service = new SplannerService();
 
-		// Ako je reset filtera
-		if (isset($_GET['reset'])) { //ovo mi ne treba!!!!!!!!!!!
-			unset($_SESSION['zadnja_pretraga']);
-		}
-
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			// Nova pretraga
 			$ime = trim($_POST['ime'] ?? '');

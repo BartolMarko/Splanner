@@ -605,6 +605,7 @@ $(document).on('click', '.obrisi-termin-btn', function () { //trener brise termi
                 });
                 
                 $('.ispisi-btn').off('click').on('click', function() {
+                    console.log('donji');
                     let grupaId = $(this).data('id');
                     ispisiSe(grupaId);
                 });

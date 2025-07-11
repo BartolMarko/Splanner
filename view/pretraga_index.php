@@ -2,8 +2,8 @@
 
 <form class="pretraga" method="POST" action="<?php echo __SITE_URL; ?>/index.php?rt=pretraga">
 
-    <label>Naziv grupe:</label><br>
-    <input type="text" name="ime" placeholder="Unesite sport koji Vas zanima">
+    <label>Naziv aktivnosti:</label><br>
+    <input type="text" name="ime" placeholder="Unesite aktivnost koja Vas zanima">
     <br>
     <label>Grad:</label><br>
     <input type="text" name="grad" placeholder="Unesite ime grada">
