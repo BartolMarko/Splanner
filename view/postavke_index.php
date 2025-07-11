@@ -62,6 +62,12 @@
         <label>Korisničko ime:</label><br>
         <input type="text" name="username" required><br><br>
 
+        <label>Ime:</label><br>
+        <input type="text" name="ime" required><br><br>
+
+        <label>Prezime:</label><br>
+        <input type="text" name="prezime" required><br><br>
+
         <label>OIB:</label><br>
         <input type="text" name="oib" required><br><br>
 

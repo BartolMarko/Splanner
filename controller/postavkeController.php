@@ -198,7 +198,9 @@ class PostavkeController extends BaseController
             exit();
         }
 
-        $username = trim($_POST['username']);
+        $username = trim($_POST['username'] ?? '');
+        $ime = trim($_POST['ime'] ?? '');
+        $prezime = trim($_POST['prezime'] ?? '');
         $oib = trim($_POST['oib']);
         $password = $_POST['password'];
         $password_again = $_POST['password_again'] ?? '';
@@ -206,7 +208,8 @@ class PostavkeController extends BaseController
         $datum = $_POST['datum'] ?? '';
 
         // Validacija polja
-        if ($username === '' || $oib === '' || $password === '' || $password_again === '' || $spol === '' || $datum === '') {
+        if ($username === '' || $oib === '' || $password === '' || $password_again === '' || $spol === '' || $datum === '' ||
+            $ime === '' || $prezime === '') {
             $this->registry->template->poruka = 'Sva polja su obavezna.';
             $this->registry->template->tip_poruke = 'greska';
             $this->index();
@@ -243,6 +246,8 @@ class PostavkeController extends BaseController
         $ss->dodajDijete(
             $_SESSION['id_user'],
             $username,
+            $ime,
+            $prezime,
             $oib,
             $email,
             $password,
