@@ -5,7 +5,7 @@
 <?php if ($tip === 'roditelj'): ?>
     <label for="dijete_select">Prikaz aktivnosti po članovima obitelji:</label>
     <select id="dijete_select">
-        <option value="<?= $_SESSION['id_user'] ?>">Moje aktivnosti</option>
+        <option value="<?= $_SESSION['id_user'] ?>" selected>Moje aktivnosti</option>
         <?php foreach ($djeca as $d): ?>
             <option value="<?= $d['id_korisnici'] ?>"><?= htmlspecialchars($d['username']) ?></option>
         <?php endforeach; ?>
@@ -41,7 +41,7 @@
                 <p>Cijena: <?= htmlspecialchars($a['cijena']) ?></p>
                 <p>Dob članova: <?= htmlspecialchars($a['uzrast_od']) ?> - <?= htmlspecialchars($a['uzrast_do']) ?></p>
                 <?php if ($tip === 'roditelj'): ?>
-                <button class="ispisi-btn" data-id="<?= $detalji_akt[$i]['id_aktivnosti'] ?>">Ispis</button>
+                <button class="ispisi-btn" data-id="<?= $a['id_grupe'] ?>">Ispis</button>
                 <?php endif; ?>
             <?php endif; ?>
         </div>
@@ -690,10 +690,11 @@ function escapeHtml(text) {
             data: {
                 action: 'ispisi_se',
                 aktivnost_id: aktivnostId,
-                child_id: $('#dijete_select').val() || <?= json_encode($_SESSION['id_user']) ?>
+                child_id: $('#dijete_select').val()
             },
             success: function(dobiveniPod) {
-                getAktivnostiDjeteta($('#dijete_select').val() || <?= json_encode($_SESSION['id_user']) ?>); //ili svoje aktivnosti ili odabranog djeteta
+
+                getAktivnostiDjeteta($('#dijete_select').val()); //ili svoje aktivnosti ili odabranog djeteta
 
             },
             error: function() {
