@@ -4,12 +4,11 @@
 
 <?php if (!empty($rezultati)): ?>
 	<?php foreach ($rezultati as $rez): ?>
-		<div class="rezpret kosarica">
+		<div class="rezpret kosarica" onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $rez['id_grupe']; ?>'">
 			<strong><?= htmlspecialchars($rez['ime']) ?></strong><br>
 			Cijena: <?= htmlspecialchars($rez['cijena']) ?> EUR<br>
 			Grad: <?= htmlspecialchars($rez['grad']) ?>
 			<br>
-			<a href="<?= __SITE_URL ?>/index.php?rt=aktivnosti/grupa&id=<?= htmlspecialchars($rez['id_grupe']) ?>&from=pretraga">Detalji</a> <!-- promjena -->
 		</div>
 	<?php endforeach; ?>
 <?php else: ?>

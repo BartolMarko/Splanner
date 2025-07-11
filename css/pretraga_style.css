@@ -24,3 +24,53 @@ button {
 button:hover {
     background-color: #216bd6;
 }
+
+  #pretraga {
+    background-color: var(--color-lightest);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    margin: 40px auto;
+    font-family: sans-serif;
+  }
+  
+  #pretraga label {
+    font-weight: bold;
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+  }
+  
+  .pretraga input[type="text"],
+  .pretraga input[type="date"],
+  .pretraga input[type="password"],
+  .pretraga input[type="number"],
+  .pretraga select {
+    width: 50%;
+    height: 40px;
+    font-size: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid var(--color-dark);
+    margin: 10px 0;
+    box-sizing: border-box;
+  }
+  
+  .pretraga button[type="submit"] {
+    background-color: var(--color-main);
+    color: var(--color-light);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    width: 50%;
+    transition: background-color 0.3s ease;
+  }
+  
+  .pretraga button[type="submit"]:hover {
+    background-color: var(--color-dark);
+  }
+  

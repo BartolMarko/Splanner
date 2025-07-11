@@ -1,5 +1,13 @@
+:root {
+    --color-darkest: #01013f;      /* najtamnija */
+    --color-dark: #100263;         /* tamna */
+    --color-main: #0605df;         /* glavna */
+    --color-light: #dbdbfd;        /* svijetla */
+    --color-lightest: #f0f0fa;
+}
+
 #kosarica, .kosarica {
-    background-color: #ffffff;
+    background-color: var(--color-lightest);
     padding: 20px 25px;
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -7,35 +15,93 @@
 }
 
 button {
-    background-color: #0605df;
-    color: white;
+    background-color: var(--color-main);
+    color: var(--color-light);
     padding: 8px 16px;
     border: none;
     border-radius: 8px;
     margin: 4px 4px 4px 4px;
     cursor: pointer;
     font-size: 14px;
+    margin-bottom: 10px;
 }
 
+.ispisi-btn {
+    background-color: red;
+    color: var(--color-light);
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    margin: 4px 4px 4px 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 10px;
+    float: right;
+}
+
+.ispisi-btn:hover {
+    background-color: darkred;
+}
+
+
 #nova-aktivnost-btn{
-    margin-bottom: 14px;
+    margin-bottom: 30px;
 }
 
 button:hover {
-    background-color: #216bd6;
+    background-color: var(--color-dark);
 }
 
 h3 {
     margin-top: 0px;
 }
 
+h4 {
+    color: var(--color-darkest);
+    margin-bottom: 0.6rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
 
 .kosarcica{
-    background-color: #ffffff;;
+    background-color: var(--color-lightest);;
     border-radius: 8px;
-    border: 2px solid #0605df;
+    border: 2px solid var(--color-dark);
     padding: 20px 25px;
+    margin-top: 20px;
     border-radius: 12px;
-    
-    margin-bottom: 30px;
 }
+
+select {
+    width: 50%;
+    height: 40px;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid var(--color-dark);
+    margin-bottom: 20px;
+    margin-top: 10px;
+    box-sizing: border-box;
+    background-color: var(--color-lightest);;
+    color: var(--color-darkest);
+  }
+
+  input[type="text"],
+  textarea,
+  input[type="password"],
+  input[type="email"],
+  input[type="time"],
+  input[type="number"] {
+    width: 50%;
+    padding: 0.6rem;
+    margin: 0.5rem 0 1rem 0;
+    border: 2px solid var(--color-dark);
+    border-radius: 0.4rem;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+
+
+  
+  

@@ -3,9 +3,9 @@
 <!-- <h2>Moje aktivnosti</h2> -->
 
 <?php if ($tip === 'roditelj'): ?>
-    <label for="dijete_select">Prikaži aktivnosti za:</label>
+    <label for="dijete_select">Prikaz aktivnosti po članovima obitelji:</label>
     <select id="dijete_select">
-        <option value="<?= $_SESSION['id_user'] ?>">Sebe</option>
+        <option value="<?= $_SESSION['id_user'] ?>">Moje aktivnosti</option>
         <?php foreach ($djeca as $d): ?>
             <option value="<?= $d['id_korisnici'] ?>"><?= htmlspecialchars($d['username']) ?></option>
         <?php endforeach; ?>
@@ -17,12 +17,16 @@
 <div id="aktivnosti_container">
     <?php $i=0;?>
     <?php foreach ($aktivnosti as $a): ?>
-        <div class="aktivnost kosarica" data-aktivnost-id="<?php if($tip==='trener') echo $a['id_aktivnosti'];
-        else echo $a['id_grupe']; ?>">
+        <div class="aktivnost kosarica" 
+        data-aktivnost-id="<?php echo ($tip === 'trener') ? $a['id_aktivnosti'] : $a['id_grupe']; ?>" 
+        <?php if ($tip !== 'trener'): ?>
+            onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $a['id_grupe']; ?>'"
+        <?php endif; ?>>
         <?php if ($tip === 'trener'): ?>
             <h3><?= htmlspecialchars($a['ime']) ?></h3>
             <p><?= htmlspecialchars($a['description']) ?></p>
             <p>Grad: <?= htmlspecialchars($a['grad']) ?></p>
+            <br>
             <button class="uredi-btn" data-id="<?= $a['id_aktivnosti'] ?>">Uredi aktivnost</button>
             <button class="toggle-grupe-btn" data-id="<?= $a['id_aktivnosti'] ?>">➤ Prikaži grupe</button>
             <button class="dodaj-grupu-btn" data-aktivnost-id="<?= $a['id_aktivnosti'] ?>">➕ Nova grupa</button>
@@ -31,7 +35,8 @@
             </div>
             <?php else: ?>
                 <h3><?php echo htmlspecialchars($detalji_akt[$i]['ime']) .': '. htmlspecialchars($a['ime']); ?></h3>
-                <p>Opis: <?= htmlspecialchars($detalji_akt[$i]['description']) ?></p>
+                <p><?= htmlspecialchars($detalji_akt[$i]['description']) ?></p>
+                <br>
                 <p>Grad: <?= htmlspecialchars($detalji_akt[$i]['grad']) ?></p>
                 <p>Cijena: <?= htmlspecialchars($a['cijena']) ?></p>
                 <p>Dob članova: <?= htmlspecialchars($a['uzrast_od']) ?> - <?= htmlspecialchars($a['uzrast_do']) ?></p>
@@ -81,7 +86,7 @@ $(document).ready(function() {
         <div class="aktivnost-form nova-aktivnost-form">
             <input type="text" placeholder="Ime aktivnosti" class="ime" required>
             <textarea placeholder="Opis" class="opis"></textarea>
-            <input type="text" placeholder="Grad" class="grad" required>
+            <input type="text" placeholder="Grad" class="grad" required><br>
             <button class="spremi-novu-btn">✅ Spremi</button>
             <button class="odustani-btn">❌ Odustani</button>
         </div>
@@ -105,17 +110,18 @@ $(document).ready(function() {
 
     const novaGrupaHtml = `
         <div class="grupa nova-grupa-form">
-            <label>Ime grupe: <input type="text" class="ime-grupe" required></label><br>
-            <label>Spol grupe:
+            <label>Ime grupe: <br><input type="text" class="ime-grupe" required></label><br>
+            <label>Spol grupe:<br>
             <select class="spol" name="spol" required>
-                <option value="oboje">Oboje</option>
+                <option value="" disabled selected>Odaberi</option>
+                <option value="oboje">Mješovito</option>
                 <option value="žensko">Ženski</option>
                 <option value="muško">Muški</option>
             </select>
             </label><br>
-            <label>Minimalna dob: <input type="number" class="dob-min"></label><br>
-            <label>Maksimalna dob: <input type="number" class="dob-max"></label><br>
-            Cijena:<input type="number" class="cijena" step="0.01">
+            <label>Minimalna dob: <br><input type="number" class="dob-min"></label><br>
+            <label>Maksimalna dob: <br><input type="number" class="dob-max"></label><br>
+            Cijena:<br><input type="number" class="cijena" step="0.01"><br>
             <button class="spremi-grupu-btn" data-aktivnost-id="${aktivnostId}">💾 Spremi</button>
             <button class="odustani-grupa-btn">❌ Odustani</button>
         </div>
@@ -370,6 +376,7 @@ $(document).on('click', '.izvanredan-check-term', function () {
         // IZBOR DANA  U TJ
         $label.html(`Dan u tjednu: 
             <select class="datum">
+                <option value="" disabled selected>Odaberi</option>
                 <option value="Monday">Ponedjeljak</option>
                 <option value="Tuesday">Utorak</option>
                 <option value="Wednesday">Srijeda</option>
@@ -394,6 +401,7 @@ $(document).on('click', '.izvanredan-check-grp', function () {
         // IZBOR DANA U TJ
         $label.html(`Dan u tjednu: 
             <select class="datum">
+                <option value="" disabled selected>Odaberi</option>
                 <option value="Monday">Ponedjeljak</option>
                 <option value="Tuesday">Utorak</option>
                 <option value="Wednesday">Srijeda</option>
@@ -411,7 +419,8 @@ $(document).on('click', '.dodaj-termin-btn', function () {
     $termDiv.data('originalHtml', $termDiv.html());
     }
     const formHtml = `
-    <label class="datum-label">Dan u tjednu: <select class="datum">
+    <label class="datum-label">Dan u tjednu: <br><select class="datum">
+                <option value="" disabled selected>Odaberi</option>
                 <option value="Monday">Ponedjeljak</option>
                 <option value="Tuesday">Utorak</option>
                 <option value="Wednesday">Srijeda</option>
@@ -420,9 +429,9 @@ $(document).on('click', '.dodaj-termin-btn', function () {
                 <option value="Saturday">Subota</option>
                 <option value="Sunday">Nedjelja</option>
             </select></label><br>
-    <label>Vrijeme početka: <input type="time" class="vrijeme_poc"></label><br>
-    <label>Trajanje (u min): <input type="time" class="vrijeme_kraj"></label><br>
-    <label>Dvorana: <input type="text" class="dvorana"></label><br>
+    <label>Vrijeme početka: <br><input type="time" class="vrijeme_poc"></label><br>
+    <label>Vrijeme završetka: <br><input type="time" class="vrijeme_kraj"></label><br>
+    <label>Dvorana: <br><input type="text" class="dvorana"></label><br>
     <button class="spremi-novi-termin-btn">💾 Spremi</button>
     <button class="odustani-termin-btn-grp">❌ Odustani</button>
 `;
@@ -438,7 +447,8 @@ $(document).on('click', '.uredi-termin-btn', function () {
     $grupaDiv.data('originalHtml', $grupaDiv.html()); // spremam stari prikaz
     }
     const formHtml = `
-    <label class="datum-label">Dan u tjednu: <select class="datum">
+    <label class="datum-label">Dan u tjednu: <br><select class="datum">
+                <option value="" disabled selected>Odaberi</option>
                 <option value="Monday">Ponedjeljak</option>
                 <option value="Tuesday">Utorak</option>
                 <option value="Wednesday">Srijeda</option>
@@ -447,9 +457,9 @@ $(document).on('click', '.uredi-termin-btn', function () {
                 <option value="Saturday">Subota</option>
                 <option value="Sunday">Nedjelja</option>
             </select></label><br>
-    <label>Vrijeme početka: <input type="time" class="vrijeme_poc"></label><br>
-    <label>Trajanje (u min): <input type="time" class="vrijeme_kraj"></label><br>
-    <label>Dvorana: <input type="text" class="dvorana"></label><br>
+    <label>Vrijeme početka: <br><input type="time" class="vrijeme_poc"></label><br>
+    <label>Vrijeme završetka: <br><input type="time" class="vrijeme_kraj"></label><br>
+    <label>Dvorana: <br><input type="text" class="dvorana"></label><br>
     <label><input type="checkbox" class="izvanredan-check-term"> Izvanredan</label><br>
     <button class="spremi-termin-btn">💾 Spremi</button>
     <button class="odustani-termin-btn-term">❌ Odustani</button>
@@ -528,9 +538,10 @@ $(document).on('click', '.obrisi-termin-btn', function () { //trener brise termi
                     const aktivnost = response.detalji_akt[index];
                     
                     const aktivnostHtml = `
-                        <div class="aktivnost kosarica" data-aktivnost-id="${grupa.id_grupe}">
+                        <div class="aktivnost kosarica" data-aktivnost-id="${grupa.id_grupe}"
+                        onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=${grupa.id_grupe}'">
                             <h3>${escapeHtml(aktivnost.ime)}: ${escapeHtml(grupa.ime)}</h3>
-                            <p>Opis: ${escapeHtml(aktivnost.description)}</p>
+                            <p>${escapeHtml(aktivnost.description)}</p><br>
                             <p>Grad: ${escapeHtml(aktivnost.grad)}</p>
                             <p>Cijena: ${escapeHtml(grupa.cijena)}</p>
                             <p>Dob članova: ${escapeHtml(grupa.uzrast_od)} - ${escapeHtml(grupa.uzrast_do)}</p>
@@ -576,9 +587,9 @@ function escapeHtml(text) {
         //banana
         const formaHtml = `
             <div class="aktivnost-form">
-                Ime:<input type="text" class="ime" placeholder="${ime}" value="${ime}" required>
-                Opis:<textarea class="opis" placeholder="${opis}" >${opis}</textarea>
-                Grad:<input type="text" placeholder="Grad" class="grad" required>
+                <input type="text" class="ime" placeholder="Ime" value="${ime}" required>
+                <textarea class="opis" placeholder="Opis" >${opis}</textarea>
+                <input type="text" placeholder="Grad" class="grad" required><br>
                 <button class="spremi-btn" data-id="${aktivnostId}">💾 Spremi</button> 
                 <button class="odustani-btn-uredi">❌ Odustani</button>
                 <button class="obrisi-btn" data-id="${aktivnostId}" style="color:red;">🗑️ Obriši</button>

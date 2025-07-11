@@ -73,7 +73,7 @@ switch ($action) {
         foreach ($grupe as $g): 
             $azurniTermini = $ss->getAzurniTerminiZaGrupu($g['id_grupe']);?>
             <div class="grupa kosarcica" data-grupa-id="<?= $g['id_grupe'] ?>">
-            <strong class="ime"><?= htmlspecialchars($g['ime']) ?></strong> : 
+            <h4 class="ime" onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $g['id_grupe']; ?>'"><?= htmlspecialchars($g['ime']) ?></h4>
             <br>
             <span class="termin"><?php
             foreach($azurniTermini as $termin):
