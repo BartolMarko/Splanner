@@ -15,11 +15,9 @@
         <option value="žensko">Žensko</option>
     </select>
 
-    <label>Dob od:</label>
-    <input type="number" name="uzrast_od" min="0">
-
-    <label>Dob do:</label>
-    <input type="number" name="uzrast_do" min="0">
+    <!-- promjena -->
+    <label>Uzrast:</label>
+    <input type="number" name="uzrast" min="0" max="120">
 
     <button type="submit">🔍 Pretraži</button>
 

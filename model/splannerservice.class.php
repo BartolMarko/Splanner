@@ -850,57 +850,42 @@ class SplannerService
 	}
 
 	// Nikola upiti
-	public function searchGrupe($ime, $grad, $spol, $uzod, $uzdo){
-	try
+		public function searchGrupe($ime, $grad, $spol, $mojUzrast) // <--- promjena
 	{
 		$db = DB::getConnection();
 
-		$query = 'SELECT g.*, a.grad
-		          FROM splanner_grupe g
-		          JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
-		          WHERE 1=1';
+		$q = "SELECT * FROM splanner_grupe g
+			JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
+			WHERE 1=1";
 
 		$params = [];
 
-		if ($ime !== '') //dodajem uvjete ako su uneseni u pretrazivanju
-		{
-			$query .= ' AND g.ime LIKE :ime';
-			$params['ime'] = '%' . $ime . '%';
+		if ($ime !== '') {
+			$q .= " AND a.ime LIKE :ime";
+			$params[':ime'] = "%$ime%";
 		}
 
-		if ($grad !== '')
-		{
-			$query .= ' AND a.grad LIKE :grad';
-			$params['grad'] = '%' . $grad . '%';
+		if ($grad !== '') {
+			$q .= " AND a.grad LIKE :grad";
+			$params[':grad'] = "%$grad%";
 		}
 
-		if ($spol !== '' && $spol !== 'oboje') {
-			$query .= ' AND g.spol = :spol';
-			$params['spol'] = $spol;
+		if ($spol !== 'oboje') {
+			$q .= " AND g.spol = :spol";
+			$params[':spol'] = $spol;
 		}
 
-		if ($uzod>0)
-		{
-			$query .= ' AND g.uzrast_od >= :uzod';
-			$params['uzod'] = $uzod;
+		if ($mojUzrast !== null) {
+			$q .= " AND g.uzrast_od <= :uzrast AND g.uzrast_do >= :uzrast";
+			$params[':uzrast'] = $mojUzrast;
 		}
 
-		if ($uzdo<99)
-		{
-			$query .= ' AND g.uzrast_do <= :uzdo';
-			$params['uzdo'] = $uzdo;
-		}
-
-		$st = $db->prepare($query);
+		$st = $db->prepare($q);
 		$st->execute($params);
 
 		return $st->fetchAll();
 	}
-	catch (PDOException $e)
-	{
-		exit('PDO error [searchGrupe]: ' . $e->getMessage());
-	}
-}
+
 
 	public function getAktZaGrupu($idAkt){
 		try

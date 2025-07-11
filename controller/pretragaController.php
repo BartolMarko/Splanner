@@ -2,27 +2,63 @@
 
 class PretragaController extends BaseController
 {
-		public function index() 
+	public function index() 
 	{
 		$this->registry->template->cssFile = "pretraga_style.css";
 		$this->registry->template->title = 'Pretraga aktivnosti';
 
-		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-				$ime = trim($_POST['ime'] ?? '');
-				$grad = trim($_POST['grad'] ?? '');
-				$spol = trim($_POST['spol'] ?? 'oboje');
-				$uzod = is_numeric($_POST['uzrast_od']) ? (int)$_POST['uzrast_od'] : 0;
-				$uzdo = is_numeric($_POST['uzrast_do']) ? (int)$_POST['uzrast_do'] : 99;
+		$service = new SplannerService();
 
-			$service = new SplannerService();
-			$rezultati = $service->searchGrupe($ime,$grad,$spol,$uzod,$uzdo);
-			$this->registry->template->rezultati = $rezultati;
-			$this->registry->template->show('pretraga_rezultati');
+		// Ako je reset filtera
+		if (isset($_GET['reset'])) {
+			unset($_SESSION['zadnja_pretraga']);
 		}
-		else {
+
+		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+			// Nova pretraga
+			$ime = trim($_POST['ime'] ?? '');
+			$grad = trim($_POST['grad'] ?? '');
+			$spol = trim($_POST['spol'] ?? 'oboje');
+			$mojUzrast = is_numeric($_POST['uzrast']) ? (int)$_POST['uzrast'] : null;
+
+			// Spremi kriterije u sesiju
+			$_SESSION['zadnja_pretraga'] = [
+				'ime' => $ime,
+				'grad' => $grad,
+				'spol' => $spol,
+				'uzrast' => $mojUzrast
+			];
+
+			$rezultati = $service->searchGrupe($ime, $grad, $spol, $mojUzrast);
+
+			$this->registry->template->rezultati = $rezultati;
+			$this->registry->template->kriteriji = $_SESSION['zadnja_pretraga'];
+			$this->registry->template->show('pretraga_rezultati');
+
+		} elseif (isset($_GET['from']) && $_GET['from'] === 'pretraga' && isset($_SESSION['zadnja_pretraga'])) {
+			// Ako je Natrag iz detalja
+			$k = $_SESSION['zadnja_pretraga'];
+
+			$rezultati = $service->searchGrupe(
+				$k['ime'],
+				$k['grad'],
+				$k['spol'],
+				$k['uzrast']
+			);
+
+			$this->registry->template->rezultati = $rezultati;
+			$this->registry->template->kriteriji = $k;
+			$this->registry->template->show('pretraga_rezultati');
+
+		} else {
+			// Prazna forma
+			unset($_SESSION['zadnja_pretraga']);
 			$this->registry->template->show('pretraga_index');
 		}
 	}
+
+
+
 }
 
 ?>

@@ -1,5 +1,13 @@
 <?php require_once __SITE_PATH . '/view/_header.php'; ?>
 
+<!-- promjena za funkcionalnost natrag -->
+<?php
+if (isset($_GET['from']) && $_GET['from'] === 'pretraga') {
+    $backUrl = __SITE_URL . '/index.php?rt=pretraga&from=pretraga';
+} else {
+    $backUrl = __SITE_URL . '/index.php?rt=aktivnosti';
+}
+?>
 
 <div id="dodatniDetaljiAktivnost">
     <ul>
@@ -101,6 +109,9 @@
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
+
+<a href="<?= htmlspecialchars($backUrl) ?>">↩ Natrag </a> <!-- promjena -->
+
 
 <script>
 $(document).ready(function() {

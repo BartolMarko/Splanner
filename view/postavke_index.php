@@ -11,7 +11,7 @@
 <?php endif; ?>
 
 <!-- SVE NASLOVE STAVLJAMO S KLASOM toggle-header -->
-<h3 class="toggle-header">Promjena korisničkog imena</h3>
+<h3 class="toggle-header">Promjena korisničkog imena </h3>
 <div class="toggle-content">
     <form method="post" action="<?php echo __SITE_URL; ?>/index.php?rt=postavke/promjenaUsername">
         <label>Novo korisničko ime:</label><br>

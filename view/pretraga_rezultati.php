@@ -9,7 +9,7 @@
 			Cijena: <?= htmlspecialchars($rez['cijena']) ?> EUR<br>
 			Grad: <?= htmlspecialchars($rez['grad']) ?>
 			<br>
-			<a href="<?= __SITE_URL ?>/index.php?rt=aktivnosti/grupa&id=<?= htmlspecialchars($rez['id_grupe']) ?>">Detalji</a>
+			<a href="<?= __SITE_URL ?>/index.php?rt=aktivnosti/grupa&id=<?= htmlspecialchars($rez['id_grupe']) ?>&from=pretraga">Detalji</a> <!-- promjena -->
 		</div>
 	<?php endforeach; ?>
 <?php else: ?>
