@@ -18,7 +18,7 @@ class PretragaController extends BaseController
 			// Nova pretraga
 			$ime = trim($_POST['ime'] ?? '');
 			$grad = trim($_POST['grad'] ?? '');
-			$spol = trim($_POST['spol'] ?? 'oboje');
+			$spol = trim($_POST['spol'] ?? 'mješovito');
 			$mojUzrast = is_numeric($_POST['uzrast']) ? (int)$_POST['uzrast'] : null;
 
 			// Spremi kriterije u sesiju

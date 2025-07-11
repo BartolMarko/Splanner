@@ -878,8 +878,8 @@ class SplannerService
 			$params[':grad'] = "%$grad%";
 		}
 
-		if ($spol !== 'oboje') {
-			$q .= " AND (g.spol = :spol OR g.spol = 'oboje')";
+		if ($spol !== 'mješovito') {
+			$q .= " AND (g.spol = :spol OR g.spol = 'mješovito')";
 			$params[':spol'] = $spol;
 		}
 

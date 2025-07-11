@@ -116,7 +116,7 @@ $(document).ready(function() {
             <label>Spol grupe:<br>
             <select class="spol" name="spol" required>
                 <option value="" disabled selected>Odaberi</option>
-                <option value="oboje">Mješovito</option>
+                <option value="mješovito">Mješovito</option>
                 <option value="žensko">Ženski</option>
                 <option value="muško">Muški</option>
             </select>

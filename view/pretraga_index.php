@@ -11,7 +11,7 @@
     <label>Spol:</label><br>
     <select name="spol">
         <option value="" disabled selected>Odaberi</option>
-        <option value="oboje">Mješovito</option>
+        <option value="mješovito">Mješovito</option>
         <option value="muško">Muško</option>
         <option value="žensko">Žensko</option>
     </select>
