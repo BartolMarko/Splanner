@@ -53,7 +53,7 @@
 
 
 <!-- tu mi je javascript za sve -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
 <script>
     let jel_otvorena_grupa=false;
 $(document).ready(function() {
@@ -417,6 +417,54 @@ $(document).on('click', '.izvanredan-check-grp', function () {
     }
 });
 
+$(document).on('click', '.objavi-obavijest-btn', function () {
+    const $termDiv = $(this).closest('.grupa');
+    const idGrupe = $termDiv.data('grupa-id');
+    if (!$termDiv.data('originalHtml')) {
+        $termDiv.data('originalHtml', $termDiv.html());
+    }
+    const formHtml = `
+        <label for="comment">Tekst obavijesti:</label><br>
+        <textarea name="comment" rows="4" required></textarea><br>
+        <button type="submit" class="objavi-obavijest-ajax-btn">Objavi obavijest</button>
+        <button class="odustani-termin-btn-grp">❌ Odustani</button>
+    `;
+    $termDiv.html(formHtml);
+});
+
+$(document).on('click', '.objavi-obavijest-ajax-btn', function () {
+    const $grupaDiv = $(this).closest('.grupa');
+    const idGrupe = $grupaDiv.data('grupa-id');
+    const comment = $grupaDiv.find('textarea[name="comment"]').val().trim();
+
+    if (!comment) {
+        alert("Obavijest ne može biti prazna.");
+        return;
+    }
+
+    $.ajax({
+        url: 'ajax/aktivnosti_ajax.php',
+        method: 'POST',
+        data: {
+            action: 'dodaj_obavijest',
+            id_grupe: idGrupe,
+            comment: comment
+        },
+        success: function (response) {
+            console.log(response);
+            if (response.success) {
+                alert("Obavijest uspješno poslana.");
+                toggleGrupe($grupaDiv.closest('.aktivnost').data('aktivnost-id')); // TODO
+            } else {
+                alert("Greška: " + (response.error || "Nepoznata greška."));
+            }
+        },
+        error: function () {
+            alert("Greška pri slanju obavijesti.");
+        }
+    });
+});
+
 $(document).on('click', '.dodaj-termin-btn', function () {
     const $termDiv = $(this).closest('.grupa');
     if (!$termDiv.data('originalHtml')) {
@@ -441,10 +489,8 @@ $(document).on('click', '.dodaj-termin-btn', function () {
     <button class="odustani-termin-btn-grp">❌ Odustani</button>
 `;
 
-    $ // spremam stari prikaz
     $termDiv.html(formHtml);
 });
-
 
 $(document).on('click', '.uredi-termin-btn', function () {
     const $grupaDiv = $(this).closest('.termin');

@@ -61,6 +61,11 @@ h4 {
     margin-bottom: 0.6rem;
     font-size: 1.2rem;
     font-weight: 600;
+    cursor: pointer;
+}
+
+.ime-grupe-link:hover {
+    color: var(--color-main);
 }
 
 .kosarcica{
@@ -101,22 +106,5 @@ select {
     font-size: 1rem;
     box-sizing: border-box;
   }
-
-
-.naslov-hover3:hover h3{
-  font-size: 30px;
-  font-weight: 600;
-  margin-top: 30px;
-  margin-bottom: 25px; /* razmak ispod naslova */
-  font-family: 'Poppins', sans-serif;
-  color: var(--color-main);
-}
-
-.naslov-hover4:hover h4{
-  color: var(--color-main);
-    margin-bottom: 0.6rem;
-    font-size: 1.2rem;
-    font-weight: 600;
-}
   
   

@@ -1,6 +1,8 @@
 <?php
 
 require_once __DIR__ . '/../model/splannerservice.class.php';
+require_once __DIR__ . '/../controller/utils.php';
+
 session_start();
 
 function sendJSONandExit($message)
@@ -73,7 +75,7 @@ switch ($action) {
         foreach ($grupe as $g): 
             $azurniTermini = $ss->getAzurniTerminiZaGrupu($g['id_grupe']);?>
             <div class="grupa kosarcica" data-grupa-id="<?= $g['id_grupe'] ?>">
-            <h4 class="ime" onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $g['id_grupe']; ?>'"><?= htmlspecialchars($g['ime']) ?></h4>
+            <h4 class="ime ime-grupe-link" onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $g['id_grupe']; ?>'"><?= htmlspecialchars($g['ime']) ?></h4>
             <br>
             <span class="termin"><?php
             foreach($azurniTermini as $termin):
@@ -123,6 +125,7 @@ switch ($action) {
             ?></span> 
             <?php if ($tip === 'trener'): ?>
                 <button class="dodaj-termin-btn">✏️ Dodaj termin</button>
+                <button class="objavi-obavijest-btn">Dodaj obavijest</button>
             <?php endif; ?>
             </div>
         <?php endforeach;
@@ -240,6 +243,16 @@ switch ($action) {
         if ($tip !== 'trener') sendErrorAndExit("Nemate pristup ovome.");
         $id = intval($_POST['id']);
         $ss->deleteTermin($id); 
+        sendJSONandExit(['success' => true]);
+        break;
+    
+    case 'dodaj_obavijest':
+        if ($tip !== 'trener') sendErrorAndExit("Nemate pristup ovome.");
+        $id_grupe = intval($_POST['id_grupe']);
+        $comment = trim($_POST['comment']);
+        if (empty($comment))
+            sendErrorAndExit("Obavijest ne može biti prazna.");
+        dodajObavijestPosaljiMailove($id_grupe, $comment);
         sendJSONandExit(['success' => true]);
         break;
 
