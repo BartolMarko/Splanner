@@ -19,7 +19,7 @@
     <?php foreach ($aktivnosti as $a): ?>
         <div class="aktivnost kosarica" 
         data-aktivnost-id="<?php echo ($tip === 'trener') ? $a['id_aktivnosti'] : $a['id_grupe']; ?>" 
-        <?php if ($tip !== 'trener'): ?>
+        <?php if ($tip === 'dijete'): ?>
             onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $a['id_grupe']; ?>'"
         <?php endif; ?>>
         <?php if ($tip === 'trener'): ?>
@@ -34,7 +34,7 @@
                 <!-- tu cu grupe ucitati ajaxom i ispisati -->
             </div>
             <?php else: ?>
-                <h3><?php echo htmlspecialchars($detalji_akt[$i]['ime']) .': '. htmlspecialchars($a['ime']); ?></h3>
+                <h3 onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $a['id_grupe']; ?>'"><?php echo htmlspecialchars($detalji_akt[$i]['ime']) .': '. htmlspecialchars($a['ime']); ?></h3>
                 <p><?= htmlspecialchars($detalji_akt[$i]['description']) ?></p>
                 <br>
                 <p>Grad: <?= htmlspecialchars($detalji_akt[$i]['grad']) ?></p>
