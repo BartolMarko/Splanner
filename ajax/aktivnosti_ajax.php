@@ -195,13 +195,12 @@ switch ($action) {
         $aktivnostId = $_POST['aktivnost_id'] ?? null;
         $ime = $_POST['ime'] ?? '';
         $cijena = floatval($_POST['cijena']);
-        $dobMin = $_POST['dobMin'] ?? null;
-        $dobMax = $_POST['dobMax'] ?? null;
+        $dobMin = $_POST['dobMin'] === "" ? null : intval($_POST['dobMin']);
+        $dobMax = $_POST['dobMax'] === "" ? null : intval($_POST['dobMax']);
         $spol = $_POST['spol'] ?? null;
     
-        if (!$aktivnostId || !$ime) {
+        if (!$aktivnostId || !$ime) 
             sendErrorAndExit("Nedostaju obavezni podaci.");
-        }
     
         try {
             $ss->createGrupa($aktivnostId, $ime, $cijena, $dobMin,$dobMax, $spol);

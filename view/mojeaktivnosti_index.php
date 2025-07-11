@@ -55,7 +55,14 @@
 <!-- tu mi je javascript za sve -->
 <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
 <script>
-    let jel_otvorena_grupa=false;
+
+const isValidPositiveDecimal = str => /^\d*(\.\d+)?$/.test(str) && str !== '.';
+const isNaturalNumber = str => /^\d*$/.test(str);
+
+const safeTrim = str => str ? str.trim() : null;
+
+let jel_otvorena_grupa=false;
+
 $(document).ready(function() {
     //TODO!!!!!: DODATI GUMB TRENERU ZA STVARANJE NOVE AKTIVNOSTI
     // roditelj odabrao dijete (ili sebe)
@@ -121,9 +128,9 @@ $(document).ready(function() {
                 <option value="muško">Muški</option>
             </select>
             </label><br>
-            <label>Minimalna dob: <br><input type="number" class="dob-min"></label><br>
-            <label>Maksimalna dob: <br><input type="number" class="dob-max"></label><br>
-            Cijena:<br><input type="number" class="cijena" step="0.01"><br>
+            <label>Minimalna dob: <br><input type="number" class="dob-min" min="0" step="1" inputmode="numeric"></label><br>
+            <label>Maksimalna dob: <br><input type="number" class="dob-max" min="0" step="1" inputmode="numeric"></label><br>
+            Cijena:<br><input type="number" class="cijena" step="0.01" min="0" inputmode="numeric"><br>
             <button class="spremi-grupu-btn" data-aktivnost-id="${aktivnostId}">💾 Spremi</button>
             <button class="odustani-grupa-btn">❌ Odustani</button>
         </div>
@@ -142,14 +149,30 @@ $(document).on('click', '.spremi-grupu-btn', function () {
     jel_otvorena_grupa=false;
     const $form = $(this).closest('.nova-grupa-form');
     const aktivnostId = $(this).data('aktivnost-id');
-    const imeGrupe = $form.find('.ime-grupe').val().trim();
-    const cijena = $form.find('.cijena').val().trim();
-    const dobMin= $form.find('.dob-min').val().trim();
-    const dobMax = $form.find('.dob-max').val().trim();
-    const spol = $form.find('.spol').val().trim();
+    const imeGrupe = safeTrim($form.find('.ime-grupe').val());
+    const cijena = safeTrim($form.find('.cijena').val());
+    const dobMin = safeTrim($form.find('.dob-min').val());
+    const dobMax = safeTrim($form.find('.dob-max').val());
+    const spol = safeTrim($form.find('.spol').val());
 
     if (!imeGrupe) {
         alert("Ime grupe je obavezno.");
+        return;
+    }
+    if (!spol) {
+        alert("Spol grupe je obavezan.");
+        return;
+    }
+    if (!isNaturalNumber(dobMin) && dobMin !== null) {
+        alert("Minimalna dob mora biti cijeli broj veći ili jednak nuli.");
+        return;
+    }
+    if (!isNaturalNumber(dobMax) && dobMax !== null) {
+        alert("Maksimalna dob mora biti cijeli broj veći ili jednak nuli.");
+        return;
+    }
+    if (!cijena || !isValidPositiveDecimal(cijena)) {
+        alert("Cijena mora biti broj veći ili jednak nuli.");
         return;
     }
 
@@ -219,7 +242,7 @@ $(document).on('click', '.spremi-grupu-btn', function () {
         });
     });
 
-    $(document).on('click', '.spremi-termin-btn', function () {
+$(document).on('click', '.spremi-termin-btn', function () {
     const $grupaDiv = $(this).closest('.grupa');
     const datum = $grupaDiv.find('.datum').val();
     const vrijemePoc = $grupaDiv.find('.vrijeme_poc').val();
@@ -232,37 +255,37 @@ $(document).on('click', '.spremi-grupu-btn', function () {
     const idTerminAzur=$terminDiv.attr('valueazur');
     const aktivnostId = $grupaDiv.closest('.aktivnost').data('aktivnost-id');
     if (!datum || !vrijemePoc || !vrijemeKraj || !dvorana) {
-    alert("Sva polja su obavezna.");
-    return;
+        alert("Sva polja su obavezna.");
+        return;
     }
 
-        $.ajax({
-            url: 'ajax/aktivnosti_ajax.php',
-            method: 'POST',
-            data: {
-                action: 'update_termin',
-                grupa_id: idGrupe,
-                datum: datum,
-                vrijeme_poc: vrijemePoc,
-                vrijeme_kraj: vrijemeKraj,
-                dvorana: dvorana,
-                tip_termina: izvanredan,
-                id_red: idTerminRed,
-                id_azur: idTerminAzur
-            },
-            success: function (response) {
-                if (response.success) {
-                    //$terminDiv.html(`<strong class="ime">${response.ime}</strong> - <span class="termin">${response.termin}</span> <button class="uredi-termin-btn">✏️ Uredi termin</button>`);
-                    toggleGrupe(aktivnostId);
-                } else {
-                    alert(response.error || "Greška.");
-                }
-            },
-            error: function () {
-                alert("Greška pri spremanju termina.");
+    $.ajax({
+        url: 'ajax/aktivnosti_ajax.php',
+        method: 'POST',
+        data: {
+            action: 'update_termin',
+            grupa_id: idGrupe,
+            datum: datum,
+            vrijeme_poc: vrijemePoc,
+            vrijeme_kraj: vrijemeKraj,
+            dvorana: dvorana,
+            tip_termina: izvanredan,
+            id_red: idTerminRed,
+            id_azur: idTerminAzur
+        },
+        success: function (response) {
+            if (response.success) {
+                //$terminDiv.html(`<strong class="ime">${response.ime}</strong> - <span class="termin">${response.termin}</span> <button class="uredi-termin-btn">✏️ Uredi termin</button>`);
+                toggleGrupe(aktivnostId);
+            } else {
+                alert(response.error || "Greška.");
             }
-        });
+        },
+        error: function () {
+            alert("Greška pri spremanju termina.");
+        }
     });
+});
 
     $(document).on('click', '.spremi-novi-termin-btn', function () {
     const $grupaDiv = $(this).closest('.grupa');
