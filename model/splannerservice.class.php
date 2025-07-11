@@ -768,9 +768,9 @@ class SplannerService
 		{
 			$db = DB::getConnection();
 			$st = $db->prepare(
-				'SELECT t.datum_novi as datum,
-					t.vrijeme_poc_novi AS vrijeme_poc,
-					t.vrijeme_kraj_novi as vrijeme_kraj,
+				'SELECT t.datum_origin, t.datum_novi,
+					t.vrijeme_poc_stari, t.vrijeme_poc_novi,
+					t.vrijeme_kraj_stari, t.vrijeme_kraj_novi,
 					t.dvorana,
 					g.ime AS ime_grupe, g.id_grupe,
 					a.ime AS ime_aktivnosti
@@ -779,7 +779,10 @@ class SplannerService
 				 INNER JOIN ' . self::GRUPE_TABLE . ' g ON p.id_grupe_fk = g.id_grupe
 				 INNER JOIN ' . self::AKTIVNOSTI_TABLE . ' a ON g.fk_id_aktivnosti = a.id_aktivnosti
 				 WHERE p.id_korisnik_fk = :userId
-				 	AND t.datum_novi BETWEEN :datumOd AND :datumDo'
+				 	AND (
+						(t.datum_novi BETWEEN :datumOd AND :datumDo) OR
+						((t.datum_origin BETWEEN :datumOd AND :datumDo) AND t.datum_novi IS NULL)
+						)'
 			);
 			$st->execute([
 				'userId' => $userId,
@@ -789,7 +792,7 @@ class SplannerService
 		}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 
-		return $st->fetchAll();
+		return self::parseTerminiForRaspored($st->fetchAll());
 	}
 
 	public static function getTerminiForGrupa($id_grupe, $datumOd, $datumDo)
@@ -798,9 +801,9 @@ class SplannerService
 		{
 			$db = DB::getConnection();
 			$st = $db->prepare(
-				'SELECT t.datum_novi as datum,
-					t.vrijeme_poc_novi AS vrijeme_poc,
-					t.vrijeme_kraj_novi as vrijeme_kraj,
+				'SELECT t.datum_origin, t.datum_novi,
+					t.vrijeme_poc_stari, t.vrijeme_poc_novi,
+					t.vrijeme_kraj_stari, t.vrijeme_kraj_novi,
 					t.dvorana,
 					g.ime AS ime_grupe, g.id_grupe,
 					a.ime AS ime_aktivnosti
@@ -808,7 +811,10 @@ class SplannerService
 				 INNER JOIN ' . self::GRUPE_TABLE . ' g ON t.id_grupe_fk = g.id_grupe
 				 INNER JOIN ' . self::AKTIVNOSTI_TABLE . ' a ON g.fk_id_aktivnosti = a.id_aktivnosti
 				 WHERE t.id_grupe_fk = :id_grupe
-				 	AND t.datum_novi BETWEEN :datumOd AND :datumDo'
+				 	AND (
+						(t.datum_novi BETWEEN :datumOd AND :datumDo) OR
+						((t.datum_origin BETWEEN :datumOd AND :datumDo) AND t.datum_novi IS NULL)
+						)'
 			);
 			$st->execute([
 				'id_grupe' => $id_grupe,
@@ -818,7 +824,29 @@ class SplannerService
 		}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 
-		return $st->fetchAll();
+		$queryResult = $st->fetchAll();
+		return self::parseTerminiForRaspored($queryResult);
+	}
+
+	private static function parseTerminiForRaspored($terminiRows) {
+		$raspored = [];
+		foreach ($terminiRows as $row) {
+
+			$datum = $row['datum_novi'] ?: $row['datum_origin'];
+			$vrijemePocetak = $row['vrijeme_poc_novi'] ?: $row['vrijeme_poc_stari'];
+			$vrijemeKraj = $row['vrijeme_kraj_novi'] ?: $row['vrijeme_kraj_stari'];
+
+			$raspored[] = [
+				'datum' => $datum,
+				'vrijeme_poc' => $vrijemePocetak,
+				'vrijeme_kraj' => $vrijemeKraj,
+				'dvorana' => $row['dvorana'],
+				'ime_grupe' => $row['ime_grupe'],
+				'id_grupe' => $row['id_grupe'],
+				'ime_aktivnosti' => $row['ime_aktivnosti']
+			];
+		}
+		return $raspored;
 	}
 
 	// Nikola upiti
