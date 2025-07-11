@@ -792,7 +792,7 @@ function displayPopup(activity) {
     $popupTitle.text(activity.ime_aktivnosti);
     $popupContent.html(popupContent);
 
-    $popupGrupeLink.attr('href', GRUPE_URL_BASE + activity.id_grupe);
+    $popupGrupeLink.attr('href', GRUPE_URL_BASE + activity.id_grupe + '&from=raspored' );
     $popupPromjenaLink.attr('href', PROMJENA_TERMINA_URL);
     if (userInfo.tip_korisnika === 'trener')
         $popupPromjenaLink.show();
