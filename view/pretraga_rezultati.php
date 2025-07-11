@@ -4,7 +4,7 @@
 
 <?php if (!empty($rezultati)): ?>
 	<?php foreach ($rezultati as $rez): ?>
-		<div class="rezpret kosarica" onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $rez['id_grupe']; ?>'">
+		<div class="rezpret kosarica"  style="cursor:pointer;" onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $rez['id_grupe']; ?>&from=pretraga'">
 			<strong><?= htmlspecialchars($rez['aktivnost_ime']) ?></strong><br>
 			Grupa: <?= htmlspecialchars($rez['grupa_ime'])?><br>
 			Cijena: <?= htmlspecialchars($rez['cijena']) ?> EUR<br>
