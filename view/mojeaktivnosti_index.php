@@ -508,25 +508,7 @@ $(document).on('click', '.obrisi-termin-btn', function () { //trener brise termi
 
 
     function getAktivnostiDjeteta(dijeteId) {
-        // console.log("Dohvacam grupe djeteta ID:", dijeteId);
-        // // ajax za reloadanje containera za aktivnosti
-        // $.ajax({
-        //     url: 'ajax/aktivnosti_ajax.php',
-        //     method: 'POST',
-        //     data: {
-        //         action: 'get_grupe_user',
-        //         user_id: dijeteId
-        //     },
-        //     success: function(dobiveniPod) {
-        //         if (dobiveniPod.error) alert(dobiveniPod.error);
-        //         else $('#aktivnosti_container').html(dobiveniPod.html);
-        //         //location.reload();
-        //     },
-        //     error: function() {
-        //         alert('Greška pri dohvaćanju aktivnosti.');
-        //     }
-        // });
-    
+        
         console.log("Dohvacam grupe djeteta ID:", dijeteId);
     const isSelf = dijeteId === '<?= $_SESSION["id_user"] ?>';
     
@@ -539,10 +521,9 @@ $(document).on('click', '.obrisi-termin-btn', function () { //trener brise termi
         },
         success: function(response) {
             if (response.success && response.grupe && response.detalji_akt) {
-                // Clear the container
                 $('#aktivnosti_container').empty();
                 
-                // Loop through groups and match with activity details
+                
                 response.grupe.forEach(function(grupa, index) {
                     const aktivnost = response.detalji_akt[index];
                     
@@ -559,7 +540,6 @@ $(document).on('click', '.obrisi-termin-btn', function () { //trener brise termi
                     $('#aktivnosti_container').append(aktivnostHtml);
                 });
                 
-                // Rebind the click event for the ispisi buttons
                 $('.ispisi-btn').off('click').on('click', function() {
                     let grupaId = $(this).data('id');
                     ispisiSe(grupaId);
@@ -573,8 +553,7 @@ $(document).on('click', '.obrisi-termin-btn', function () { //trener brise termi
         }
     });
 }
-
-// Helper function to escape HTML (similar to php's htmlspecialchars)
+//kao htmlspecialchars
 function escapeHtml(text) {
     if (text === null || text === undefined) {
         return '';

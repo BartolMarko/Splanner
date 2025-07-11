@@ -23,7 +23,7 @@ class MojeAktivnostiController extends BaseController
 			$detalji_akt=array();
 			$aktivnosti = $service->getGrupeForUser($_SESSION['id_user']);
 			foreach($aktivnosti as $a){
-				$detalji_akt[]=$service->getAktZaGrupu($a['id_grupe']);
+				$detalji_akt[]=$service->getAktZaGrupu($a['fk_id_aktivnosti']);
 			}
 			$djeca = $service->getDjecaByRoditelj($_SESSION['id_user']);
 			$this->registry->template->detalji_akt=$detalji_akt;
@@ -35,7 +35,7 @@ class MojeAktivnostiController extends BaseController
 			$aktivnosti = $service->getGrupeForUser($_SESSION['id_user']);
 			$this->registry->template->aktivnosti = $aktivnosti;
 			foreach($aktivnosti as $a){
-				$detalji_akt[]=$service->getAktZaGrupu($a['id_grupe']);
+				$detalji_akt[]=$service->getAktZaGrupu($a['fk_id_aktivnosti']);
 			}
 			$this->registry->template->detalji_akt=$detalji_akt;
 			$this->registry->template->tip = 'dijete';
