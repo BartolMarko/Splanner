@@ -131,7 +131,7 @@ $ukupnoDjeca = 0;
         <ul class="kosarica-lista">
         <?php foreach ($mojeGrupe as $g): ?>
             <li>
-                <a class="naziv-grupe" href="<?php echo __SITE_URL; ?>/index.php?rt=aktivnosti/grupa&id=<?php echo $g['id_grupe']; ?>">
+                <a class="naziv-grupe" href="<?= __SITE_URL ?>/index.php?rt=aktivnosti/grupa&id=<?= $g['id_grupe'] ?>&from=postavke">
                     <?php echo htmlspecialchars($g['aktivnost_ime']); ?> – <?php echo htmlspecialchars($g['ime']); ?>
                 </a>
                 <span class="cijena"><?php echo $g['cijena']; ?> €</span>
@@ -156,7 +156,7 @@ $ukupnoDjeca = 0;
                 <ul class="kosarica-lista">
                 <?php foreach ($grupe as $g): ?>
                     <li>
-                        <a class="naziv-grupe" href="<?php echo __SITE_URL; ?>/index.php?rt=aktivnosti/grupa&id=<?php echo $g['id_grupe']; ?>">
+                        <a class="naziv-grupe" href="<?= __SITE_URL ?>/index.php?rt=aktivnosti/grupa&id=<?= $g['id_grupe'] ?>&from=postavke">
                             <?php echo htmlspecialchars($g['aktivnost_ime']); ?> – <?php echo htmlspecialchars($g['ime']); ?>
                         </a>
                         <span class="cijena"><?php echo $g['cijena']; ?> €</span>
@@ -202,7 +202,7 @@ $ukupnoDjeca = 0;
                     <?php foreach ($zaradaGrupe as $g): ?>
                         <tr>
                             <td style="border:1px solid #ccc; padding:5px;">
-                                <a href="<?php echo __SITE_URL; ?>/index.php?rt=aktivnosti/grupa&id=<?php echo $g['id_grupe']; ?>">
+                                <a href="<?= __SITE_URL ?>/index.php?rt=aktivnosti/grupa&id=<?= $g['id_grupe'] ?>&from=postavke">
                                     <?php echo htmlspecialchars($g['ime_grupe']); ?>
                                 </a>
                             </td>

@@ -2,12 +2,24 @@
 
 <!-- promjena za funkcionalnost natrag -->
 <?php
-if (isset($_GET['from']) && $_GET['from'] === 'pretraga') {
-    $backUrl = __SITE_URL . '/index.php?rt=pretraga&from=pretraga';
+if (isset($_GET['from'])) {
+    if ($_GET['from'] === 'pretraga') {
+        $backUrl = __SITE_URL . '/index.php?rt=pretraga&from=pretraga';
+    } elseif ($_GET['from'] === 'postavke') {
+        $backUrl = __SITE_URL . '/index.php?rt=postavke';
+    } elseif($_GET['from'] === 'obavijesti') {
+         $backUrl = __SITE_URL . '/index.php?rt=obavijesti';
+    } elseif($_GET['from'] === 'raspored') {
+         $backUrl = __SITE_URL . '/index.php?rt=raspored';
+    }
+    else {
+        $backUrl = __SITE_URL . '/index.php?rt=mojeaktivnosti';
+    }
 } else {
-    $backUrl = __SITE_URL . '/index.php?rt=aktivnosti';
+    $backUrl = __SITE_URL . '/index.php?rt=mojeaktivnosti';
 }
 ?>
+
 
 <div id="dodatniDetaljiAktivnost">
     <ul>

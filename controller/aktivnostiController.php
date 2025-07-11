@@ -145,10 +145,6 @@ class AktivnostiController extends BaseController
 		$clanoviGrupe = $ss->dohvatiIdeveClanovaGrupe($id_grupe);
 		$this->registry->template->imenaClanovaGrupe = $ss->getImenaKorisnika($clanoviGrupe);
 
-
-
-
-
         $this->registry->template->show( 'aktivnosti_grupa' );
     }
 
