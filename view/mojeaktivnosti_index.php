@@ -543,9 +543,11 @@ $(document).on('click', '.obrisi-termin-btn', function () { //trener brise termi
                     const aktivnost = response.detalji_akt[index];
                     
                     const aktivnostHtml = `
-                        <div class="aktivnost kosarica" data-aktivnost-id="${grupa.id_grupe}"
-                        onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=${grupa.id_grupe}'">
-                            <h3>${escapeHtml(aktivnost.ime)}: ${escapeHtml(grupa.ime)}</h3>
+                       <div class="aktivnost kosarica" data-aktivnost-id="${grupa.id_grupe}">
+                            <h3 style="cursor:pointer;"
+                                onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=${grupa.id_grupe}'">
+                                ${escapeHtml(aktivnost.ime)}: ${escapeHtml(grupa.ime)}
+                            </h3>
                             <p>${escapeHtml(aktivnost.description)}</p><br>
                             <p>Grad: ${escapeHtml(aktivnost.grad)}</p>
                             <p>Cijena: ${escapeHtml(grupa.cijena)}</p>

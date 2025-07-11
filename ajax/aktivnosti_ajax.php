@@ -49,7 +49,7 @@ switch ($action) {
     case 'ispisi_se':
         $idAkt = intval($_POST['aktivnost_id']);
         $userKojiIspisujem = $_POST['child_id'] ?? $idUser;
-        $ss->ispisiUseraSaAkt($userKojiIspisujem, $idAkt); //TODO u splannerservice
+        $ss->ispisiUseraSaAkt($userKojiIspisujem, $idAkt); 
         sendJSONandExit(['success' => true]);
         break;
 
@@ -73,7 +73,7 @@ switch ($action) {
         foreach ($grupe as $g): 
             $azurniTermini = $ss->getAzurniTerminiZaGrupu($g['id_grupe']);?>
             <div class="grupa kosarcica" data-grupa-id="<?= $g['id_grupe'] ?>">
-            <h4 onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $g['id_grupe']; ?>'"><?= htmlspecialchars($g['ime']) ?></h4>
+            <h4 class="ime" onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $g['id_grupe']; ?>'"><?= htmlspecialchars($g['ime']) ?></h4>
             <br>
             <span class="termin"><?php
             foreach($azurniTermini as $termin):
