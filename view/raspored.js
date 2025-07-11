@@ -34,7 +34,7 @@ const COLORS = [
 const TERMINI_URL_BASE = window.location.href + "/termini";
 const USER_INFO_URL = window.location.href + "/userinfo";
 const GRUPE_URL_BASE = (window.location.href).split("=")[0] + "=aktivnosti/grupa&id=";
-const PROMJENA_TERMINA_URL = (window.location.href).split("=")[0] + "=termini";
+const PROMJENA_TERMINA_URL = (window.location.href).split("=")[0] + "=mojeaktivnosti";
 
 const $dayButton = $('#day-button');
 const $weekButton = $('#week-button');
@@ -314,6 +314,7 @@ function adjustGrid(activities) {
 }
 
 function adjustDayGrid(min_hour, max_hour) {
+    console.log(`Adjusting day grid from ${min_hour} to ${max_hour}`);
     adjustNumberofRows(max_hour - min_hour + 1, 2);
     setRowTimes(min_hour, max_hour);
 
@@ -329,7 +330,7 @@ function adjustDayGrid(min_hour, max_hour) {
 }
 
 function adjustWeekGrid(min_hour, max_hour) {
-    adjustNumberofRows(max_hour - min_hour + 1, 2);
+    adjustNumberofRows(max_hour - min_hour + 1, 8);
     setRowTimes(min_hour, max_hour);
 
     const start = new Date(weekReferenceMonday);
@@ -400,6 +401,7 @@ function adjustMonthGrid() {
 function adjustNumberofRows(newRows, columns) {
     const $tbody = $rasporedContainer.find('tbody');
     let currentNumRows = $tbody.find('tr').length;
+    console.log(`Adjusting number of rows from ${currentNumRows} to ${newRows}`);
     if (newRows === currentNumRows)
         return;
     while (newRows < currentNumRows) {
@@ -760,8 +762,6 @@ function getMinMaxHours(activities) {
     for (const activity of activities) {
         const startHour = activity.datePoc.getHours();
         let endHour = activity.dateKraj.getHours();
-        if (activity.dateKraj.getMinutes() > 0)
-            endHour += 1;
         
         minHour = Math.min(minHour, startHour);
         maxHour = Math.max(maxHour, endHour);
@@ -777,7 +777,6 @@ function concatActivities(activities) {
 }
 
 function displayPopup(activity) {
-    console.log(activity);
     const startTime = getTwoDigitNumber(activity.datePoc.getHours()) + ':' + getTwoDigitNumber(activity.datePoc.getMinutes());
     const endTime = getTwoDigitNumber(activity.dateKraj.getHours()) + ':' + getTwoDigitNumber(activity.dateKraj.getMinutes());
     const datum = getDateString(activity.datePoc);
@@ -794,7 +793,7 @@ function displayPopup(activity) {
     $popupContent.html(popupContent);
 
     $popupGrupeLink.attr('href', GRUPE_URL_BASE + activity.id_grupe);
-    $popupPromjenaLink.attr('href', PROMJENA_TERMINA_URL + `?id=${activity.id_termini}`); // TODO: Uskladi s Nikolom
+    $popupPromjenaLink.attr('href', PROMJENA_TERMINA_URL);
     if (userInfo.tip_korisnika === 'trener')
         $popupPromjenaLink.show();
     else
