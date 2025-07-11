@@ -38,12 +38,12 @@ class SplannerService
 	}
 
 	// dohvaca ime korisnika s nekim id-om
-    function getImeKorisnikaFormId( $id )
+    function getImePrezimeKorisnikaFormId( $id )
 	{
 		try
 		{
 			$db = DB::getConnection();
-			$st = $db->prepare( 'SELECT username FROM ' . self::USERS_TABLE . ' WHERE id_korisnici=:id' );
+			$st = $db->prepare( 'SELECT ime, prezime FROM ' . self::USERS_TABLE . ' WHERE id_korisnici=:id' );
 			$st->execute( ['id' => $id] );
 		}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
@@ -52,23 +52,27 @@ class SplannerService
 		if( $row === false )
 			return null;
 		else
-			return $row['username'];
+			return $row['ime'] . ' ' . $row['prezime'];
 	}
 
 	// dohvaca ime korisnika 
-	public function getImenaKorisnika($ids)
+	public function getImenaKorisnika($ids, $imePrezime = false)
 	{
 		if (empty($ids)) return [];
 	
 		try {
 			$db = DB::getConnection();
 			$placeholders = implode(',', array_fill(0, count($ids), '?'));
-			$st = $db->prepare('SELECT id_korisnici, username FROM ' . self::USERS_TABLE . ' WHERE id_korisnici IN (' . $placeholders . ')');
+			$st = $db->prepare('SELECT id_korisnici, username, ime, prezime FROM ' . self::USERS_TABLE . ' WHERE id_korisnici IN (' . $placeholders . ')');
 			$st->execute($ids);
 			
 			$rezultat = [];
 			while ($row = $st->fetch()) {
-				$rezultat[$row['id_korisnici']] = $row['username'];
+				if ($imePrezime) {
+					$rezultat[$row['id_korisnici']] = $row['ime'] . ' ' . $row['prezime'];
+				} else {
+					$rezultat[$row['id_korisnici']] = $row['username'];
+				}
 			}
 			return $rezultat;
 		}
@@ -122,14 +126,16 @@ class SplannerService
 	}
 
 	// dodavanje novog korisnika / trenera u bazu prilikom registracije
-	function addNewUser($username, $password, $email, $oib, $uloga, $spol, $datum, $registration_sequence){
+	function addNewUser($username, $ime, $prezime, $password, $email, $oib, $uloga, $spol, $datum, $registration_sequence){
 		try
 		{
 			$db = DB::getConnection();
-			$st = $db->prepare( 'INSERT INTO ' . self::USERS_TABLE . '(OIB, username, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, prima_obavijest, has_registered) VALUES ' .
-								'(:OIB, :username, :password_hash, :email, :tip_korisnika, :spol, :datum_rodenja, :registration_sequence, True, 0)' );
+			$st = $db->prepare( 'INSERT INTO ' . self::USERS_TABLE . '(OIB, username, ime, prezime, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, prima_obavijest, has_registered) VALUES ' .
+								'(:OIB, :username, :ime, :prezime, :password_hash, :email, :tip_korisnika, :spol, :datum_rodenja, :registration_sequence, True, 0)' );
 			$st->execute( array('OIB' => $oib,
-								'username' => $username, 
+								'username' => $username,
+								'ime' => $ime,
+								'prezime' => $prezime,
 								'password_hash' => password_hash( $password, PASSWORD_DEFAULT ), 
 								'email' => $email, 
 								'tip_korisnika' => $uloga, 
@@ -593,19 +599,21 @@ class SplannerService
 		return $st->fetchColumn();
 	}
 
-	public function dodajDijete($id_roditelja, $username, $oib, $email, $password, $spol, $datum)
+	public function dodajDijete($id_roditelja, $username, $ime, $prezime, $oib, $email, $password, $spol, $datum)
 	{
 		$db = DB::getConnection();
 		$st = $db->prepare(
 			'INSERT INTO ' . self::USERS_TABLE . '
-			(OIB, username, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, has_registered, fk_id_roditelja)
+			(OIB, username, ime, prezime, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, has_registered, fk_id_roditelja)
 			VALUES
-			(:oib, :username, :hash, :email, "dijete", :spol, :datum, "", 1, :id_roditelja)'
+			(:oib, :username, :ime, :prezime, :hash, :email, "dijete", :spol, :datum, "", 1, :id_roditelja)'
 		);
 
 		$st->execute([
 			'oib' => $oib,
 			'username' => $username,
+			'ime' => $ime,
+			'prezime' => $prezime,
 			'hash' => password_hash($password, PASSWORD_DEFAULT),
 			'email' => $email,
 			'spol' => $spol,

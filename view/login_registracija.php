@@ -12,6 +12,14 @@
         <br>
         <input type="text" name="username" required>
         <br><br>
+        Ime:
+        <br>
+        <input type="text" name="ime" required>
+        <br><br>
+        Prezime:
+        <br>
+        <input type="text" name="prezime" required>
+        <br><br>
         Lozinka:
         <br>
         <input type="password" name="password" required>
