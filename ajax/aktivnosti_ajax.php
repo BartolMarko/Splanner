@@ -95,7 +95,7 @@ switch ($action) {
                             $vrijemeKraj = DateTime::createFromFormat('H:i:s', $termin['vrijeme_kraj_stari']);
                             $satMinutKraj = $vrijemeKraj->format('H:i');
                             $datumFormatiran = (new DateTime($termin['datum_origin']))->format('d-m');
-                            echo ' (Izvanredno: '. $daniTjedna[date('l', strtotime($termin['datum_origin']))] .', '. $datumFormatiran. ' '.$satMinut.'-'.$satMinutKraj.', '.$termin['dvorana'].')';
+                            echo '<b>Izvanredno:</b> '. $daniTjedna[date('l', strtotime($termin['datum_origin']))] .', '. $datumFormatiran. ' '.$satMinut.'-'.$satMinutKraj.', '.$termin['dvorana'];
                             $dan_u_tj=date('l', strtotime($termin['datum_origin']));
                             
                             if($tip==='trener'){
@@ -110,7 +110,7 @@ switch ($action) {
                         $vrijemeKraj = DateTime::createFromFormat('H:i:s', $termin['vrijeme_kraj_novi']);
                         $satMinutKraj = $vrijemeKraj->format('H:i');
                         $datumFormatiran = (new DateTime($termin['datum_origin']))->format('d-m');
-                        echo ' (Izvanredno: '. $daniTjedna[date('l', strtotime($termin['datum_novi']))] .', '. $datumFormatiran. ' '.$satMinut.'-'.$satMinutKraj.', '.$termin['dvorana'].')';
+                        echo ' ➡️ <b>Izvanredno:</b> '. $daniTjedna[date('l', strtotime($termin['datum_novi']))] .', '. $datumFormatiran. ' '.$satMinut.'-'.$satMinutKraj.', '.$termin['dvorana'];
                         $dan_u_tj=date('l', strtotime($termin['datum_novi']));
                     }
                     if ($tip === 'trener'):

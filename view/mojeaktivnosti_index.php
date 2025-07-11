@@ -436,6 +436,7 @@ $(document).on('click', '.dodaj-termin-btn', function () {
     <label>Vrijeme početka: <br><input type="time" class="vrijeme_poc"></label><br>
     <label>Vrijeme završetka: <br><input type="time" class="vrijeme_kraj"></label><br>
     <label>Dvorana: <br><input type="text" class="dvorana"></label><br>
+    <label><input type="checkbox" class="izvanredan-check-grp"> Izvanredan</label><br>
     <button class="spremi-novi-termin-btn">💾 Spremi</button>
     <button class="odustani-termin-btn-grp">❌ Odustani</button>
 `;

@@ -181,7 +181,7 @@ function create_table_azurni_termini()
 		$st = $db->prepare(
 			'CREATE TABLE IF NOT EXISTS splanner_azurni_termini (' .
 			'id_azurni_termini INT NOT NULL PRIMARY KEY AUTO_INCREMENT,' .
-			'fk_id_redovni_termini INT NOT NULL ,' .
+			'fk_id_redovni_termini INT ,' .
 			'id_grupe_fk INT NOT NULL ,' . 
 			'id_trener_fk INT NOT NULL ,' . 
 			'datum_origin DATE,' .
