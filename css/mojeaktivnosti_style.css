@@ -54,6 +54,7 @@ button:hover {
 
 h3 {
     margin-top: 0px;
+    cursor: pointer;
 }
 
 h4 {
@@ -63,6 +64,8 @@ h4 {
     font-weight: 600;
     cursor: pointer;
 }
+
+
 
 .ime-grupe-link:hover {
     color: var(--color-main);

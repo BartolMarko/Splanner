@@ -19,14 +19,14 @@
 	<nav>
 		<ul>
 			<li>
-				  <img src="<?= __SITE_URL ?>/css/sticker.webp" alt="Logo" style="height:100px;">
+				<img src="<?= __SITE_URL ?>/css/sticker.webp" alt="Logo" style="height:100px;">
 			</li>
+			<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=mojeaktivnosti">Moje aktivnosti</a></li>
+			<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=pretraga">Pretraga aktivnosti</a></li>
 			<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=raspored">Raspored</a></li>
 			<?php if ($_SESSION['tip_korisnika'] !== 'trener'): ?>
 				<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=obavijesti">Obavijesti</a></li>
 			<?php endif; ?>
-			<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=mojeaktivnosti">Moje aktivnosti</a></li>
-			<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=pretraga">Pretraga aktivnosti</a></li>
 			<li><a href="<?php echo __SITE_URL; ?>/index.php?rt=postavke">Postavke</a></li>
 			<li>
 				<a href="<?php echo __SITE_URL; ?>/index.php?rt=login/logout"

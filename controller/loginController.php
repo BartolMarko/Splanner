@@ -21,7 +21,7 @@ class LoginController extends BaseController
                 $_SESSION['id_user'] = $userRow['id_korisnici'];
                 $_SESSION['tip_korisnika'] = $userRow['tip_korisnika'];
 
-                header('Location: ' . __SITE_URL . '/index.php?rt=raspored');
+                header('Location: ' . __SITE_URL . '/index.php?rt=mojeaktivnosti');
                 exit();
             }
             else if ($userRow === 0) {

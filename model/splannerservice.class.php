@@ -972,6 +972,11 @@ class SplannerService
 					'DELETE FROM splanner_azurni_termini WHERE id_grupe_fk = :id'
 				);
 				$st2->execute( array( 'id' => $row['id_grupe']) );
+
+				$st2 = $db->prepare(
+				'DELETE FROM splanner_grupe WHERE id_grupe = :id'
+				);
+				$st2->execute(array('id' => $row['id_grupe']));
 			}
 			$st = $db->prepare( 
 				'DELETE FROM splanner_aktivnosti WHERE id_aktivnosti = :id'

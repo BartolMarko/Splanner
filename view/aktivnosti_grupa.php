@@ -117,9 +117,15 @@ if (isset($_GET['from'])) {
     </div>
     <h3 class="toggle-header">Članovi grupe</h3>
     <div class="toggle-content">
-        <?php foreach ($imenaClanovaGrupe as $clan): ?>
-            <p><?= htmlspecialchars($clan) ?></p>
-        <?php endforeach; ?>
+        <?php if (!empty($imenaClanovaGrupe)): ?>
+            <?php foreach ($imenaClanovaGrupe as $clan): ?>
+                <ul>
+                    <li><?= htmlspecialchars($clan) ?> </li>
+                </ul>                 
+            <?php endforeach; ?>
+         <?php else: ?>
+            <p>Nema članova u grupi.</p>
+        <?php endif; ?>
     </div>
 <?php endif; ?>
 
