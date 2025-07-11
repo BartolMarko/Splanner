@@ -27,26 +27,23 @@ $tip = $_SESSION['tip_korisnika'] ?? null;
 switch ($action) {
 
     case 'get_grupe_user':
+        
         $targetId = ($_POST['user_id'] === $_SESSION['id_user']) ? $idUser : intval($_POST['user_id']);
         $grupe = $ss->getGrupeForUser($targetId);
-
-        ob_start();
-        foreach ($grupe as $g): ?>
-            <div class="grupa kosarcica" data-grupa-id="<?= $g['id_grupe'] ?>">
-                <h4 class="naziv"><?= htmlspecialchars($g['ime']) ?></h4>
-                <p><strong>Spol:</strong> <?= htmlspecialchars($g['spol']) ?></p>
-                <p><strong>Uzrast:</strong> <?= htmlspecialchars($g['uzrast_od']) ?> - <?= htmlspecialchars($g['uzrast_do']) ?> godina</p>
-                <p><strong>Cijena:</strong> <?= htmlspecialchars($g['cijena']) ?> EUR</p>
-
-                <?php if ($tip === 'roditelj' && $_POST['user_id'] === 'self'): ?>
-                    <button class="ispisi-grupu-btn" data-id="<?= $g['id_grupe'] ?>">Ispiši se iz grupe</button>
-                <?php elseif ($tip === 'roditelj'): ?>
-                    <button class="ispisi-grupu-btn" data-id="<?= $g['id_grupe'] ?>" data-child="<?= $targetId ?>">Ispiši dijete iz grupe</button>
-                <?php endif; ?>
-            </div>
-        <?php endforeach;
-        $html = ob_get_clean();
-        sendJSONandExit(['html' => $html]);
+        
+        // Get activity details for each group
+        $detalji_akt = array();
+        foreach ($grupe as $g) {
+            $detalji_akt[] = $ss->getAktZaGrupu($g['fk_id_aktivnosti']);
+        }
+        
+        // Return as JSON
+        sendJSONandExit([
+            'success' => true,
+            'grupe' => $grupe,
+            'detalji_akt' => $detalji_akt,
+            'is_self' => ($_POST['user_id'] === 'self' || $_POST['user_id'] === $_SESSION['id_user'])
+        ]);
         break;
 
     case 'ispisi_se':
@@ -135,7 +132,7 @@ switch ($action) {
 
         case 'create_termin':
             if ($tip !== 'trener') sendErrorAndExit("Nemate pristup.");
-            $required = ['tip_termina', 'id_grupe','id_trener', 'datum', 'vrijeme_poc', 'vrijeme_kraj', 'dvorana', 'comment'];
+            $required = ['tip_termina', 'id_grupe','id_trener', 'datum', 'vrijeme_poc', 'vrijeme_kraj', 'dvorana'];
             foreach ($required as $r)
                 if (!isset($_POST[$r]))
                     sendErrorAndExit("Nedostaje podatak: $r");
@@ -147,9 +144,8 @@ switch ($action) {
             $vrijeme_poc = $_POST['vrijeme_poc'];
             $vrijeme_kraj = $_POST['vrijeme_kraj'];
             $dvorana = $_POST['dvorana'];
-            $comment = $_POST['comment'];
             // if($tip_termina==='redovan'){
-            $ss->makeTerminZaGrupu($id,$datum,$trener,$vrijeme_poc,$vrijeme_kraj,$dvorana,$comment,$tip_termina);
+            $ss->makeTerminZaGrupu($id,$datum,$trener,$vrijeme_poc,$vrijeme_kraj,$dvorana,$tip_termina);
             // }
             // else{
             // }
@@ -159,7 +155,7 @@ switch ($action) {
         case 'update_termin':
             if ($tip !== 'trener') sendErrorAndExit("Nemate pristup.");
         
-            $required = ['tip_termina', 'id_red','id_azur', 'datum', 'vrijeme_poc', 'vrijeme_kraj', 'dvorana', 'comment'];
+            $required = ['tip_termina', 'id_red','id_azur', 'datum', 'vrijeme_poc', 'vrijeme_kraj', 'dvorana'];
             foreach ($required as $r)
                 if (!isset($_POST[$r]))
                     sendErrorAndExit("Nedostaje podatak: $r");
@@ -170,16 +166,15 @@ switch ($action) {
             $vrijeme_poc = $_POST['vrijeme_poc'];
             $vrijeme_kraj = $_POST['vrijeme_kraj'];
             $dvorana = $_POST['dvorana'];
-            $comment = $_POST['comment'];
             $grupaId=$_POST['grupa_id'];
             $id_azur=intval($_POST['id_azur']);
             //tu updateaj i redovni i azurni ako je rijec o redovnoj promjeni termina - jedinstveno je azurni odreden sa id_Azur i fk_id_red
             try {
                 if ($tip_termina === 'redovan'){
-                    $ss->updateRedovniTermin($id_red, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment,$id_azur);
+                    $ss->updateRedovniTermin($id_red, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana,$id_azur);
                 }
                     elseif ($tip_termina === 'izvanredan')
-                    $ss->updateAzurniTermin($id_red, $id_azur, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment,1);
+                    $ss->updateAzurniTermin($id_red, $id_azur, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana,1);
                 else
                     sendErrorAndExit("Nepoznat tip termina.");
         

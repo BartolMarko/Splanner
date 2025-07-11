@@ -32,8 +32,12 @@ class MojeAktivnostiController extends BaseController
 			$this->registry->template->tip = 'roditelj';
 		}
 		else { // dijete
-			$aktivnosti = $service->getAktivnostiForUser($_SESSION['id_user']);
+			$aktivnosti = $service->getGrupeForUser($_SESSION['id_user']);
 			$this->registry->template->aktivnosti = $aktivnosti;
+			foreach($aktivnosti as $a){
+				$detalji_akt[]=$service->getAktZaGrupu($a['id_grupe']);
+			}
+			$this->registry->template->detalji_akt=$detalji_akt;
 			$this->registry->template->tip = 'dijete';
 		}
 			$this->registry->template->show( 'mojeaktivnosti_index' );

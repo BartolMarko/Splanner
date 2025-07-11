@@ -1,5 +1,8 @@
 <?php
 
+
+require_once __DIR__ . '/../app/database/db.class.php';
+
 class SplannerService
 {
     const USERS_TABLE = 'splanner_korisnici';
@@ -958,25 +961,25 @@ class SplannerService
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 	}
 
-	public function makeTerminZaGrupu($id,$datum,$trener,$vrijeme_poc,$vrijeme_kraj,$dvorana,$comment,$tip_termina){
+	public function makeTerminZaGrupu($id,$datum,$trener,$vrijeme_poc,$vrijeme_kraj,$dvorana,$tip_termina){
 		try
 	{
 		$db = DB::getConnection();
 		$id_aktivnosti=null;
 		if($tip_termina==='redovan'){
 		$st = $db->prepare( 
-			'INSERT INTO splanner_redovni_termini (id_grupe_fk, id_trener_fk, dan, vrijeme_poc, vrijeme_kraj, dvorana, comment) VALUES (:id_grup,:id_tren,:dan,:vrpoc,:vrkr,:dvo,:kom)'
+			'INSERT INTO splanner_redovni_termini (id_grupe_fk, id_trener_fk, dan, vrijeme_poc, vrijeme_kraj, dvorana) VALUES (:id_grup,:id_tren,:dan,:vrpoc,:vrkr,:dvo)'
 		);
 		$dan = date('l', strtotime($datum));
-		$st->execute( array( 'id_grup' => $id, 'id_tren' => $trener, 'dan'=>$dan,'vrpoc'=>$vrijeme_poc,'vrkr'=>$vrijeme_kraj,'dvo'=>$dvorana,'kom'=>$comment) );
+		$st->execute( array( 'id_grup' => $id, 'id_tren' => $trener, 'dan'=>$dan,'vrpoc'=>$vrijeme_poc,'vrkr'=>$vrijeme_kraj,'dvo'=>$dvorana) );
 		$id_aktivnosti = $db->lastInsertId();	//ovo je fja iz PDO koja vrati najnoviji id indeksa (autoincrement)
 	}
 		if($id_aktivnosti===null){ //NIJE REDOVNI (NIJE SE TAMO DODALO NSTA) - ZNACI DATUM, NE DAN U TJEDNU
 			$st = $db->prepare( 
-				'INSERT INTO splanner_azurni_termini (fk_id_redovni_termini,id_grupe_fk, id_trener_fk, datum_origin, vrijeme_poc_stari, vrijeme_kraj_stari, dvorana, comment) VALUES (:id_redovni,:id_grup,:id_tren,:dan,:vrpoc,:vrkr,:dvo,:kom)'
+				'INSERT INTO splanner_azurni_termini (fk_id_redovni_termini,id_grupe_fk, id_trener_fk, datum_origin, vrijeme_poc_stari, vrijeme_kraj_stari, dvorana) VALUES (:id_redovni,:id_grup,:id_tren,:dan,:vrpoc,:vrkr,:dvo)'
 			);
 			$dan = date('l', strtotime($datum));
-			$st->execute( array( 'id_redovni'=>$id_aktivnosti,'id_grup' => $id, 'id_tren' => $trener, 'dan'=>$datum,'vrpoc'=>$vrijeme_poc,'vrkr'=>$vrijeme_kraj,'dvo'=>$dvorana,'kom'=>$comment) );
+			$st->execute( array( 'id_redovni'=>$id_aktivnosti,'id_grup' => $id, 'id_tren' => $trener, 'dan'=>$datum,'vrpoc'=>$vrijeme_poc,'vrkr'=>$vrijeme_kraj,'dvo'=>$dvorana) );
 		}
 		else {//NIJE REDOVAN, ZNACI DA JE DATUM
 			$danas = new DateTime();
@@ -993,8 +996,8 @@ class SplannerService
 					// ako je ime dana jednako ovom koji unosim, unesem ga
 					$st2 = $db->prepare(
 						'INSERT INTO splanner_azurni_termini 
-						(fk_id_redovni_termini, id_grupe_fk, id_trener_fk, datum_origin, vrijeme_poc_stari, vrijeme_kraj_stari, dvorana, comment)
-						VALUES (:id_redovni, :id_grup, :id_tren, :datum, :vrpoc, :vrkr, :dvo, :kom)'
+						(fk_id_redovni_termini, id_grupe_fk, id_trener_fk, datum_origin, vrijeme_poc_stari, vrijeme_kraj_stari, dvorana)
+						VALUES (:id_redovni, :id_grup, :id_tren, :datum, :vrpoc, :vrkr, :dvo)'
 					);
 					$st2->execute([
 						'id_redovni' => $id_aktivnosti,
@@ -1003,8 +1006,7 @@ class SplannerService
 						'datum' => $date->format('Y-m-d'),
 						'vrpoc' => $vrijeme_poc,
 						'vrkr' => $vrijeme_kraj,
-						'dvo' => $dvorana,
-						'kom' => $comment
+						'dvo' => $dvorana
 					]);
 				}
 			}
@@ -1106,13 +1108,13 @@ class SplannerService
 
 	}
 
-	public function updateRedovniTermin($id, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment,$idAzur)
+	public function updateRedovniTermin($id, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana,$idAzur)
 	{
 		try {
 			$db = DB::getConnection();
 			$st = $db->prepare(
 				'UPDATE splanner_redovni_termini 
-				 SET dan = :datum, vrijeme_poc = :vp, vrijeme_kraj = :vk, dvorana = :dvorana, comment = :comment
+				 SET dan = :datum, vrijeme_poc = :vp, vrijeme_kraj = :vk, dvorana = :dvorana
 				 WHERE id_redovni_termini = :id'
 			);
 			$st->execute([
@@ -1120,8 +1122,7 @@ class SplannerService
 				'datum' => $datum,
 				'vp' => $vrijeme_poc,
 				'vk' => $vrijeme_kraj,
-				'dvorana' => $dvorana,
-				'comment' => $comment
+				'dvorana' => $dvorana
 			]);
 
 
@@ -1150,7 +1151,6 @@ class SplannerService
 					$vrijeme_poc, 
 					$vrijeme_kraj,
 					$dvorana,
-					$comment,
 					0                       // $jelAzurno = 0 (znaci da je stvarni update, a ne izvanredni)
 				);
 			}
@@ -1160,14 +1160,14 @@ class SplannerService
 		}
 	}
 
-	public function updateAzurniTermin($id, $id_azur, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $comment,$jelAzurno)
+	public function updateAzurniTermin($id, $id_azur, $datum, $vrijeme_poc, $vrijeme_kraj, $dvorana, $jelAzurno)
 {
 	try {
 		$db = DB::getConnection();
 		if($jelAzurno===1){ //izvanredni termin
 		$st = $db->prepare(
 			'UPDATE splanner_azurni_termini 
-			 SET datum_novi = :datum, vrijeme_poc_novi = :vp, vrijeme_kraj_novi = :vk, dvorana = :dvorana, comment = :comment
+			 SET datum_novi = :datum, vrijeme_poc_novi = :vp, vrijeme_kraj_novi = :vk, dvorana = :dvorana
 			 WHERE id_azurni_termini = :id_az'
 		);
 		$st->execute([
@@ -1175,8 +1175,7 @@ class SplannerService
 			'datum' => $datum,
 			'vp' => $vrijeme_poc,
 			'vk' => $vrijeme_kraj,
-			'dvorana' => $dvorana,
-			'comment' => $comment
+			'dvorana' => $dvorana
 		]);
 	}
 		else{ //obican update, pa updateam samo staru vrijednost
@@ -1218,7 +1217,7 @@ class SplannerService
 			$st = $db->prepare(
 				'UPDATE splanner_azurni_termini 
 				 SET datum_origin = :datum, vrijeme_poc_stari = :vp, vrijeme_kraj_stari = :vk, 
-					 dvorana = :dvorana, comment = :comment
+					 dvorana = :dvorana
 				 WHERE id_azurni_termini = :id_az'
 			);
 			$st->execute([
@@ -1226,8 +1225,7 @@ class SplannerService
 				'datum' => $noviDatum->format('Y-m-d'),
 				'vp' => $vrijeme_poc,
 				'vk' => $vrijeme_kraj,
-				'dvorana' => $dvorana,
-				'comment' => $comment
+				'dvorana' => $dvorana
 			]);
 		}
 	} catch (PDOException $e) {

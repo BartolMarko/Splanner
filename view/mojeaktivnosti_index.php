@@ -36,7 +36,7 @@
                 <p>Cijena: <?= htmlspecialchars($a['cijena']) ?></p>
                 <p>Dob članova: <?= htmlspecialchars($a['uzrast_od']) ?> - <?= htmlspecialchars($a['uzrast_do']) ?></p>
                 <?php if ($tip === 'roditelj'): ?>
-                <button class="ispisi-btn" data-id="<?= $detalji_akt[$i]['id_aktivnosti'] ?>">Ispiši se</button>
+                <button class="ispisi-btn" data-id="<?= $detalji_akt[$i]['id_aktivnosti'] ?>">Ispis</button>
                 <?php endif; ?>
             <?php endif; ?>
         </div>
@@ -215,7 +215,6 @@ $(document).on('click', '.spremi-grupu-btn', function () {
     const vrijemePoc = $grupaDiv.find('.vrijeme_poc').val();
     const vrijemeKraj = $grupaDiv.find('.vrijeme_kraj').val();
     const dvorana = $grupaDiv.find('.dvorana').val();
-    const komentar= $grupaDiv.find('.komentar').val();
     const idGrupe = $grupaDiv.data('grupa-id');
     const $terminDiv = $(this).closest('.termin');
     const izvanredan = ($terminDiv.find('.izvanredan-check-term').is(':checked') ? ('izvanredan') : ('redovan'));
@@ -237,7 +236,6 @@ $(document).on('click', '.spremi-grupu-btn', function () {
                 vrijeme_poc: vrijemePoc,
                 vrijeme_kraj: vrijemeKraj,
                 dvorana: dvorana,
-                comment: komentar,
                 tip_termina: izvanredan,
                 id_red: idTerminRed,
                 id_azur: idTerminAzur
@@ -263,7 +261,6 @@ $(document).on('click', '.spremi-grupu-btn', function () {
     const vrijemeKraj = $grupaDiv.find('.vrijeme_kraj').val();
     const dvorana = $grupaDiv.find('.dvorana').val();
     const izvanredan = ($grupaDiv.find('.izvanredan-check-grp').is(':checked') ? ('izvanredan') : ('redovan'));
-    const comment = $grupaDiv.find('.komentar').val() || '';
     const idGrupe = $grupaDiv.data('grupa-id');
     const idTrener = <?= json_encode($_SESSION['id_user']) ?>;
 
@@ -283,8 +280,7 @@ $(document).on('click', '.spremi-grupu-btn', function () {
             datum: datum,
             vrijeme_poc: vrijemePoc,
             vrijeme_kraj: vrijemeKraj,
-            dvorana: dvorana,
-            comment: comment
+            dvorana: dvorana
         },
         success: function (response) {
             if (response.success) {
@@ -427,8 +423,6 @@ $(document).on('click', '.dodaj-termin-btn', function () {
     <label>Vrijeme početka: <input type="time" class="vrijeme_poc"></label><br>
     <label>Trajanje (u min): <input type="time" class="vrijeme_kraj"></label><br>
     <label>Dvorana: <input type="text" class="dvorana"></label><br>
-    <label>Komentar: <input type="text" class="komentar"></label><br>
-    <label><input type="checkbox" class="izvanredan-check-grp"> Izvanredan</label><br>
     <button class="spremi-novi-termin-btn">💾 Spremi</button>
     <button class="odustani-termin-btn-grp">❌ Odustani</button>
 `;
@@ -456,7 +450,6 @@ $(document).on('click', '.uredi-termin-btn', function () {
     <label>Vrijeme početka: <input type="time" class="vrijeme_poc"></label><br>
     <label>Trajanje (u min): <input type="time" class="vrijeme_kraj"></label><br>
     <label>Dvorana: <input type="text" class="dvorana"></label><br>
-    <label>Komentar: <input type="text" class="komentar"></label><br>
     <label><input type="checkbox" class="izvanredan-check-term"> Izvanredan</label><br>
     <button class="spremi-termin-btn">💾 Spremi</button>
     <button class="odustani-termin-btn-term">❌ Odustani</button>
@@ -515,24 +508,85 @@ $(document).on('click', '.obrisi-termin-btn', function () { //trener brise termi
 
 
     function getAktivnostiDjeteta(dijeteId) {
-        console.log("Dohvacam grupe djeteta ID:", childId);
-        // ajax za reloadanje containera za aktivnosti
-        $.ajax({
-            url: 'ajax/aktivnosti_ajax.php',
-            method: 'POST',
-            data: {
-                action: 'get_grupe_user',
-                user_id: dijeteId
-            },
-            success: function(dobiveniPod) {
-                if (dobiveniPod.error) alert(dobiveniPod.error);
-                else $('#aktivnosti_container').html(dobiveniPod.html);
-            },
-            error: function() {
-                alert('Greška pri dohvaćanju aktivnosti.');
+        // console.log("Dohvacam grupe djeteta ID:", dijeteId);
+        // // ajax za reloadanje containera za aktivnosti
+        // $.ajax({
+        //     url: 'ajax/aktivnosti_ajax.php',
+        //     method: 'POST',
+        //     data: {
+        //         action: 'get_grupe_user',
+        //         user_id: dijeteId
+        //     },
+        //     success: function(dobiveniPod) {
+        //         if (dobiveniPod.error) alert(dobiveniPod.error);
+        //         else $('#aktivnosti_container').html(dobiveniPod.html);
+        //         //location.reload();
+        //     },
+        //     error: function() {
+        //         alert('Greška pri dohvaćanju aktivnosti.');
+        //     }
+        // });
+    
+        console.log("Dohvacam grupe djeteta ID:", dijeteId);
+    const isSelf = dijeteId === '<?= $_SESSION["id_user"] ?>';
+    
+    $.ajax({
+        url: 'ajax/aktivnosti_ajax.php',
+        method: 'POST',
+        data: {
+            action: 'get_grupe_user',
+            user_id: dijeteId
+        },
+        success: function(response) {
+            if (response.success && response.grupe && response.detalji_akt) {
+                // Clear the container
+                $('#aktivnosti_container').empty();
+                
+                // Loop through groups and match with activity details
+                response.grupe.forEach(function(grupa, index) {
+                    const aktivnost = response.detalji_akt[index];
+                    
+                    const aktivnostHtml = `
+                        <div class="aktivnost kosarica" data-aktivnost-id="${grupa.id_grupe}">
+                            <h3>${escapeHtml(aktivnost.ime)}: ${escapeHtml(grupa.ime)}</h3>
+                            <p>Opis: ${escapeHtml(aktivnost.description)}</p>
+                            <p>Grad: ${escapeHtml(aktivnost.grad)}</p>
+                            <p>Cijena: ${escapeHtml(grupa.cijena)}</p>
+                            <p>Dob članova: ${escapeHtml(grupa.uzrast_od)} - ${escapeHtml(grupa.uzrast_do)}</p>
+                            <button class="ispisi-btn" data-id="${grupa.id_grupe}">Ispis</button>
+                        </div>
+                    `;
+                    $('#aktivnosti_container').append(aktivnostHtml);
+                });
+                
+                // Rebind the click event for the ispisi buttons
+                $('.ispisi-btn').off('click').on('click', function() {
+                    let grupaId = $(this).data('id');
+                    ispisiSe(grupaId);
+                });
+            } else {
+                alert(response.error || "Greška pri dohvaćanju aktivnosti");
             }
-        });
+        },
+        error: function() {
+            alert('Greška pri dohvaćanju aktivnosti.');
+        }
+    });
+}
+
+// Helper function to escape HTML (similar to php's htmlspecialchars)
+function escapeHtml(text) {
+    if (text === null || text === undefined) {
+        return '';
     }
+    return text.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 
     function urediAktivnost(aktivnostId) {
         console.log("Uredujem aktivnost:", aktivnostId);
@@ -597,6 +651,7 @@ $(document).on('click', '.obrisi-termin-btn', function () { //trener brise termi
             },
             success: function(dobiveniPod) {
                 getAktivnostiDjeteta($('#dijete_select').val() || $_SESSION['id_user']); //ili svoje aktivnosti ili odabranog djeteta
+
             },
             error: function() {
                 alert('Greška pri ispisu.');
