@@ -18,7 +18,7 @@
     <br>
     <!-- promjena -->
     <label>Uzrast:</label><br>
-    <input type="number" name="uzrast" min="0" max="120">
+    <input type="number" name="uzrast" placeholder="Unesite dob člana kojeg želite upisati" min="0" max="120">
     <br>
     <button type="submit">🔍 Pretraži</button>
 

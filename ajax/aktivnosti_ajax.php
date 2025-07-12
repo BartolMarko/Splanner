@@ -77,6 +77,9 @@ switch ($action) {
             'Sunday'    => 'Nedjelja'
         ];
         ob_start(); //NAPORAVEI HANDLANJE ZA DATUM I ZA OICAN DAN U TJEDNU ZA UIS/EDIT AKTIVNOSTI
+        if (empty($grupe)) {
+            echo "<div>Trenutno nema grupa za ovu aktivnost.</div>";
+        } else {
         foreach ($grupe as $g): 
             $azurniTermini = $ss->getAzurniTerminiZaGrupu($g['id_grupe']);?>
             <div class="grupa kosarcica" data-grupa-id="<?= $g['id_grupe'] ?>">
@@ -135,6 +138,7 @@ switch ($action) {
             <?php endif; ?>
             </div>
         <?php endforeach;
+        }
         $html = ob_get_clean();
         sendJSONandExit(['html' => $html]);
         break;

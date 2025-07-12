@@ -398,10 +398,10 @@ $(document).on('click', '.izvanredan-check-term', function () {
 
     if (isChecked) {
         // IZBORT DATUMA
-        $label.html('Datum: <input type="date" class="datum">');
+        $label.html('Datum: <br><input type="date" class="datum">');
     } else {
         // IZBOR DANA  U TJ
-        $label.html(`Dan u tjednu: 
+        $label.html(`Dan u tjednu: <br>
             <select class="datum">
                 <option value="" disabled selected>Odaberi</option>
                 <option value="Monday">Ponedjeljak</option>
@@ -423,10 +423,10 @@ $(document).on('click', '.izvanredan-check-grp', function () {
 
     if (isChecked) {
         // IZBOR DATUMA
-        $label.html('Datum: <input type="date" class="datum">');
+        $label.html('Datum: <br><input type="date" class="datum">');
     } else {
         // IZBOR DANA U TJ
-        $label.html(`Dan u tjednu: 
+        $label.html(`Dan u tjednu: <br>
             <select class="datum">
                 <option value="" disabled selected>Odaberi</option>
                 <option value="Monday">Ponedjeljak</option>
