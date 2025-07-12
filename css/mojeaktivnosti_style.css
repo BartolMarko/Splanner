@@ -111,5 +111,10 @@ select {
     font-family: 'Poppins', sans-serif;
     box-sizing: border-box;
   }
+
+  .h3-hover:hover {
+    color: var(--color-main);
+}
+
   
   

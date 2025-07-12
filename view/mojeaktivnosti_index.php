@@ -3,7 +3,7 @@
 <!-- <h2>Moje aktivnosti</h2> -->
 
 <?php if ($tip === 'roditelj'): ?>
-    <label for="dijete_select">Prikaz aktivnosti po članovima obitelji:</label>
+    <label for="dijete_select">Prikaz aktivnosti po članovima obitelji: <br></label>
     <select id="dijete_select">
         <option value="<?= $_SESSION['id_user'] ?>" selected>Moje aktivnosti</option>
         <?php foreach ($djeca as $d): ?>
@@ -34,7 +34,7 @@
                 <!-- tu cu grupe ucitati ajaxom i ispisati -->
             </div>
             <?php else: ?>
-                <h3 onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $a['id_grupe']; ?>'"><?php echo htmlspecialchars($detalji_akt[$i]['ime']) .': '. htmlspecialchars($a['ime']); ?></h3>
+                <h3 class="h3-hover" onclick="window.location.href='index.php?rt=aktivnosti/grupa&id=<?php echo $a['id_grupe']; ?>'"><?php echo htmlspecialchars($detalji_akt[$i]['ime']) .': '. htmlspecialchars($a['ime']); ?></h3>
                 <p><?= htmlspecialchars($detalji_akt[$i]['description']) ?></p>
                 <br>
                 <p>Grad: <?= htmlspecialchars($detalji_akt[$i]['grad']) ?></p>
