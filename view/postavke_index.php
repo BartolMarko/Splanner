@@ -87,7 +87,7 @@
         <label>Ponovi lozinku:</label><br>
         <input type="password" name="password_again" required><br><br>
 
-        <input type="submit" value="Dodaj dijete">
+        <input type="submit" value="Dodaj člana">
     </form>
 </div>
 
