@@ -48,7 +48,6 @@ class PostavkeController extends BaseController
         }
       
     $this->registry->template->mojeGrupe = $ss->dohvatiGrupeZaKorisnika($_SESSION['id_user']);
-
     $this->registry->template->show('postavke_index');
     }
 
@@ -111,7 +110,7 @@ class PostavkeController extends BaseController
                     <p>Novo korisničko ime: <strong>{$novoUsername}</strong></p>
                     <p>Lijep pozdrav,<br>Splanner</p>
                 ";
-                $htmlMessage = mb_convert_encoding($htmlMessage, 'UTF-8', 'auto'); //moza ne treba??
+                $htmlMessage = mb_convert_encoding($htmlMessage, 'UTF-8', 'auto'); 
                 try {
                     MailService::posaljiMail($emailRoditelja, $subject, $textMessage, $htmlMessage);
                 } catch (Exception $e) {
@@ -276,13 +275,6 @@ class PostavkeController extends BaseController
 
         $id_djeteta = intval($_POST['id_djeteta']);
         $ss = new SplannerService();
-
-        if (!$ss->provjeriDijeteId($_SESSION['id_user'], $id_djeteta)) {
-            $this->registry->template->poruka = 'Ovaj korisnik nije vaše dijete.';
-            $this->registry->template->tip_poruke = 'greska';
-            $this->index();
-            return;
-        }
 
         $ss->obrisiDijeteId($_SESSION['id_user'], $id_djeteta);
 

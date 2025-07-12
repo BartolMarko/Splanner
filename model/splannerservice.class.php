@@ -556,19 +556,21 @@ class SplannerService
 	}
 	
 	//------- Jelena = postavke ----------------------------
-	// Provjera postoji li korisnicko ime
-	public function checkIfUsernameExists($username)
-	{
-		try {
-			$db = DB::getConnection();
-			$st = $db->prepare('SELECT COUNT(*) FROM ' . self::USERS_TABLE . ' WHERE username = :username');
-			$st->execute(['username' => $username]);
-		}
-		catch (PDOException $e) { exit('PDO error ' . $e->getMessage()); }
 
-		return $st->fetchColumn() > 0;
-	}
+	// provjera ako se neko korisničko ime već koristi
+	function checkIfUsernameExists($username) {
+    try {
+        $db = DB::getConnection();
+        $st = $db->prepare('SELECT COUNT(*) FROM ' . self::USERS_TABLE . ' WHERE BINARY username = :username');
+        $st->execute(['username' => $username]);
+    }
+    catch (PDOException $e) {
+        exit('PDO error ' . $e->getMessage());
+    }
 
+    return $st->fetchColumn() > 0;
+}
+	
 	// Azuriranje korisnickog imena
 	public function updateUsername($id_user, $newUsername)
 	{
@@ -605,7 +607,7 @@ class SplannerService
 		]);
 	}
 
-	public function obrisiSveGrupeTrenera($id_trenera)
+	public function obrisiSveGrupeTrenera($id_trenera) 
 	{
 		$db = DB::getConnection();
 
@@ -626,10 +628,19 @@ class SplannerService
 		');
 		$st->execute(['id' => $id_trenera]);
 
-		//  i same aktivnosti
+		// obriši sve redovne termine trenera
+		$st = $db->prepare('DELETE FROM splanner_redovni_termini WHERE id_trener_fk = :id');
+		$st->execute(['id' => $id_trenera]);
+
+		// obriši sve ažurne termine trenera
+		$st = $db->prepare('DELETE FROM splanner_azurni_termini WHERE id_trener_fk = :id');
+		$st->execute(['id' => $id_trenera]);
+
+		// obriši same aktivnosti
 		$st = $db->prepare('DELETE FROM splanner_aktivnosti WHERE fk_id_trenera = :id');
 		$st->execute(['id' => $id_trenera]);
 	}
+
 
 	public function obrisiKorisnika($id_user)
 	{
@@ -669,9 +680,6 @@ class SplannerService
 		$st->execute(['id' => $id_user]);
 	}
 
-
-
-
 	//za dodavanje novog clana
 	public function dohvatiEmailKorisnika($id_user)
 	{
@@ -685,11 +693,22 @@ class SplannerService
 	public function dodajDijete($id_roditelja, $username, $ime, $prezime, $oib, $email, $password, $spol, $datum)
 	{
 		$db = DB::getConnection();
+
+		// Dohvati roditeljevu postavku prima_obavijest
+		$st = $db->prepare('SELECT prima_obavijest FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
+		$st->execute(['id' => $id_roditelja]);
+		$prima = $st->fetchColumn();
+
+		// Ako je NULL (teoretski), default na 1
+		if ($prima === false || $prima === null) {
+			$prima = 1;
+		}
+
 		$st = $db->prepare(
 			'INSERT INTO ' . self::USERS_TABLE . '
 			(OIB, username, ime, prezime, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, has_registered, fk_id_roditelja, prima_obavijest)
 			VALUES
-			(:oib, :username, :ime, :prezime, :hash, :email, "dijete", :spol, :datum, "", 1, :id_roditelja, 1)'
+			(:oib, :username, :ime, :prezime, :hash, :email, "dijete", :spol, :datum, "", 1, :id_roditelja, :prima)'
 		);
 
 		$st->execute([
@@ -701,7 +720,8 @@ class SplannerService
 			'email' => $email,
 			'spol' => $spol,
 			'datum' => $datum,
-			'id_roditelja' => $id_roditelja
+			'id_roditelja' => $id_roditelja,
+			'prima' => $prima
 		]);
 	}
 
@@ -715,13 +735,6 @@ class SplannerService
     	return $rezultat;
 	}
 
-	public function provjeriDijeteId($id_roditelja, $id_djeteta)
-	{
-		$db = DB::getConnection();
-		$st = $db->prepare('SELECT COUNT(*) FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id AND fk_id_roditelja = :roditelj');
-		$st->execute(['id' => $id_djeteta, 'roditelj' => $id_roditelja]);
-		return $st->fetchColumn() > 0;
-	}
 
 	public function obrisiDijeteId($id_roditelja, $id_djeteta)
 	{

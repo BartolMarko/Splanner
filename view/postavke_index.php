@@ -1,6 +1,5 @@
 <?php require_once __SITE_PATH . '/view/_header.php'; ?>
 
-<!-- <h2>Postavke računa</h2> -->
 
 <?php if (!empty($poruka)): ?>
     <?php if ($tip_poruke === 'greska'): ?>
@@ -53,6 +52,8 @@
 
 <?php endif; ?>
 
+
+<!-- ako je tip korisnika = roditelj -->
 
 <?php if ($_SESSION['tip_korisnika'] === 'roditelj'): ?>
 
@@ -157,7 +158,7 @@ $ukupnoDjeca = 0;
 <?php if (!empty($djecaGrupe)): ?>
     <?php foreach ($djecaGrupe as $ime => $grupe): ?>
         <section>
-            <h4>Aktivnosti za dijete: <?php echo htmlspecialchars($ime); ?></h4>
+            <h4>Aktivnosti za člana: <?php echo htmlspecialchars($ime); ?></h4>
             <?php if (!empty($grupe)): ?>
                 <ul class="kosarica-lista">
                 <?php foreach ($grupe as $g): ?>
@@ -182,13 +183,16 @@ $ukupnoDjeca = 0;
 
 <div class="ukupno-iznos">
     <p><strong>Ukupno za Vaše aktivnosti:</strong> <?php echo $ukupnoRoditelj; ?> €</p>
-    <p><strong>Ukupno za djecu:</strong> <?php echo $ukupnoDjeca; ?> €</p>
+    <p><strong>Ukupno za članove:</strong> <?php echo $ukupnoDjeca; ?> €</p>
     <h3>Sveukupno za platiti: <?php echo $ukupno; ?> €</h3>
 </div>
 </div>
 <?php endif; ?>
 
+<!--------------------------------------->
 
+
+<!-- ako je tip korisnika = trener -->
 <?php if ($_SESSION['tip_korisnika'] === 'trener'): ?>
     <h3 class="toggle-header">Zarada</h3>
     <div class="toggle-content">
@@ -236,22 +240,24 @@ $ukupnoDjeca = 0;
     </form>
 </div>
 
-
 <?php endif; ?>
 
-<!-- JQUERY SCRIPT -->
+<!--------------------------------------->
+
+
 <script>
 
 $(document).ready(function(){
+
     // Sakrij sve sadržaje
     $('.toggle-content').hide();
-
     // Klik na header
     $('.toggle-header').click(function(){
     $('.toggle-content').not($(this).next()).slideUp();
     $(this).next().slideToggle();
     $('.toggle-header').not(this).removeClass('active');
     $(this).toggleClass('active');
+
 });
 
 });
