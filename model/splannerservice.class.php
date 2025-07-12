@@ -608,9 +608,15 @@ class SplannerService
 	public function obrisiKorisnika($id_user)
 	{
 		$db = DB::getConnection();
+
+		
+		$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE fk_id_roditelja = :id');
+		$st->execute(['id' => $id_user]);
+
 		$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
 		$st->execute(['id' => $id_user]);
 	}
+
 
 	//za dodavanje novog clana
 	public function dohvatiEmailKorisnika($id_user)
