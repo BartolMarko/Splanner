@@ -216,8 +216,8 @@ class PostavkeController extends BaseController
             return;
         }
 
-        if (strlen($password) < 5) {
-            $this->registry->template->poruka = 'Lozinka mora imati barem 5 znakova.';
+        if (strlen($password) < 6) {
+            $this->registry->template->poruka = 'Lozinka mora imati barem 6 znakova.';
             $this->registry->template->tip_poruke = 'greska';
             $this->index();
             return;

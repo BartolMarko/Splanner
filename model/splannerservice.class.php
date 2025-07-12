@@ -726,9 +726,16 @@ class SplannerService
 	public function obrisiDijeteId($id_roditelja, $id_djeteta)
 	{
 		$db = DB::getConnection();
+
+		// Prvo obriši pripadnosti iz splanner_pripadnost
+		$st = $db->prepare('DELETE FROM splanner_pripadnost WHERE id_korisnik_fk = :id');
+		$st->execute(['id' => $id_djeteta]);
+
+		// Onda obriši samo dijete
 		$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id AND fk_id_roditelja = :roditelj');
 		$st->execute(['id' => $id_djeteta, 'roditelj' => $id_roditelja]);
 	}
+
 
 	public function postaviPrimaObavijesti($id_user, $prima)
 	{
