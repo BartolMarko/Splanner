@@ -62,7 +62,7 @@ const isNaturalNumber = str => /^\d*$/.test(str);
 const safeTrim = str => str ? str.trim() : null;
 
 let jel_otvorena_grupa=false;
-
+let jel_otvorena_aktivnost=false;
 $(document).ready(function() {
     //TODO!!!!!: DODATI GUMB TRENERU ZA STVARANJE NOVE AKTIVNOSTI
     // roditelj odabrao dijete (ili sebe)
@@ -90,6 +90,8 @@ $(document).ready(function() {
     });
 
     $('#nova-aktivnost-btn').on('click', function () {
+        if(jel_otvorena_aktivnost) return;
+
     const formaHtml = `
         <div class="aktivnost-form nova-aktivnost-form">
             <input type="text" placeholder="Ime aktivnosti" class="ime" required>
@@ -100,9 +102,11 @@ $(document).ready(function() {
         </div>
     `;
     $('#aktivnosti_container').prepend(formaHtml);
+    jel_otvorena_aktivnost=true;
     });
 
     $(document).on('click', '.odustani-btn', function () { //odustao
+        jel_otvorena_aktivnost=false;
     $(this).closest('.nova-aktivnost-form').remove();
     });
 
@@ -231,6 +235,7 @@ $(document).on('click', '.spremi-grupu-btn', function () {
             success: function (response) {
                 if (response.success) {
                     alert("Aktivnost je uspješno dodana!");
+                    jel_otvorena_aktivnost=false;
                     location.reload(); //ponovno ucitam stranicu
                 } else if (response.error) {
                     alert("Greška: " + response.error);
@@ -683,7 +688,6 @@ function escapeHtml(text) {
         const ime = aktivnostDiv.find('.naziv').text();
         const opis = aktivnostDiv.find('.opis').text();
         const cijenaText = aktivnostDiv.find('.cijena').text().replace(/\D/g, ''); //izbrise sve znakove koji nisu brojevi u polju za cijenu
-        //banana
         const formaHtml = `
             <div class="aktivnost-form">
                 <input type="text" class="ime" placeholder="Ime" value="${ime}" required>
