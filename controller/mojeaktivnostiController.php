@@ -34,6 +34,7 @@ class MojeAktivnostiController extends BaseController
 		else { // dijete
 			$aktivnosti = $service->getGrupeForUser($_SESSION['id_user']);
 			$this->registry->template->aktivnosti = $aktivnosti;
+			$detalji_akt=array();
 			foreach($aktivnosti as $a){
 				$detalji_akt[]=$service->getAktZaGrupu($a['fk_id_aktivnosti']);
 			}
