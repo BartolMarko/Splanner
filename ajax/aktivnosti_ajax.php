@@ -122,7 +122,7 @@ switch ($action) {
                     }
                     if ($tip === 'trener'):
                     echo '<button class="uredi-termin-btn">✏️ Uredi termin</button></span>';
-                    echo '<button class="obrisi-termin-btn" data-id="'.$g['id_grupe'].'" style="color:white;">🗑️ Obriši</button>';
+                    echo '<button class="obrisi-termin-btn" data-id="'. $termin['id_azurni_termini'].'" style="color:white;">🗑️ Obriši</button>';
                     echo '<br>';
                     endif;
                 }
