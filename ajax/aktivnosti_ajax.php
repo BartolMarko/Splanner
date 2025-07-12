@@ -33,13 +33,11 @@ switch ($action) {
         $targetId = ($_POST['user_id'] === $_SESSION['id_user']) ? $idUser : intval($_POST['user_id']);
         $grupe = $ss->getGrupeForUser($targetId);
         
-        // Get activity details for each group
         $detalji_akt = array();
         foreach ($grupe as $g) {
             $detalji_akt[] = $ss->getAktZaGrupu($g['fk_id_aktivnosti']);
         }
-        
-        // Return as JSON
+
         sendJSONandExit([
             'success' => true,
             'grupe' => $grupe,
@@ -54,6 +52,13 @@ switch ($action) {
         $ss->ispisiUseraSaAkt($userKojiIspisujem, $idAkt); 
         sendJSONandExit(['success' => true]);
         break;
+
+    case 'delete_grupa':
+        $idGrp = intval($_POST['id']);
+        $ss->obrisiGrupu($idGrp); 
+        sendJSONandExit(['success' => true]);
+        break;
+
 
     case 'get_grupe':
         $idAkt = intval($_POST['aktivnost_id']);
@@ -117,7 +122,7 @@ switch ($action) {
                     }
                     if ($tip === 'trener'):
                     echo '<button class="uredi-termin-btn">✏️ Uredi termin</button></span>';
-                    echo '<button class="obrisi-termin-btn" data-id="'.$termin['id_azurni_termini'].'" style="color:white;">🗑️ Obriši</button>';
+                    echo '<button class="obrisi-termin-btn" data-id="'.$g['id_grupe'].'" style="color:white;">🗑️ Obriši</button>';
                     echo '<br>';
                     endif;
                 }
@@ -126,6 +131,7 @@ switch ($action) {
             <?php if ($tip === 'trener'): ?>
                 <button class="dodaj-termin-btn">✏️ Dodaj termin</button>
                 <button class="objavi-obavijest-btn">Dodaj obavijest</button>
+                <button class="obrisi-grupu-btn" data-id="<?=$g['id_grupe']?>">🗑️ Obriši grupu</button>
             <?php endif; ?>
             </div>
         <?php endforeach;

@@ -507,7 +507,7 @@ $(document).on('click', '.dodaj-termin-btn', function () {
             </select></label><br>
     <label>Vrijeme početka: <br><input type="time" class="vrijeme_poc"></label><br>
     <label>Vrijeme završetka: <br><input type="time" class="vrijeme_kraj"></label><br>
-    <label>Dvorana: <br><input type="text" class="dvorana"></label><br>
+    <label>Lokacija: <br><input type="text" class="dvorana"></label><br>
     <button class="spremi-novi-termin-btn">💾 Spremi</button>
     <button class="odustani-termin-btn-grp">❌ Odustani</button>
 `;
@@ -534,7 +534,7 @@ $(document).on('click', '.uredi-termin-btn', function () {
             </select></label><br>
     <label>Vrijeme početka: <br><input type="time" class="vrijeme_poc"></label><br>
     <label>Vrijeme završetka: <br><input type="time" class="vrijeme_kraj"></label><br>
-    <label>Dvorana: <br><input type="text" class="dvorana"></label><br>
+    <label>Lokacija: <br><input type="text" class="dvorana"></label><br>
     <button class="spremi-termin-btn">💾 Spremi</button>
     <button class="odustani-termin-btn-term">❌ Odustani</button>
 `;
@@ -568,6 +568,28 @@ $(document).on('click', '.obrisi-btn', function () { //trener brise aktivnost
 });
 
 
+
+
+
+$(document).on('click', '.obrisi-grupu-btn', function () { //trener brise grupu
+    const id = $(this).data('id');
+    if (!confirm("Jeste li sigurni da želite obrisati ovu grupu?")) return;
+
+    $.ajax({
+        url: 'ajax/aktivnosti_ajax.php',
+        method: 'POST',
+        data: {
+            action: 'delete_grupa',
+            id: id
+        },
+        success: function () {
+            //location.reload();
+        },
+        error: function () {
+            alert('Greška pri brisanju.');
+        }
+    });
+});
 
 $(document).on('click', '.obrisi-termin-btn', function () { //trener brise termin
     const id = $(this).data('id');

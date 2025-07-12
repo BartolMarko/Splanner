@@ -12,6 +12,29 @@ class SplannerService
     const PRIPADNOST_TABLE = 'splanner_pripadnost';
 	const AZURNI_TERMINI_TABLE = 'splanner_azurni_termini';
 
+
+	public function obrisiGrupu($idGrupa) {
+		try {
+			$db = DB::getConnection();
+			
+			$st = $db->prepare('DELETE FROM splanner_redovni_termini WHERE id_grupe_fk = :id');
+			$st->execute(array('id' => intval($idGrupa)));
+
+			$st = $db->prepare('DELETE FROM splanner_azurni_termini WHERE id_grupe_fk = :id');
+			$st->execute(array('id' => intval($idGrupa)));
+			
+			$st = $db->prepare('DELETE FROM splanner_pripadnost WHERE id_grupe_fk = :id');
+			$st->execute(array('id' => intval($idGrupa)));
+
+			$st = $db->prepare('DELETE FROM splanner_grupe WHERE id_grupe = :id');
+			$st->execute(array('id' => intval($idGrupa)));
+			
+		} catch(PDOException $e) {
+			exit('PDO error ' . $e->getMessage());
+		}
+	}
+
+
 	// ulogiravanje - postavljanje sessiona ili izbacivanje greške
 	function checkLogin($username, $password)
 	{
@@ -1007,7 +1030,7 @@ class SplannerService
 			$dan = date('l', strtotime($datum));
 			$st->execute( array( 'id_redovni'=>$id_aktivnosti,'id_grup' => $id, 'id_tren' => $trener, 'dan'=>$datum,'vrpoc'=>$vrijeme_poc,'vrkr'=>$vrijeme_kraj,'dvo'=>$dvorana) );
 		}
-		else {//NIJE REDOVAN, ZNACI DA JE DATUM
+		else {//REDOVAN, DAN U TJEDNU
 			$danas = new DateTime();
 			$endDatum = clone $danas;
 			$endDatum->modify('next sunday')->modify('next sunday'); //modify na datetime mijenja dani datum in-place, ovo npr ga promijeni na sljedecu nedjelju, pa taj opet na sljedecu nedjelju toj nedjelji
