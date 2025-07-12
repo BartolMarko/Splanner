@@ -631,7 +631,6 @@ class SplannerService
 		$st->execute(['id' => $id_trenera]);
 	}
 
-	//brisanje racuna
 	public function obrisiKorisnika($id_user)
 	{
 		$db = DB::getConnection();
@@ -648,14 +647,28 @@ class SplannerService
 
 		// Ako je roditelj, briši svu djecu
 		if ($tip === 'roditelj') {
+			// Prvo obriši pripadnosti djece
+			$st = $db->prepare('
+				DELETE p FROM splanner_pripadnost p
+				JOIN ' . self::USERS_TABLE . ' d ON p.id_korisnik_fk = d.id_korisnici
+				WHERE d.fk_id_roditelja = :id_roditelja
+			');
+			$st->execute(['id_roditelja' => $id_user]);
+
+			// Onda obriši djecu
 			$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE fk_id_roditelja = :id');
 			$st->execute(['id' => $id_user]);
 		}
+
+		// Obriši pripadnosti ovog korisnika (ako je polaznik u nekoj grupi)
+		$st = $db->prepare('DELETE FROM splanner_pripadnost WHERE id_korisnik_fk = :id');
+		$st->execute(['id' => $id_user]);
 
 		// Na kraju, obriši samog korisnika
 		$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
 		$st->execute(['id' => $id_user]);
 	}
+
 
 
 
