@@ -749,7 +749,16 @@ class SplannerService
 	public function promijeniEmail($id_user, $noviEmail)
 	{
 		$db = DB::getConnection();
+
+		// Promijeni email roditelju
 		$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET email = :email WHERE id_korisnici = :id');
+		$st->execute([
+			'email' => $noviEmail,
+			'id' => $id_user
+		]);
+
+		// Promijeni email svoj djeci
+		$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET email = :email WHERE fk_id_roditelja = :id');
 		$st->execute([
 			'email' => $noviEmail,
 			'id' => $id_user
