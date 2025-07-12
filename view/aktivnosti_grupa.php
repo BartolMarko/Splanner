@@ -44,7 +44,7 @@ if (isset($_GET['from'])) {
 </div>
 
 <!-- UPIS / ISPIS ČLANOVA - KORISNICI -->
-<?php if ($_SESSION['id_user'] !== $aktivnost_detalji['fk_id_trenera'] && $_SESSION['tip_korisnika'] !== 'dijete'): ?> <!-- ako nije trener -->
+<?php if ($_SESSION['tip_korisnika'] === 'roditelj'): ?>
 <?php if (!empty($imenaPovezanihUGrupi)): ?>
     <h3 class="toggle-header">Ispis</h3>
     <div class="toggle-content">
@@ -129,7 +129,7 @@ if (isset($_GET['from'])) {
     </div>
 <?php endif; ?>
 
-<a href="<?= htmlspecialchars($backUrl) ?>">↩ Natrag </a> <!-- promjena -->
+<br><a href="<?= htmlspecialchars($backUrl) ?>">↩ Natrag </a> <!-- promjena -->
 
 
 <script>

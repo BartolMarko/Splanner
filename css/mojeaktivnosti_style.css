@@ -100,6 +100,7 @@ select {
   input[type="password"],
   input[type="email"],
   input[type="time"],
+  input[type="date"],
   input[type="number"] {
     width: 50%;
     padding: 0.6rem;
@@ -107,7 +108,13 @@ select {
     border: 2px solid var(--color-dark);
     border-radius: 0.4rem;
     font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
     box-sizing: border-box;
   }
+
+  .h3-hover:hover {
+    color: var(--color-main);
+}
+
   
   

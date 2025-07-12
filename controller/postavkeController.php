@@ -144,8 +144,8 @@ class PostavkeController extends BaseController
             return;
         }
 
-        if (strlen($nova) < 6) {
-            $this->registry->template->poruka = 'Nova lozinka mora imati barem 6 znakova.';
+        if (strlen($nova) < 5) {
+            $this->registry->template->poruka = 'Nova lozinka mora imati barem 5 znakova.';
             $this->registry->template->tip_poruke = 'greska';
             $this->index();
             return;

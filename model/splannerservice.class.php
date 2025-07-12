@@ -498,6 +498,7 @@ class SplannerService
 		}
 	}
 
+
 	public function obrisiKorisnikaIzGrupe($id_korisnik, $id_grupa)
 	{
 		try {
@@ -604,13 +605,72 @@ class SplannerService
 		]);
 	}
 
-	//brisanje racuna
+	public function obrisiSveGrupeTrenera($id_trenera)
+	{
+		$db = DB::getConnection();
+
+		// obriši pripadnosti svih polaznika iz tih grupa
+		$st = $db->prepare('
+			DELETE p FROM splanner_pripadnost p
+			JOIN splanner_grupe g ON p.id_grupe_fk = g.id_grupe
+			JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
+			WHERE a.fk_id_trenera = :id
+		');
+		$st->execute(['id' => $id_trenera]);
+
+		// obriši sve grupe
+		$st = $db->prepare('
+			DELETE g FROM splanner_grupe g
+			JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
+			WHERE a.fk_id_trenera = :id
+		');
+		$st->execute(['id' => $id_trenera]);
+
+		//  i same aktivnosti
+		$st = $db->prepare('DELETE FROM splanner_aktivnosti WHERE fk_id_trenera = :id');
+		$st->execute(['id' => $id_trenera]);
+	}
+
 	public function obrisiKorisnika($id_user)
 	{
 		$db = DB::getConnection();
+
+		// Dohvati tip korisnika
+		$st = $db->prepare('SELECT tip_korisnika FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
+		$st->execute(['id' => $id_user]);
+		$tip = $st->fetchColumn();
+
+		// Ako je trener, briši sve njegove grupe i aktivnosti
+		if ($tip === 'trener') {
+			$this->obrisiSveGrupeTrenera($id_user);
+		}
+
+		// Ako je roditelj, briši svu djecu
+		if ($tip === 'roditelj') {
+			// Prvo obriši pripadnosti djece
+			$st = $db->prepare('
+				DELETE p FROM splanner_pripadnost p
+				JOIN ' . self::USERS_TABLE . ' d ON p.id_korisnik_fk = d.id_korisnici
+				WHERE d.fk_id_roditelja = :id_roditelja
+			');
+			$st->execute(['id_roditelja' => $id_user]);
+
+			// Onda obriši djecu
+			$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE fk_id_roditelja = :id');
+			$st->execute(['id' => $id_user]);
+		}
+
+		// Obriši pripadnosti ovog korisnika (ako je polaznik u nekoj grupi)
+		$st = $db->prepare('DELETE FROM splanner_pripadnost WHERE id_korisnik_fk = :id');
+		$st->execute(['id' => $id_user]);
+
+		// Na kraju, obriši samog korisnika
 		$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
 		$st->execute(['id' => $id_user]);
 	}
+
+
+
 
 	//za dodavanje novog clana
 	public function dohvatiEmailKorisnika($id_user)
@@ -627,9 +687,9 @@ class SplannerService
 		$db = DB::getConnection();
 		$st = $db->prepare(
 			'INSERT INTO ' . self::USERS_TABLE . '
-			(OIB, username, ime, prezime, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, has_registered, fk_id_roditelja)
+			(OIB, username, ime, prezime, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, has_registered, fk_id_roditelja, prima_obavijest)
 			VALUES
-			(:oib, :username, :ime, :prezime, :hash, :email, "dijete", :spol, :datum, "", 1, :id_roditelja)'
+			(:oib, :username, :ime, :prezime, :hash, :email, "dijete", :spol, :datum, "", 1, :id_roditelja, 1)'
 		);
 
 		$st->execute([
@@ -666,19 +726,36 @@ class SplannerService
 	public function obrisiDijeteId($id_roditelja, $id_djeteta)
 	{
 		$db = DB::getConnection();
+
+		// Prvo obriši pripadnosti iz splanner_pripadnost
+		$st = $db->prepare('DELETE FROM splanner_pripadnost WHERE id_korisnik_fk = :id');
+		$st->execute(['id' => $id_djeteta]);
+
+		// Onda obriši samo dijete
 		$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id AND fk_id_roditelja = :roditelj');
 		$st->execute(['id' => $id_djeteta, 'roditelj' => $id_roditelja]);
 	}
 
+
 	public function postaviPrimaObavijesti($id_user, $prima)
 	{
 		$db = DB::getConnection();
+
+		// Promijeni roditelja
 		$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET prima_obavijest = :p WHERE id_korisnici = :id');
 		$st->execute([
 			'p' => $prima ? 1 : 0,
 			'id' => $id_user
 		]);
+
+		// Promijeni svu djecu
+		$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET prima_obavijest = :p WHERE fk_id_roditelja = :id');
+		$st->execute([
+			'p' => $prima ? 1 : 0,
+			'id' => $id_user
+		]);
 	}
+
 
 	// dohvat trenutnog stanja
 	public function dohvatiPrimaObavijesti($id_user)
@@ -743,7 +820,16 @@ class SplannerService
 	public function promijeniEmail($id_user, $noviEmail)
 	{
 		$db = DB::getConnection();
+
+		// Promijeni email roditelju
 		$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET email = :email WHERE id_korisnici = :id');
+		$st->execute([
+			'email' => $noviEmail,
+			'id' => $id_user
+		]);
+
+		// Promijeni email svoj djeci
+		$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET email = :email WHERE fk_id_roditelja = :id');
 		$st->execute([
 			'email' => $noviEmail,
 			'id' => $id_user

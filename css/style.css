@@ -468,7 +468,7 @@ th {
   padding: 0.5em;
   border-radius: 0.5em;
   border: 1px solid var(--color-dark);
-  font-family: inherit;
+  font-family: 'Poppins', sans-serif;
 }
 
 .forma-obavijest button {
