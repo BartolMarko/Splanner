@@ -583,7 +583,7 @@ $(document).on('click', '.obrisi-grupu-btn', function () { //trener brise grupu
             id: id
         },
         success: function () {
-            //location.reload();
+            location.reload();
         },
         error: function () {
             alert('Greška pri brisanju.');
