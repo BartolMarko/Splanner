@@ -633,9 +633,9 @@ class SplannerService
 		$db = DB::getConnection();
 		$st = $db->prepare(
 			'INSERT INTO ' . self::USERS_TABLE . '
-			(OIB, username, ime, prezime, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, has_registered, fk_id_roditelja)
+			(OIB, username, ime, prezime, password_hash, email, tip_korisnika, spol, datum_rodenja, registration_sequence, has_registered, fk_id_roditelja, prima_obavijest)
 			VALUES
-			(:oib, :username, :ime, :prezime, :hash, :email, "dijete", :spol, :datum, "", 1, :id_roditelja)'
+			(:oib, :username, :ime, :prezime, :hash, :email, "dijete", :spol, :datum, "", 1, :id_roditelja, 1)'
 		);
 
 		$st->execute([
@@ -679,12 +679,22 @@ class SplannerService
 	public function postaviPrimaObavijesti($id_user, $prima)
 	{
 		$db = DB::getConnection();
+
+		// Promijeni roditelja
 		$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET prima_obavijest = :p WHERE id_korisnici = :id');
 		$st->execute([
 			'p' => $prima ? 1 : 0,
 			'id' => $id_user
 		]);
+
+		// Promijeni svu djecu
+		$st = $db->prepare('UPDATE ' . self::USERS_TABLE . ' SET prima_obavijest = :p WHERE fk_id_roditelja = :id');
+		$st->execute([
+			'p' => $prima ? 1 : 0,
+			'id' => $id_user
+		]);
 	}
+
 
 	// dohvat trenutnog stanja
 	public function dohvatiPrimaObavijesti($id_user)
