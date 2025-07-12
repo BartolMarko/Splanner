@@ -498,6 +498,7 @@ class SplannerService
 		}
 	}
 
+
 	public function obrisiKorisnikaIzGrupe($id_korisnik, $id_grupa)
 	{
 		try {
@@ -604,18 +605,58 @@ class SplannerService
 		]);
 	}
 
+	public function obrisiSveGrupeTrenera($id_trenera)
+	{
+		$db = DB::getConnection();
+
+		// obriši pripadnosti svih polaznika iz tih grupa
+		$st = $db->prepare('
+			DELETE p FROM splanner_pripadnost p
+			JOIN splanner_grupe g ON p.id_grupe_fk = g.id_grupe
+			JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
+			WHERE a.fk_id_trenera = :id
+		');
+		$st->execute(['id' => $id_trenera]);
+
+		// obriši sve grupe
+		$st = $db->prepare('
+			DELETE g FROM splanner_grupe g
+			JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
+			WHERE a.fk_id_trenera = :id
+		');
+		$st->execute(['id' => $id_trenera]);
+
+		//  i same aktivnosti
+		$st = $db->prepare('DELETE FROM splanner_aktivnosti WHERE fk_id_trenera = :id');
+		$st->execute(['id' => $id_trenera]);
+	}
+
 	//brisanje racuna
 	public function obrisiKorisnika($id_user)
 	{
 		$db = DB::getConnection();
 
-		
-		$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE fk_id_roditelja = :id');
+		// Dohvati tip korisnika
+		$st = $db->prepare('SELECT tip_korisnika FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
 		$st->execute(['id' => $id_user]);
+		$tip = $st->fetchColumn();
 
+		// Ako je trener, briši sve njegove grupe i aktivnosti
+		if ($tip === 'trener') {
+			$this->obrisiSveGrupeTrenera($id_user);
+		}
+
+		// Ako je roditelj, briši svu djecu
+		if ($tip === 'roditelj') {
+			$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE fk_id_roditelja = :id');
+			$st->execute(['id' => $id_user]);
+		}
+
+		// Na kraju, obriši samog korisnika
 		$st = $db->prepare('DELETE FROM ' . self::USERS_TABLE . ' WHERE id_korisnici = :id');
 		$st->execute(['id' => $id_user]);
 	}
+
 
 
 	//za dodavanje novog clana
