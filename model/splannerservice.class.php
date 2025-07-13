@@ -2,6 +2,7 @@
 
 
 require_once __DIR__ . '/../app/database/db.class.php';
+require_once __DIR__ . '/../app/MailService.php';
 
 class SplannerService
 {
@@ -1119,6 +1120,7 @@ class SplannerService
 	}
 
 	public function makeTerminZaGrupu($id,$datum,$trener,$vrijeme_poc,$vrijeme_kraj,$dvorana,$tip_termina){
+		$imeGrupe=null;
 		try
 	{
 		$db = DB::getConnection();
@@ -1168,8 +1170,34 @@ class SplannerService
 				}
 			}
 		}
+		$st = $db->prepare( 
+			'SELECT ime FROM splanner_grupe WHERE id_grupe = :id'
+		);
+		$st->execute( array( 'id' => $id));
+		$red=$st->fetch();
+		$imeGrupe=$red['ime'];
 	}
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+
+		//ako je sve proslo, saljem mailove i obavijest
+		$subject="Splanner - obavijest o novm terminu";
+		$poruka="Poštovani!\n Obavještavamo Vas kako je dodan novi termin za grupu " . $imeGrupe .".\n Za više detalja, pogledajte Splanner.";
+		$porukaHtml='
+			<p>Poštovani!</p>
+			<p>Obavještavamo Vas kako je dodan novi termin za grupu '. $imeGrupe . '.</p>
+			<p>Za više detalja, pogledajte <a href="https://rp2.studenti.math.hr/~bmarkovi/Splanner">Splanner.</a></p>
+			<p>Lijep pozdrav, Splanner</p>
+		';
+
+		$this->dodajObavijest($id,$poruka);
+		$mailovi = $this->dohvatiEmailoveZaGrupu($id);
+		$mailovi = array_unique($mailovi);
+		foreach($mailovi as $mail_korisnika){
+			try{
+				$jelUspjelo=MailService::posaljiMail($mail_korisnika,$subject,$poruka,$porukaHtml);
+			}
+			catch( Exception $e ) { exit( 'Greška kod slanja maila: ' . $e->getMessage() ); }
+		}
 	}
 
 
