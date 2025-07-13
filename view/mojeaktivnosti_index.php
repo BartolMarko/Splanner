@@ -136,17 +136,26 @@ $(document).ready(function() {
             <label>Maksimalna dob: <br><input type="number" class="dob-max" min="0" step="1" inputmode="numeric"></label><br>
             Cijena:<br><input type="number" class="cijena" step="0.01" min="0" inputmode="numeric"><br>
             <button class="spremi-grupu-btn" data-aktivnost-id="${aktivnostId}">💾 Spremi</button>
-            <button class="odustani-grupa-btn">❌ Odustani</button>
+            <button class="odustani-grupa-btn" data="${aktivnostId}">❌ Odustani</button>
         </div>
     `;
-
-    $grupeDiv.prepend(novaGrupaHtml).slideDown();
+    
+    if ($grupeDiv.is(':visible')) {
+        $grupeDiv.prepend(novaGrupaHtml).slideDown();
+    }
+    else{
+        $grupeDiv.html(novaGrupaHtml).slideDown();
+    }
     });
 
 
     $(document).on('click', '.odustani-grupa-btn', function () {
     jel_otvorena_grupa=false;
     $(this).closest('.nova-grupa-form').remove();
+    const aktivnostId = $(this).data('aktivnost-id');
+    const $grupeDiv = $('#grupe_' + aktivnostId);
+    $grupeDiv.slideUp();
+    
 });
 
 $(document).on('click', '.spremi-grupu-btn', function () {
@@ -710,6 +719,27 @@ function escapeHtml(text) {
         //gledat cu jel prvi ili ne-prvi put kliknut
         const grupeDiv = $('#grupe_' + aktivnostId);
         if (grupeDiv.is(':visible')) {
+            if(jel_otvorena_grupa){
+                jel_otvorena_grupa = false;
+                grupeDiv.find('.nova-grupa-form').remove();
+                if(!grupeDiv.find('.dodaj-termin-btn').length){
+                    $.ajax({
+                    url: 'ajax/aktivnosti_ajax.php',
+                    method: 'POST',
+                    data: {
+                        action: 'get_grupe',
+                        aktivnost_id: aktivnostId
+                    },
+                    success: function(dobiveniPod) {
+                        grupeDiv.html(dobiveniPod.html).slideDown();
+                    },
+                    error: function() {
+                        alert('Greška pri dohvaćanju grupa.');
+                    }
+                    });
+                    return;
+                }
+            }
             grupeDiv.slideUp();
         } else {
             $.ajax({
