@@ -499,7 +499,7 @@ $(document).on('click', '.dodaj-termin-btn', function () {
     $termDiv.data('originalHtml', $termDiv.html());
     }
     const formHtml = `
-    <label><input type="checkbox" class="izvanredan-check-grp"> Izvanredan</label><br>
+    <label><input type="checkbox" class="izvanredan-check-grp"> Izvanredan</label><br><br>
     <label class="datum-label">Dan u tjednu: <br><select class="datum">
                 <option value="" disabled selected>Odaberi</option>
                 <option value="Monday">Ponedjeljak</option>
@@ -526,7 +526,7 @@ $(document).on('click', '.uredi-termin-btn', function () {
     $grupaDiv.data('originalHtml', $grupaDiv.html()); // spremam stari prikaz
     }
     const formHtml = `
-    <label><input type="checkbox" class="izvanredan-check-term"> Izvanredan</label><br>
+    <label><input type="checkbox" class="izvanredan-check-term"> Izvanredan</label><br><br>
     <label class="datum-label">Dan u tjednu: <br><select class="datum">
                 <option value="" disabled selected>Odaberi</option>
                 <option value="Monday">Ponedjeljak</option>
