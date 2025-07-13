@@ -620,6 +620,15 @@ class SplannerService
 		');
 		$st->execute(['id' => $id_trenera]);
 
+		// obriši sve obavijesti vezane uz grupe tog trenera
+		$st = $db->prepare('
+			DELETE o FROM splanner_obavijesti o
+			JOIN splanner_grupe g ON o.id_grupe_fk = g.id_grupe
+			JOIN splanner_aktivnosti a ON g.fk_id_aktivnosti = a.id_aktivnosti
+			WHERE a.fk_id_trenera = :id
+		');
+		$st->execute(['id' => $id_trenera]);
+
 		// obriši sve grupe
 		$st = $db->prepare('
 			DELETE g FROM splanner_grupe g
