@@ -1249,6 +1249,28 @@ class SplannerService
 		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
 	}
 
+	public static function updateGrupa($id, $ime, $spol, $uzrastOd, $uzrastDo, $cijena)
+	{
+		try
+		{
+			$db = DB::getConnection();
+			$st = $db->prepare(
+				'UPDATE splanner_grupe 
+				SET ime = :ime, cijena = :cijena, spol = :spol, uzrast_od = :uzrast_od, uzrast_do = :uzrast_do 
+				WHERE id_grupe = :id'
+			);
+			$st->execute([
+				'id' => $id,
+				'ime' => $ime,
+				'cijena' => $cijena,
+				'spol' => $spol,
+				'uzrast_od' => $uzrastOd,
+				'uzrast_do' => $uzrastDo
+			]);
+		}
+		catch( PDOException $e ) { exit( 'PDO error ' . $e->getMessage() ); }
+	}
+
 	public function getRedovniTerminiZaGrupu($idGrupe){
 		try
 	{

@@ -134,6 +134,7 @@ switch ($action) {
             <?php if ($tip === 'trener'): ?>
                 <button class="dodaj-termin-btn">✏️ Dodaj termin</button>
                 <button class="objavi-obavijest-btn">Dodaj obavijest</button>
+                <button class="uredi-grupu-btn" data-id="<?=$g['id_grupe']?>">✏️ Uredi grupu</button>
                 <button class="obrisi-grupu-btn" data-id="<?=$g['id_grupe']?>">🗑️ Obriši grupu</button>
             <?php endif; ?>
             </div>
@@ -214,6 +215,27 @@ switch ($action) {
     
         try {
             $ss->createGrupa($aktivnostId, $ime, $cijena, $dobMin,$dobMax, $spol);
+            sendJSONandExit(['success' => true]);
+        } catch (Exception $e) {
+            sendErrorAndExit("Greška: " . $e->getMessage());
+        }
+        break;
+
+    case 'update_grupa':
+        if ($tip !== 'trener') sendErrorAndExit("Nemate pristup.");
+    
+        $id = intval($_POST['group_id']);
+        $ime = trim($_POST['ime']);
+        $cijena = floatval($_POST['cijena']);
+        $dobMin = $_POST['dobMin'] === "" ? null : intval($_POST['dobMin']);
+        $dobMax = $_POST['dobMax'] === "" ? null : intval($_POST['dobMax']);
+        $spol = $_POST['spol'] ?? null;
+    
+        if (!$id || !$ime) 
+            sendErrorAndExit("Nedostaju obavezni podaci.");
+    
+        try {
+            $ss->updateGrupa($id, $ime, $spol, $dobMin, $dobMax, $cijena);
             sendJSONandExit(['success' => true]);
         } catch (Exception $e) {
             sendErrorAndExit("Greška: " . $e->getMessage());
